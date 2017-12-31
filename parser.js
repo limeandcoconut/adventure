@@ -55,6 +55,11 @@ let dictionary = {
     except: 'preposition-phrase-infix',
 
     and: 'conjunction',
+
+    parseerror: 'parse-error',
+    perror: 'parse-error',
+    interpretererror: 'interpreter-error',
+    ierror: 'interpreter-error',
 }
 
 // let northConversion = {
@@ -209,6 +214,8 @@ parser.symbol('verb', function(tok) {
 
 parser.symbol('verb-intransitive', verb => verb)
 
+parser.symbol('interpreter-error', interpreterError => interpreterError)
+
 // Implies verb in nud or is a postfix.
 // parser.symbol('adverb-conversion', function(tok) {
 //     let verb = adverbImpliedVerbs[tok.word]
@@ -362,13 +369,17 @@ function isObject({type}) {
 
 // parser.symbol('number', number => number)
 
-module.exports = (input) => {
-    try {
-        let tokens = lexer.lex(input)
-        let parseTree = parser.parse(tokens)
-        return parseTree
-    } catch (e) {
-        console.log(e)
-        return e
-    }
+module.exports = {
+    friendlyParse: (input) => {
+        try {
+            let tokens = lexer.lex(input)
+            let parseTree = parser.parse(tokens)
+            return parseTree
+        } catch (e) {
+            console.log(e)
+            return e
+        }
+    },
+    parser,
+    lexer,
 }

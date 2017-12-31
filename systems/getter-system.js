@@ -11,7 +11,7 @@ class GetterSystem extends System {
     update() {
         this.channel.events.forEach((action) => {
 
-            if (!this.acceptedActions.includes(action.action) || !action.live) {
+            if (!this.acceptedActions.includes(action.type) || !action.live) {
                 return
             }
 
