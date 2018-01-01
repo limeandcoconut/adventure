@@ -1,4 +1,4 @@
-const Interpreter = require('./interpreter-class')
+const {Interpreter, InterpreterError} = require('./interpreter-class')
 const actions = require('./actions')
 const Action = require('./action')
 
@@ -15,7 +15,7 @@ interpreter.handler('noun', (node) => {
 interpreter.handler('adjective', (node) => {
     let noun = interpreter.parseNode(node.object)
     if (!noun) {
-        throw new Error('Adjective expected a noun.')
+        throw new InterpreterError('Adjective expected a noun.')
     }
     noun.descriptors.push(node.word)
     return noun
@@ -24,7 +24,7 @@ interpreter.handler('adjective', (node) => {
 interpreter.handler('verb', (node) => {
     let object = interpreter.parseNode(node.object)
     if (!object) {
-        throw new Error('Verb expected an object.')
+        throw new InterpreterError('Verb expected an object.')
     }
 
     let action = {}
@@ -45,7 +45,7 @@ interpreter.handler('adverb', (node) => {
 
     let action = interpreter.parseNode(node.object)
     if (!(action instanceof Action)) {
-        throw new Error('Adverb expected an action.')
+        throw new InterpreterError('Adverb expected an action.')
     }
     return action.modify(node.word)
 })
@@ -53,7 +53,7 @@ interpreter.handler('adverb', (node) => {
 interpreter.handler('preposition-adverb-postfix', (node) => {
     let action = interpreter.parseNode(node.object)
     if (!(action instanceof Action)) {
-        throw new Error('preposition-adverb-postfix expected an action.')
+        throw new InterpreterError('preposition-adverb-postfix expected an action.')
     }
     return action.modify(node.word)
 })
@@ -61,11 +61,11 @@ interpreter.handler('preposition-adverb-postfix', (node) => {
 interpreter.handler('preposition-phrase-infix', (node) => {
     let direct = interpreter.parseNode(node.direct)
     if (!direct) {
-        throw new Error('preposition-phrase-infix expected a direct object.')
+        throw new InterpreterError('preposition-phrase-infix expected a direct object.')
     }
     let indirect = interpreter.parseNode(node.indirect)
     if (!indirect) {
-        throw new Error('preposition-phrase-infix expected an indirect object.')
+        throw new InterpreterError('preposition-phrase-infix expected an indirect object.')
     }
     return {
         type: 'infix',
@@ -91,9 +91,13 @@ module.exports = {
     friendlyInterpret: (nodes) => {
         try {
             return interpreter.interpret(nodes)
-        } catch (e) {
-            console.log(e)
-            return [e]
+        } catch (error) {
+            console.log(error)
+            console.log(error.isInterpretError)
+            if (error.isInterpretError) {
+                return [error]
+            }
+            throw error
         }
     },
     interpreter,

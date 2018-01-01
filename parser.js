@@ -51,13 +51,15 @@ let dictionary = {
     u: 'noun-conversion',
     up: 'preposition-adverb-postfix-noun-conversion',
 
+    on: 'preposition-adverb-postfix',
+
     with: 'preposition-phrase-infix',
     except: 'preposition-phrase-infix',
 
     and: 'conjunction',
 
-    parseerror: 'parse-error',
-    perror: 'parse-error',
+    parsethrow: 'parse-throw',
+    pthrow: 'parse-throw',
     interpretererror: 'interpreter-error',
     ierror: 'interpreter-error',
 }
@@ -95,32 +97,10 @@ let nounImpliedVerbs
         up: nsew,
     }
 }
-// let adverbImpliedVerbs
-// {
-//     let nsew = {
-//         type: dictionary.go,
-//         word: 'go',
-//     }
-
-//     adverbImpliedVerbs = {
-//         n: nsew,
-//         north: nsew,
-//         s: nsew,
-//         south: nsew,
-//         e: nsew,
-//         east: nsew,
-//         w: nsew,
-//         west: nsew,
-//     }
-// }
 
 let lexer = new Lexer(dictionary, ['article'])
 
 let parser = new Parser(lexer.endToken)
-
-// let parser.expression = parser.parser.expression
-// let parser.token = parser.parser.token
-// let parser.advance = parser.parser.advance
 
 // function infix(id, rbp, lbp, led) {
 //     lbp = lbp || rbp
@@ -169,7 +149,7 @@ function multifix(id, rbp, lbp, led) {
         return {
             type: id,
             word: tok.word,
-            object: parser.expression(rbp),
+            object: parser.expression(rbp, tok),
         }
     }
     parser.symbol(id, nud, lbp, led)
@@ -195,7 +175,7 @@ parser.symbol('verb', function(tok) {
             return token.led({
                 type: 'verb',
                 word: tok.word,
-                object: parser.expression(3),
+                object: parser.expression(3, tok),
             }, token)
         }
         // Rewind since the token is not being used as an adverb.
@@ -203,7 +183,7 @@ parser.symbol('verb', function(tok) {
 
     }
 
-    let object = parser.expression(3)
+    let object = parser.expression(3, tok)
 
     return {
         type: 'verb',
@@ -277,14 +257,13 @@ parser.symbol('noun', noun => noun)
 // Implies its' own noun if one is missing; prefix.
 parser.symbol('adjective', function(tok) {
     let object
-    let tokenType = parser.token().type
-    if (tokenType !== 'noun' && tokenType !== 'adjective') {
+    if (!isObject(parser.token())) {
         object = {
             type: 'noun',
             word: 'anything',
         }
     } else {
-        object = parser.expression(7)
+        object = parser.expression(7, tok)
     }
     return {
         type: 'adjective',
@@ -304,20 +283,16 @@ parser.symbol('preposition-adverb-postfix', null, 3, function(left, tok) {
 parser.symbol('preposition-phrase-infix', null, 4, function(left, tok) {
     let parent
     let top = left
-    while (!/(noun|adjective)/.test(left.type)) {
+    while (!isObject(left)) {
         parent = left
         left = left.object
-
-        if (typeof left === 'undefined') {
-            throw new Error('Expected a lefthand noun.')
-        }
     }
 
     let self = {
         type: 'preposition-phrase-infix',
         word: tok.word,
         direct: left,
-        indirect: parser.expression(5),
+        indirect: parser.expression(5, tok),
     }
 
     if (!parent) {
@@ -329,30 +304,27 @@ parser.symbol('preposition-phrase-infix', null, 4, function(left, tok) {
 
 })
 
-parser.symbol('.', () => {
+parser.symbol('.', (tok) => {
     if (parser.token().type !== parser.endToken) {
-        return parser.expression(0)
+        return parser.expression(0, tok)
     }
 })
 
 parser.symbol('conjunction',
-    function() {
-        return parser.expression(0)
+    function(tok) {
+        return parser.expression(0, tok)
     },
     6,
     function(left, tok) {
         let token = parser.token()
-        if (token.type === parser.endToken) {
-            throw new Error('Unexpected end of statement.')
-        }
-        if (!isObject(token)) {
+        if (!isObject(token) && token.type !== parser.endToken) {
             return left
         }
         return {
             type: 'conjunction',
             word: tok.word,
             left: left,
-            right: parser.expression(7),
+            right: parser.expression(7, tok),
         }
     },
 )
@@ -367,17 +339,18 @@ function isObject({type}) {
     return type === 'adjective' || /noun/.test(type)
 }
 
-// parser.symbol('number', number => number)
-
 module.exports = {
     friendlyParse: (input) => {
         try {
             let tokens = lexer.lex(input)
             let parseTree = parser.parse(tokens)
             return parseTree
-        } catch (e) {
-            console.log(e)
-            return e
+        } catch (error) {
+            console.log(error)
+            if (error.isLexError || error.isParseError) {
+                return error
+            }
+            throw error
         }
     },
     parser,

@@ -1,21 +1,28 @@
 class ObjectDescriptorComponent {
-    constructor(names, descriptors = []) {
-        if (!Array.isArray(names)) {
-            throw new TypeError('Names must be an Array.')
-        }
-        if (!names.length) {
-            throw new RangeError('Names cannot be empty.')
-        }
-        this.names = names
-        this.descriptors = descriptors
+    constructor(labels, descriptors = [], name) {
+        // if (!Array.isArray(labels)) {
+        //     throw new TypeError('Names must be an Array.')
+        // }
+        // if (!labels.length) {
+        //     throw new RangeError('Names cannot be empty.')
+        // }
+        this.setLabels(labels)
+        // this.labels = labels
+        // this.descriptors = descriptors
+        this.setDescriptors(descriptors)
+        this.name = name || labels[0]
     }
 
     getDescriptors() {
         return this.descriptors.slice()
     }
 
-    getNames() {
-        return this.names.slice()
+    getLabels() {
+        return this.labels.slice()
+    }
+
+    getName() {
+        return this.name
     }
 
     setDescriptors(descriptors) {
@@ -25,14 +32,53 @@ class ObjectDescriptorComponent {
         this.descriptors = descriptors
     }
 
-    setNames(names) {
-        if (!Array.isArray(names)) {
-            throw new TypeError('Names must be an Array.')
+    setLabels(labels) {
+        if (!Array.isArray(labels)) {
+            throw new TypeError('Labels must be an Array.')
         }
-        if (!names.length) {
-            throw new RangeError('Names cannot be empty.')
+        if (!labels.length) {
+            throw new RangeError('Labels cannot be empty.')
         }
-        this.names = names
+        this.labels = labels
+    }
+
+    setName(name) {
+        if (!(typeof name === 'string')) {
+            throw new TypeError('Name must be a string.')
+        }
+        if (!name.length) {
+            throw new RangeError('Name cannot be empty string.')
+        }
+        this.name = name
+    }
+}
+
+class AppearanceComponent {
+    constructor(appearance, visible = true) {
+        this.setAppearance(appearance)
+        this.setVisible(visible)
+    }
+
+    getAppearance() {
+        return this.appearance
+    }
+
+    setAppearance(appearance) {
+        if (typeof appearance !== 'undefined' && typeof appearance !== 'string') {
+            throw new TypeError('Argument "appearance" must be a string if defined.')
+        }
+        this.appearance = appearance
+    }
+
+    getVisible() {
+        return this.visible
+    }
+
+    setVisible(visible) {
+        if (typeof visible !== 'boolean') {
+            throw new TypeError('Argument "visible" must be a boolean')
+        }
+        this.visible = visible
     }
 }
 
@@ -90,4 +136,5 @@ module.exports = {
     ObjectDescriptorComponent,
     ContainerComponent,
     LocationComponent,
+    AppearanceComponent,
 }

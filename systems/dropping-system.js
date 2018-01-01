@@ -23,7 +23,17 @@ class DroppingSystem extends System {
                     reason: 'Don\'t have it.',
                 })
                 action.live = false
-                console.log(action)
+                // console.log(action)
+                return
+            }
+
+            if (!action.object.accessible) {
+                action.steps.set('drop', {
+                    success: false,
+                    reason: 'Inaccessible',
+                    container: action.object.container,
+                })
+                action.live = false
                 return
             }
 
@@ -53,7 +63,7 @@ class DroppingSystem extends System {
             action.steps.set('drop', {
                 success: true,
             })
-            console.log(action)
+            // console.log(action)
         })
     }
 

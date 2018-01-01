@@ -1,3 +1,10 @@
+class InterpreterError extends Error {
+    constructor(message) {
+        super(message)
+        this.isInterpretError = true
+    }
+}
+
 class Interpreter {
     constructor() {
         this.handlers = new Map()
@@ -5,7 +12,7 @@ class Interpreter {
 
     handler(type, handler) {
         if (typeof handler !== 'function') {
-            throw new TypeError('argument "handler" must be a Function.')
+            throw new TypeError('Argument "handler" must be a Function.')
         }
         this.handlers.set(type, handler)
     }
@@ -16,7 +23,7 @@ class Interpreter {
         }
         let handler = this.handlers.get(node.type)
         if (!handler) {
-            throw new Error(`Unknown node type: ${node.type}.`)
+            throw new InterpreterError(`Unknown node type: ${node.type}.`)
         }
         return handler(node)
     }
@@ -27,12 +34,15 @@ class Interpreter {
         }
         return nodes.map((node) => {
             let action = this.parseNode(node)
-            console.log('*********** ACTION **********')
-            console.log(JSON.stringify(action, null, 4))
+            // console.log('*********** ACTION **********')
+            // console.log(JSON.stringify(action, null, 4))
             return action
         })
     }
 
 }
 
-module.exports = Interpreter
+module.exports = {
+    Interpreter,
+    InterpreterError,
+}

@@ -20,9 +20,10 @@ class GetterSystem extends System {
                     success: false,
                     // Consider making an Enum for this
                     reason: 'Inaccessible.',
+                    container: action.object.container,
                 })
                 action.live = false
-                console.log(action)
+                // console.log(action)
                 return
             }
 
@@ -37,7 +38,7 @@ class GetterSystem extends System {
                     reason: 'Already Have.',
                 })
                 action.live = false
-                console.log(action)
+                // console.log(action)
                 return
             }
 
@@ -66,7 +67,7 @@ class GetterSystem extends System {
             action.steps.set('get', {
                 success: true,
             })
-            console.log(action)
+            // console.log(action)
         })
     }
 

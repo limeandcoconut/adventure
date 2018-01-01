@@ -29,7 +29,7 @@ class ResolverSystem extends System {
                         reason,
                     })
                     action.live = false
-                    console.log(action)
+                    // console.log(action)
                     return
                 }
             }
@@ -37,7 +37,7 @@ class ResolverSystem extends System {
             action.steps.set('resolve', {
                 success: true,
             })
-            console.log(action)
+            // console.log(action)
         })
     }
 
@@ -53,8 +53,8 @@ class ResolverSystem extends System {
     resolve(object) {
         let descriptors = object.descriptors.slice()
 
-        let name = object.word
-        if (name === 'all' || name === 'everything') {
+        let label = object.word
+        if (label === 'all' || label === 'everything') {
             if (descriptors.length) {
                 throw new Error('Descriptors on "all"')
             }
@@ -78,7 +78,7 @@ class ResolverSystem extends System {
             let descriptorComponent = em.getComponent('ObjectDescriptorComponent', entity)
 
             // If this is not the item we're looking for skip it.
-            if (name !== 'anything' && !descriptorComponent.getNames().includes(name)) {
+            if (label !== 'anything' && !descriptorComponent.getLabels().includes(label)) {
                 return
             }
 
@@ -95,7 +95,7 @@ class ResolverSystem extends System {
                     // Add a tie.
                     best.entities.push(entity)
                 }
-            // If there are no descriptors this entity is a name match.
+            // If there are no descriptors this entity is a label match.
             } else {
                 best.entities.push(entity)
             }

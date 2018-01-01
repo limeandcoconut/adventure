@@ -45,7 +45,7 @@ class LocatorSystem extends System {
             action.steps.set('locate', {
                 success: true,
             })
-            console.log(action)
+            // console.log(action)
 
         })
     }
