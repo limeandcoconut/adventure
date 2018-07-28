@@ -4,8 +4,8 @@ const {entityManager: em} = require('../managers.js')
 class ResolverSystem extends System {
     constructor() {
         super()
-        this.requiredComponents = ['LocationComponent']
-        this.acceptedActions = ['get', 'drop']
+        this.requiredComponents = ['Location']
+        this.acceptedActions = ['get', 'drop', 'open']
     }
 
     update() {

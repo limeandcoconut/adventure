@@ -15,15 +15,20 @@ class GetterSystem extends System {
                 return
             }
 
+            if (!action.object.apparent) {
+                this.fail(action, {
+                    reason: 'Inapparent.',
+                    container: action.object.container,
+                })
+                return
+            }
+
             if (!action.object.accessible) {
-                action.steps.set('get', {
-                    success: false,
-                    // Consider making an Enum for this
+                this.fail(action, {
                     reason: 'Inaccessible.',
                     container: action.object.container,
                 })
-                action.live = false
-                // console.log(action)
+                console.log(action.object)
                 return
             }
 
@@ -32,13 +37,9 @@ class GetterSystem extends System {
             let entity = action.entity.id
 
             if (action.object.locationParent === entity) {
-                action.steps.set('get', {
-                    success: false,
-                    // Consider making an Enum for this
+                this.fail(action, {
                     reason: 'Already Have.',
                 })
-                action.live = false
-                // console.log(action)
                 return
             }
 
@@ -46,7 +47,8 @@ class GetterSystem extends System {
 
             let container = em.getComponent('ContainerComponent', entity)
             let inventory = container.getContents()
-            let objectLocation = em.getComponent('LocationComponent', object)
+
+            let objectLocation = em.getComponent('Location', object)
             let parent = objectLocation.getParent()
             let parentContainer = em.getComponent('ContainerComponent', parent)
             let parentInventory = parentContainer.getContents()
@@ -69,6 +71,13 @@ class GetterSystem extends System {
             })
             // console.log(action)
         })
+    }
+
+    fail(action, info) {
+        info.success = false
+        info.id = action.object.id
+        action.steps.set('get', info)
+        action.live = false
     }
 
     mutate(channel) {

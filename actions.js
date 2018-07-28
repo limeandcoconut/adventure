@@ -4,7 +4,13 @@ const actions = {}
 
 Action.setActionsManifest(actions)
 
-const get = new Action('get')
+const get = new Action('get', {
+    LocatorSystem: {
+        apparent: true,
+        accessible: true,
+        // container:
+    },
+})
 const inventory = new Action('inventory')
 
 Object.assign(actions, {
@@ -17,6 +23,9 @@ Object.assign(actions, {
     inventory,
     i: inventory,
     go: new Action('go'),
+    open: new Action('open', {
+        up: 'open',
+    }),
 })
 
 module.exports = actions

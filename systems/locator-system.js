@@ -4,8 +4,8 @@ const {entityManager: em} = require('../managers.js')
 class LocatorSystem extends System {
     constructor() {
         super()
-        this.requiredComponents = ['LocationComponent']
-        this.acceptedActions = ['get', 'drop']
+        this.requiredComponents = ['Location']
+        this.acceptedActions = ['get', 'drop', 'open']
     }
 
     update() {
@@ -20,26 +20,41 @@ class LocatorSystem extends System {
 
             if (typeof object === 'undefined') {
                 return
+                // why???
             }
 
             console.log('---------- LOCATE ---------')
 
-            let locationComponent = em.getComponent('LocationComponent', entity)
-            let room = locationComponent.getParent()
+            let location = em.getComponent('Location', entity)
+            let room = location.getParent()
 
-            let parent = em.getComponent('LocationComponent', object).getParent()
+            let parent = em.getComponent('Location', object).getParent()
+            let properties = em.getComponent('ObjectPropertiesComponent', object)
+            let apparent = properties.getVisible()
             let container
 
             while ((parent !== room && parent !== entity) && parent) {
                 if (!em.getComponent('ContainerComponent', parent).isOpen()) {
                     container = parent
                 }
+                if (apparent) {
+                    let parentProperties = em.getComponent('ObjectPropertiesComponent', parent)
+                    if (parentProperties) {
+                        if (!parentProperties.getVisible() || (container && !parentProperties.getTransparent())) {
+                            apparent = false
+                        // } else if (container && parentProperties.transparent()) {
+                        }
+                    }
+                }
 
-                parent = em.getComponent('LocationComponent', parent).getParent()
+                parent = em.getComponent('Location', parent).getParent()
             }
-
-            action.object.accessible = Boolean(parent) && !container
+            // Parent will always be the players locaion or the player itself.
+            let parentFlag = Boolean(parent)
+            action.object.accessible = parentFlag && !container
             action.object.container = container
+            // If it's visible and there's a parent location (it's not offscreen) then it is apparent.
+            action.object.apparent = apparent && parentFlag
             action.object.locationParent = parent
 
             action.steps.set('locate', {

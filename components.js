@@ -54,9 +54,8 @@ class ObjectDescriptorComponent {
 }
 
 class AppearanceComponent {
-    constructor(appearance, visible = true) {
+    constructor(appearance) {
         this.setAppearance(appearance)
-        this.setVisible(visible)
     }
 
     getAppearance() {
@@ -69,16 +68,36 @@ class AppearanceComponent {
         }
         this.appearance = appearance
     }
+}
+
+class ObjectPropertiesComponent {
+    constructor(visible = true, transparent = false) {
+        this.setTransparent(transparent)
+        this.setVisible(visible)
+    }
+
+    getTransparent() {
+        return this.transparent
+    }
+
+    setTransparent(transparent) {
+        this.assertBoolean(transparent)
+        this.transparent = transparent
+    }
 
     getVisible() {
         return this.visible
     }
 
     setVisible(visible) {
-        if (typeof visible !== 'boolean') {
-            throw new TypeError('Argument "visible" must be a boolean')
-        }
+        this.assertBoolean(visible)
         this.visible = visible
+    }
+
+    assertBoolean(bool) {
+        if (typeof bool !== 'boolean') {
+            throw new TypeError('Argument must be a boolean')
+        }
     }
 }
 
@@ -118,7 +137,24 @@ class ContainerComponent {
     }
 }
 
-class LocationComponent {
+class PlayerInput {
+    constructor() {
+        this.queue = []
+    }
+
+    getQueue() {
+        return this.queue.slice()
+    }
+
+    setQueue(queue) {
+        if (!Array.isArray(queue)) {
+            throw new TypeError('Queue must be an Array.')
+        }
+        this.queue = queue
+    }
+}
+
+class Location {
     constructor(parent = null) {
         this.parent = parent
     }
@@ -133,8 +169,10 @@ class LocationComponent {
 }
 
 module.exports = {
+    PlayerInput,
     ObjectDescriptorComponent,
     ContainerComponent,
-    LocationComponent,
+    Location,
     AppearanceComponent,
+    ObjectPropertiesComponent,
 }

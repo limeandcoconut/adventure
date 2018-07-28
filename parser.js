@@ -39,9 +39,10 @@ let dictionary = {
     take: 'verb',
     pick: 'verb',
     drop: 'verb',
+    go: 'verb',
+    open: 'verb',
     inventory: 'verb-intransitive',
     i: 'verb-intransitive',
-    go: 'verb',
 
     quickly: 'adverb',
 

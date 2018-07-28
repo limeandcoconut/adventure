@@ -1,190 +1,10 @@
-const {entityFactory, entityManager} = require('./managers.js')
+const {entityManager} = require('./managers.js')
 const {friendlyParse: parse, parser, lexer} = require('./parser.js')
 const {friendlyInterpret: interpret} = require('./interpreter')
 const {LexError, ParseError} = require('parser')
-const ResolverSystem = require('./systems/resolver-system')
-const LocatorSystem = require('./systems/locator-system')
-const GetterSystem = require('./systems/getter-system')
-const DroppingSystem = require('./systems/dropping-system')
-const InventorySystem = require('./systems/inventory-system')
+
 /* eslint-disable require-jsdoc */
-const {
-    ObjectDescriptorComponent,
-    ContainerComponent,
-    LocationComponent,
-} = require('./components.js')
-
-let actionOutputChannel = {events: []}
-
-let resolverSystem = new ResolverSystem()
-let locatorSystem = new LocatorSystem()
-let getterSystem = new GetterSystem()
-let droppingSystem = new DroppingSystem()
-let inventorySystem = new InventorySystem()
-
-resolverSystem.mutate(actionOutputChannel)
-locatorSystem.mutate(actionOutputChannel)
-getterSystem.mutate(actionOutputChannel)
-droppingSystem.mutate(actionOutputChannel)
-inventorySystem.mutate(actionOutputChannel)
-
-let systems = [
-    resolverSystem,
-    locatorSystem,
-    getterSystem,
-    droppingSystem,
-    inventorySystem,
-]
-
-// TODO: pronouns
-// TODO: disambiguation
-// TODO: auto subject assertion
-// TODO: ALL, EXCEPT
-entityFactory.registerConstructor('room', ({parent, contents = [], open} = {}) => {
-    let room = entityManager.createEntity()
-    entityManager.addComponent(new LocationComponent(parent), room)
-    entityManager.addComponent(new ContainerComponent(contents, open), room)
-    return room
-})
-
-entityFactory.registerConstructor('container', ({parent, contents = [], open, labels, descriptors} = {}) => {
-    let container = entityManager.createEntity()
-    entityManager.addComponent(new LocationComponent(parent), container)
-    entityManager.addComponent(new ObjectDescriptorComponent(labels, descriptors), container)
-    entityManager.addComponent(new ContainerComponent(contents, open), container)
-    return container
-})
-
-// Register a factory method for creating entities
-entityFactory.registerConstructor('thing', ({parent, labels, descriptors} = {}) => {
-    let thing = entityManager.createEntity()
-    entityManager.addComponent(new LocationComponent(parent), thing)
-    entityManager.addComponent(new ObjectDescriptorComponent(labels, descriptors), thing)
-    return thing
-})
-
-entityFactory.registerConstructor('player', ({parent, contents = [], open} = {}) => {
-    let player = entityManager.createEntity()
-    entityManager.addComponent(new LocationComponent(parent), player)
-    entityManager.addComponent(new ObjectDescriptorComponent(['self', 'me', 'myself'], []), player)
-    entityManager.addComponent(new ContainerComponent(contents, open), player)
-    return player
-})
-
-let player
-
-if (entityManager.lowestFreeId === 10) {
-    // Great! This is where you create an entity 🤖
-    let room = entityFactory.createRoom()
-
-    let stuff = []
-
-    player = entityFactory.createPlayer({
-        parent: room,
-    })
-    stuff.push(player)
-
-    let thing = entityFactory.createThing({
-        parent: player,
-        labels: ['THING', 'thing', 'thign'],
-    })
-    entityManager.getComponent('ContainerComponent', player).setContents([thing])
-
-    let crate = entityFactory.createContainer({
-        parent: room,
-        open: false,
-        labels: ['crate'],
-    })
-    stuff.push(crate)
-
-    let rock = entityFactory.createThing({
-        parent: crate,
-        labels: ['rock'],
-    })
-    entityManager.getComponent('ContainerComponent', crate).setContents([rock])
-
-    // stuff.push(rock)
-    let screw = entityFactory.createThing({
-        parent: room,
-        labels: ['screw', 'fixture'],
-        descriptors: ['red', 'rusty'],
-    })
-    stuff.push(screw)
-    let bolt = entityFactory.createThing({
-        parent: room,
-        labels: ['bolt', 'fixture'],
-        descriptors: ['red'],
-    })
-    stuff.push(bolt)
-
-    entityManager.getComponent('ContainerComponent', room).setContents(stuff)
-
-    let box = entityFactory.createContainer({
-        labels: ['box'],
-        open: false,
-    })
-
-    let wrench = entityFactory.createThing({
-        parent: box,
-        labels: ['wrench'],
-    })
-    entityManager.getComponent('ContainerComponent', box).setContents([wrench])
-
-    console.log(JSON.stringify({
-        room,
-        player,
-        thing,
-        rock,
-        screw,
-        bolt,
-        box,
-        crate,
-    }, null, 4))
-
-    console.log(JSON.stringify({
-        player: ['thing'],
-        room: [
-            'player',
-            // 'rock',
-            'screw',
-            'bolt',
-            'crate',
-        ],
-        crate: [
-            'rock',
-        ],
-        box: [
-            'wrench',
-        ],
-        offscreen: [
-            'box',
-            'room',
-        ],
-    }, null, 4))
-
-} else {
-    console.log('skipped entities')
-    console.log('player: 11')
-    player = 11
-    //
-//     let entities = entityManager.getEntitiesWithComponent('ObjectDescriptorComponent')
-//     console.log(entities)
-//     entities.forEach((entity) => {
-//         console.log(entityManager.getComponent('ObjectDescriptorComponent', entity))
-//         //
-//     })
-
-//     entities = entityManager.getEntitiesWithComponent('ContainerComponent')
-//     entities.forEach((entity) => {
-//         console.log(entityManager.getComponent('ContainerComponent', entity))
-//     })
-
-//     entities = entityManager.getEntitiesWithComponent('LocationComponent')
-//     entities.forEach((entity) => {
-//         console.log(entityManager.getComponent('LocationComponent', entity))
-// //
-//     })
-}
+const {actionOutputChannel, systems, player} = require('./setup.js')
 
 module.exports = function(line) {
     // Lex and parse.
@@ -335,7 +155,7 @@ let responses = {
         },
         inventory({inventory}) {
             if (!inventory.length) {
-                return `You don't have antying`
+                return `You don't have antying.`
             }
 
             function describeInventory(inventory, level = 0) {
@@ -363,13 +183,18 @@ let responses = {
         },
     },
     failure: {
-        get({reason, container}) {
+        get({reason, container, id}) {
+            console.log(reason, container, id)
             if (/have/i.test(reason)) {
                 return 'You already have that'
             }
             if (/inaccessible/i.test(reason)) {
                 let name = entityManager.getComponent('ObjectDescriptorComponent', container).getName()
                 return `The ${name} is closed.`
+            }
+            if (/inapparent/i.test(reason)) {
+                let name = entityManager.getComponent('ObjectDescriptorComponent', id).getName()
+                return responses.general.inapparent(name)
             }
             return reason
         },
@@ -383,6 +208,11 @@ let responses = {
                 return `The ${name} is closed.`
             }
             return reason
+        },
+    },
+    general: {
+        inapparent(object) {
+            return `You don't see any ${object} here.`
         },
     },
 }
