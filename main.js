@@ -2,9 +2,12 @@ const {entityManager} = require('./managers.js')
 const {friendlyParse: parse, parser, lexer} = require('./parser.js')
 const {friendlyInterpret: interpret} = require('./interpreter')
 const {LexError, ParseError} = require('parser')
+const {preresolve, ResolveError} = require('./preresolve.js')
 
 /* eslint-disable require-jsdoc */
-const {actionOutputChannel, systems, player} = require('./setup.js')
+const {systems, player} = require('./setup.js')
+
+let actionQueue = []
 
 module.exports = function(line) {
     // Lex and parse.
@@ -26,9 +29,12 @@ module.exports = function(line) {
     let actions = interpret(parseTree)
     // Filter null actions/nodes.
     let filteredActions = []
-    for (let action of actions) {
+    let iLen = actions.length
+    for (let i = 0; i < iLen; i++) {
+        let action = actions[i]
         console.log('*********** ACTION **********')
         console.log(JSON.stringify(action, null, 4))
+        console.log(action)
         if (action instanceof Error) {
             return formatResponse(action)
         }
@@ -40,86 +46,204 @@ module.exports = function(line) {
     // Construct response from executing actions.
     let output = ''
 
-    // TODO: Change to reduce function. Maybe.
-    actions.forEach((action) => {
-        console.log('*********** EXECUTE **********')
+    // Add properties to action.
+    // if (!action.entity) {
+    // }
+    let deferred = []
+    let i = 0
+    // let j = 0
+    while (i < actions.length) {
+        let action = actions[i]
+        // action.entity = {
+        //     id: player,
+        // }
+        console.log('*********** EXECUTE i **********')
+
+        action.entity = {
+            id: player,
+        }
+
+        if (action.object) {
+            //  If the action is a bifurcation.
+            if (action.object.type === 'bifurcation') {
+                // Split into two actions.
+                let right = Object.create(action)
+                right.object = action.object.right
+
+                let left = Object.create(action)
+                left.object = action.object.left
+
+                // Defer the right side.
+                // execute(right, true)
+                right.steps = new Map()
+                right.live = true
+                deferred.push(right)
+                // Execute the left.
+                // actions[i] = left
+                action = left
+                // let response = execute(left)
+                // return response
+                // continue
+            }
+
+            //  If the action is targeting a generic object preresolve the object id(s).
+            let label = action.object.word
+            if (label === 'all' || label === 'everything') {
+                // Fail this action if there are descriptors attached to "all".
+                if (action.object.descriptors.length) {
+                    output += formatResponse(new ResolveError(`Cannot resolve descriptors on "${action.word}."`))
+                    continue
+                }
+
+                let objects
+
+                objects = preresolve(action)
+                if (objects instanceof Error) {
+                    output += formatResponse(objects)
+                    continue
+                }
+
+                let objectCount = objects.length
+                let l = 0
+                let newAction
+                do {
+                    newAction = Object.create(action)
+                    newAction.object = objects[l]
+                    if (l === objectCount - 1) {
+                        break
+                    }
+                    newAction.steps = new Map()
+                    newAction.live = true
+                    deferred.push(newAction)
+                    // execute(newAction, true)
+                } while (++l)
+
+                // let response = execute(newAction)
+                // return response
+                action = newAction
+            }
+        }
+
+        action.steps = new Map()
+        action.live = true
         output += execute(action)
-    })
+
+        let j = 0
+        while (j < deferred.length) {
+            console.log('*********** EXECUTE j **********')
+            output += execute(deferred[j])
+            j++
+        }
+        deferred = []
+        i++
+
 
     return output
 }
 
 function execute(action, defer = false) {
 
-    //  If the action is a bifurcation.
-    if (action.object && action.object.type === 'bifurcation') {
-        // Split into two actions.
-        let right = Object.create(action)
-        right.object = action.object.right
+    // if (action.object) {
+    //     //  If the action is a bifurcation.
+    //     if (action.object.type === 'bifurcation') {
+    //         // Split into two actions.
+    //         let right = Object.create(action)
+    //         right.object = action.object.right
 
-        let left = Object.create(action)
-        left.object = action.object.left
+    //         let left = Object.create(action)
+    //         left.object = action.object.left
 
-        // Defer the right side.
-        execute(right, true)
-        // Execute the left.
-        let response = execute(left)
-        return response
-    }
+    //         // Defer the right side.
+    //         execute(right, true)
+    //         // Execute the left.
+    //         let response = execute(left)
+    //         return response
+    //     }
 
-    // Add properties to action.
-    action.entity = {
-        id: player,
-    }
-    action.steps = new Map()
-    action.live = true
+    //     //  If the action is targeting a generic object preresolve the object id(s).
+    //     let label = action.object.word
+    //     if (label === 'all' || label === 'everything') {
+    //         // Fail this action if there are descriptors attached to "all".
+    //         if (action.object.descriptors.length) {
+    //             return formatResponse(new ResolveError(`Cannot resolve descriptors on "${action.word}."`))
+    //         }
 
-    // Add this action to the channel.
-    actionOutputChannel.events.unshift(action)
+    //         let objects
 
-    if (defer) {
-        return
-    }
+    //         objects = preresolve(action)
+    //         if (objects instanceof Error) {
+    //             return formatResponse(objects)
+    //         }
+
+    //         let objectCount = objects.length
+    //         let i = 0
+    //         let newAction
+    //         do {
+    //             newAction = Object.create(action)
+    //             newAction.object = objects[i]
+    //             if (i === objectCount - 1) {
+    //                 break
+    //             }
+    //             execute(newAction, true)
+    //         } while (++i)
+
+    //         let response = execute(newAction)
+    //         return response
+    //     }
+    // }
+
+    // action.steps = new Map()
+    // // if (typeof action.live === 'undefined') {
+    // action.live = true
+    // }
+
+    // Add this action to the queue.
+    // actionQueue.unshift(action)
+
+    // if (defer) {
+    //     return
+    // }
+
+    // console.log('--------------------QUEUE----------------')
+    // console.log(JSON.stringify(actionQueue, null, 4))
 
     // Update all the systems.
-    systems.forEach((system) => system.update())
+    // systems.forEach((system) => system.update())
 
     // Format a simple response.
     let response = ''
-    // actionOutputChannel.events.forEach((action) => {
-    //     let res = {}
-    //     res.type = action.type
-    //     res.object = action.object
-    //     res.live = action.live
-    //     res.steps = {}
-    //     action.steps.forEach((step, name) => {
-    //         res.steps[name] = step.success || step.reason
-    //     })
-    //     res.info = action.info
-    //     response += JSON.stringify(res, null, 4)
-    // })
-    actionOutputChannel.events.forEach((action) => {
-        let output = formatResponse(action)
-        // if (action.live) {
-        // }
-        if (!output) {
-            let res = {}
-            res.type = action.type
-            res.object = action.object
-            res.live = action.live
-            res.steps = {}
-            action.steps.forEach((step, name) => {
-                res.steps[name] = step.success || step.reason
-            })
-            res.info = action.info
-            output += JSON.stringify(res, null, 4)
-            console.log(action)
+    // actionQueue.events.forEach((action) => {
+    // for (let action of actionQueue) {
+    let procedure = action.procedure
+
+    procedure.every((step) => {
+        if (!action.live) {
+            return false
         }
-        response += output
+        systems[step].update(action)
+        return true
     })
 
+    let output = formatResponse(action)
+
+    if (!output) {
+        let res = {}
+        res.type = action.type
+        res.object = action.object
+        res.live = action.live
+        res.steps = {}
+        action.steps.forEach((step, name) => {
+            res.steps[name] = step.success || step.reason
+        })
+        res.info = action.info
+        output += JSON.stringify(res, null, 4)
+        console.log(action)
+    }
+    response += output
+    // }
+
     // Clear channel.
-    actionOutputChannel.events = []
+    // actionQueue = []
 
     return response
 }
@@ -143,7 +267,7 @@ let responses = {
         },
         fatal() {
             return `Well it looks like this one is on me. ` +
-            `Something terrible just happened and it doesn't look like we can fix it.`
+                `Something terrible just happened and it doesn't look like we can fix it.`
         },
     },
     success: {
@@ -153,7 +277,9 @@ let responses = {
         drop() {
             return 'Dropped.'
         },
-        inventory({inventory}) {
+        inventory({
+            inventory,
+        }) {
             if (!inventory.length) {
                 return `You don't have antying.`
             }
@@ -168,7 +294,10 @@ let responses = {
                     output = `You are carrying:\n`
                 }
 
-                inventory.forEach(({id, inventory}) => {
+                inventory.forEach(({
+                    id,
+                    inventory,
+                }) => {
                     let name = entityManager.getComponent('ObjectDescriptorComponent', id).getName()
                     output += `${tab}${indent}${name}\n`
                     if (inventory) {
@@ -183,7 +312,11 @@ let responses = {
         },
     },
     failure: {
-        get({reason, container, id}) {
+        get({
+            reason,
+            container,
+            id,
+        }) {
             console.log(reason, container, id)
             if (/have/i.test(reason)) {
                 return 'You already have that'
@@ -198,7 +331,10 @@ let responses = {
             }
             return reason
         },
-        drop({reason, container}) {
+        drop({
+            reason,
+            container,
+        }) {
             console.log(reason)
             if (/don.?t/i.test(reason)) {
                 return `You don't have that`
@@ -246,6 +382,8 @@ function formatResponse(output) {
                 return responses.errors.understandWord(token.word)
             }
             return responses.errors.understandSentence()
+        } else if (output.isResolutionError) {
+            return responses.errors.understandSentence()
         }
         return responses.errors.fatal()
     }
@@ -262,8 +400,8 @@ function formatResponse(output) {
     } else if (output.live === false) {
         let step = Array.from(output.steps.keys()).pop()
         let handler = responses.failure[step]
-        console.log(step)
-        console.log(handler)
+        // console.log(step)
+        // console.log(handler)
         if (handler) {
             let info = Array.from(output.steps.values()).pop()
             return handler(info)

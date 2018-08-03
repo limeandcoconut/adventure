@@ -2,13 +2,8 @@ const {System} = require('rubricjs')
 const {entityManager: em} = require('../managers.js')
 
 class DroppingSystem extends System {
-    constructor() {
-        super()
-        this.requiredComponents = ['ContainerComponent']
-        this.acceptedActions = ['drop']
-    }
 
-    action(action) {
+    update(action) {
         let entity = action.entity.id
         if (action.object.locationParent !== entity) {
             action.steps.set('drop', {
@@ -59,22 +54,6 @@ class DroppingSystem extends System {
         action.steps.set('drop', {
             success: true,
         })
-        // console.log(action)
-    }
-
-    update() {
-        this.channel.events.forEach((action) => {
-
-            if (!this.acceptedActions.includes(action.type) || !action.live) {
-                return
-            }
-
-            this.action(action)
-        })
-    }
-
-    mutate(channel) {
-        this.channel = channel
     }
 }
 

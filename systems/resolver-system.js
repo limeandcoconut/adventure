@@ -2,23 +2,14 @@ const {System} = require('rubricjs')
 const {entityManager: em} = require('../managers.js')
 
 class ResolverSystem extends System {
-    constructor() {
-        super()
-        this.requiredComponents = ['Location']
-        this.acceptedActions = ['get', 'drop', 'open']
-    }
 
-    update() {
-        this.channel.events.forEach((action) => {
+    update(action) {
 
-            if (!this.acceptedActions.includes(action.type) || !action.live) {
-                return
-            }
+        console.log('---------- RESOLVE ---------')
 
-            console.log('---------- RESOLVE ---------')
+        let objects = this.extractObjects(action)
 
-            let objects = this.extractObjects(action)
-
+        if (typeof objects[0].id === 'undefined') {
             for (let object of objects) {
                 let {success, id, reason} = this.resolve(object)
                 if (success) {
@@ -29,15 +20,13 @@ class ResolverSystem extends System {
                         reason,
                     })
                     action.live = false
-                    // console.log(action)
                     return
                 }
             }
+        }
 
-            action.steps.set('resolve', {
-                success: true,
-            })
-            // console.log(action)
+        action.steps.set('resolve', {
+            success: true,
         })
     }
 
@@ -117,10 +106,6 @@ class ResolverSystem extends System {
         }
 
         return result
-    }
-
-    mutate(channel) {
-        this.channel = channel
     }
 }
 

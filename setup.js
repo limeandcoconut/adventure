@@ -13,8 +13,6 @@ const {
     ObjectPropertiesComponent,
 } = require('./components.js')
 
-let actionOutputChannel = {events: []}
-
 let resolverSystem = new ResolverSystem()
 let locatorSystem = new LocatorSystem()
 let getterSystem = new GetterSystem()
@@ -22,12 +20,12 @@ let droppingSystem = new DroppingSystem()
 let inventorySystem = new InventorySystem()
 let openSystem = new OpenSystem()
 
-resolverSystem.mutate(actionOutputChannel)
-locatorSystem.mutate(actionOutputChannel)
-getterSystem.mutate(actionOutputChannel)
-droppingSystem.mutate(actionOutputChannel)
-inventorySystem.mutate(actionOutputChannel)
-openSystem.mutate(actionOutputChannel)
+// resolverSystem.mutate(actionOutputChannel)
+// locatorSystem.mutate(actionOutputChannel)
+// getterSystem.mutate(actionOutputChannel)
+// droppingSystem.mutate(actionOutputChannel)
+// inventorySystem.mutate(actionOutputChannel)
+// openSystem.mutate(actionOutputChannel)
 
 // let systems = [
 //     resolverSystem,
@@ -251,7 +249,6 @@ if (entityManager.lowestFreeId === 10) {
 }
 
 module.exports = {
-    actionOutputChannel,
     systems,
     player,
 }

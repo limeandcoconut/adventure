@@ -1,5 +1,5 @@
 class Action {
-    constructor(type, variants, requirements) {
+    constructor(type, procedure, variants, requirements) {
         this.type = type
         this.variants = variants || {}
         this.requirements = requirements || {
@@ -8,6 +8,7 @@ class Action {
                 accessible: true,
             },
         }
+        this.procedure = procedure
         // this.requiredLocal = 'present'
         // this.requiredApparent = true
     }

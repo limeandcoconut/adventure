@@ -2,42 +2,24 @@ const {System} = require('rubricjs')
 const {entityManager: em} = require('../managers.js')
 
 class InventorySystem extends System {
-    constructor() {
-        super()
-        this.requiredComponents = ['ContainerComponent']
-        this.acceptedActions = ['inventory']
-    }
 
-    update() {
-        this.channel.events.forEach((action) => {
+    update(action) {
+        console.log('-------- INVENTORY --------')
 
-            if (!this.acceptedActions.includes(action.type) || !action.live) {
-                return
-            }
+        let entity = action.entity.id
 
-            console.log('-------- INVENTORY --------')
+        let container = em.getComponent('ContainerComponent', entity)
+        let inventory = container.getContents()
 
-            let entity = action.entity.id
+        inventory = this.formatInventory(inventory)
+        console.log(inventory)
 
-            let container = em.getComponent('ContainerComponent', entity)
-            let inventory = container.getContents()
+        action.info = {
+            inventory,
+        }
 
-            inventory = this.formatInventory(inventory)
-            console.log(inventory)
-
-            action.info = {
-                inventory,
-            }
-
-            action.steps.set('inventory', {
-                success: true,
-            })
-            // console.log(action.inventory)
-
-            // action.steps.set('inventory', {
-            //     success: true,
-            // })
-            // console.log(action)
+        action.steps.set('inventory', {
+            success: true,
         })
     }
 
@@ -58,10 +40,6 @@ class InventorySystem extends System {
         })
 
         return inventory
-    }
-
-    mutate(channel) {
-        this.channel = channel
     }
 }
 
