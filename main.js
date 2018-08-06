@@ -115,12 +115,12 @@ module.exports = function(line) {
         // Add properties to action.
         action.steps = new Map()
         action.live = true
-        output += execute(action)
+        output += execute(action) + '\n'
 
         let j = 0
         while (j < deferred.length) {
             console.log('*********** EXECUTE j **********')
-            output += execute(deferred[j])
+            output += execute(deferred[j]) + '\n'
             j++
         }
         deferred = []

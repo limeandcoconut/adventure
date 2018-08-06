@@ -1,4 +1,6 @@
-module.exports = {
+let {entityManager} = require('./managers.js')
+
+let responses = {
     responses: {
         errors: {
             unknownWord(word) {
@@ -18,7 +20,7 @@ module.exports = {
             },
             fatal() {
                 return `Well it looks like this one is on me. ` +
-                `Something terrible just happened and it doesn't look like we can fix it.`
+                    `Something terrible just happened and it doesn't look like we can fix it.`
             },
         },
         success: {
@@ -111,3 +113,5 @@ module.exports = {
         'preposition-phrase-infix': 'noun',
     },
 }
+
+module.exports = responses
