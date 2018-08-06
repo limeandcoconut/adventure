@@ -51,7 +51,7 @@ class ResolverSystem extends System {
             }
         }
 
-        let entities = em.getEntitiesWithComponent('ObjectDescriptorComponent')
+        let entities = em.getEntitiesWithComponent('Descriptors')
 
         let best = {
             entities: [],
@@ -61,7 +61,7 @@ class ResolverSystem extends System {
 
         // Check to see how well each entity matches our search.
         entities.forEach((entity) => {
-            let descriptorComponent = em.getComponent('ObjectDescriptorComponent', entity)
+            let descriptorComponent = em.getComponent('Descriptors', entity)
 
             // If this is not the item we're looking for skip it.
             if (label !== 'anything' && !descriptorComponent.getLabels().includes(label)) {

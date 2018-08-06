@@ -30,11 +30,11 @@ class DroppingSystem extends System {
 
         let object = action.object.id
 
-        let container = em.getComponent('ContainerComponent', entity)
+        let container = em.getComponent('Container', entity)
         let inventory = container.getContents()
 
         let room = em.getComponent('Location', entity).getParent()
-        let roomContainer = em.getComponent('ContainerComponent', room)
+        let roomContainer = em.getComponent('Container', room)
         let roomInventory = roomContainer.getContents()
 
         let objectLocation = em.getComponent('Location', object)
@@ -49,7 +49,7 @@ class DroppingSystem extends System {
         roomContainer.setContents(roomInventory)
         objectLocation.setParent(room)
 
-        console.log(em.getComponent('ContainerComponent', entity).getContents())
+        console.log(em.getComponent('Container', entity).getContents())
 
         action.steps.set('drop', {
             success: true,

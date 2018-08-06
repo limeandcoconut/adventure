@@ -49,7 +49,7 @@ let responses = {
                         id,
                         inventory,
                     }) => {
-                        let name = entityManager.getComponent('ObjectDescriptorComponent', id).getName()
+                        let name = entityManager.getComponent('Descriptors', id).getName()
                         output += `${tab}${indent}${name}\n`
                         if (inventory) {
                             output += describeInventory(inventory, level + 1)
@@ -74,7 +74,7 @@ let responses = {
                     return 'You already have that.'
                 }
                 if (/inaccessible/i.test(reason)) {
-                    let name = entityManager.getComponent('ObjectDescriptorComponent', container).getName()
+                    let name = entityManager.getComponent('Descriptors', container).getName()
                     return `The ${name} is closed.`
                 }
             },
@@ -83,7 +83,7 @@ let responses = {
                     return `You don't have that`
                 }
                 if (/inaccessible/i.test(reason)) {
-                    let name = entityManager.getComponent('ObjectDescriptorComponent', container).getName()
+                    let name = entityManager.getComponent('Descriptors', container).getName()
                     return `The ${name} is closed.`
                 }
             },
@@ -94,7 +94,7 @@ let responses = {
                 }
                 console.log(objects)
                 if (/multiple/i.test(reason)) {
-                    let names = objects.map((object) => entityManager.getComponent('ObjectDescriptorComponent', object).getName())
+                    let names = objects.map((object) => entityManager.getComponent('Descriptors', object).getName())
                     let last = names.pop()
                     names = names.join(', ')
                     names += ', or the ' + last
@@ -109,7 +109,7 @@ let responses = {
                     return 'It\'s already open.'
                 }
                 if (/not.*container/i.test(reason)) {
-                    let name = entityManager.getComponent('ObjectDescriptorComponent', id).getName()
+                    let name = entityManager.getComponent('Descriptors', id).getName()
                     return `How do you open a ${name}?`
                 }
             },
@@ -118,14 +118,14 @@ let responses = {
                     return 'It\'s already closed.'
                 }
                 if (/not.*container/i.test(reason)) {
-                    let name = entityManager.getComponent('ObjectDescriptorComponent', id).getName()
+                    let name = entityManager.getComponent('Descriptors', id).getName()
                     return `How do you close a ${name}?`
                 }
             },
         },
         general({success, reason, id}) {
             if (/inapparent/i.test(reason)) {
-                let name = entityManager.getComponent('ObjectDescriptorComponent', id).getName()
+                let name = entityManager.getComponent('Descriptors', id).getName()
                 return `You don't see any ${name} here.`
             }
             if (success) {

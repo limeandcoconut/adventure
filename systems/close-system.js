@@ -25,7 +25,7 @@ class CloseSystem extends System {
 
         let object = action.object.id
 
-        let container = em.getComponent('ContainerComponent', object)
+        let container = em.getComponent('Container', object)
 
         if (!container) {
             this.fail(action, {

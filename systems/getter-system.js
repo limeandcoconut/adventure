@@ -34,12 +34,12 @@ class GetterSystem extends System {
 
         let object = action.object.id
 
-        let container = em.getComponent('ContainerComponent', entity)
+        let container = em.getComponent('Container', entity)
         let inventory = container.getContents()
 
         let objectLocation = em.getComponent('Location', object)
         let parent = objectLocation.getParent()
-        let parentContainer = em.getComponent('ContainerComponent', parent)
+        let parentContainer = em.getComponent('Container', parent)
         let parentInventory = parentContainer.getContents()
 
         let hadObject = parentInventory.delete(object)

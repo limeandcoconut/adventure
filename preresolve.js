@@ -17,18 +17,18 @@ function preresolve(action) {
         const location = em.getComponent('Location', entity)
         const room = location.getParent()
 
-        const roomVisible = em.getComponent('ObjectPropertiesComponent', room).getVisible()
+        const roomVisible = em.getComponent('ObjectProperties', room).getVisible()
 
         const objects = []
         if (!roomVisible) {
             return objects
         }
 
-        const roomContainer = em.getComponent('ContainerComponent', room)
+        const roomContainer = em.getComponent('Container', room)
         const contents = roomContainer.getContents()
 
         contents.forEach((object) => {
-            if (object === entity || !em.getComponent('ObjectPropertiesComponent', object).getVisible()) {
+            if (object === entity || !em.getComponent('ObjectProperties', object).getVisible()) {
                 return
             }
             objects.push({
@@ -40,7 +40,7 @@ function preresolve(action) {
     }
 
     if (type === 'drop') {
-        const container = em.getComponent('ContainerComponent', entity)
+        const container = em.getComponent('Container', entity)
 
         const objects = []
         const contents = container.getContents()

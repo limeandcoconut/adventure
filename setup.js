@@ -7,11 +7,11 @@ const InventorySystem = require('./systems/inventory-system')
 const OpenSystem = require('./systems/open-system')
 const CloseSystem = require('./systems/close-system')
 const {
-    ObjectDescriptorComponent,
-    ContainerComponent,
+    Descriptors,
+    Container,
     Location,
-    AppearanceComponent,
-    ObjectPropertiesComponent,
+    Appearance,
+    ObjectProperties,
 } = require('./components.js')
 
 let resolverSystem = new ResolverSystem()
@@ -62,10 +62,10 @@ entityFactory.registerConstructor('room', (props = {}) => {
         transparent = false,
     } = props
     let room = entityManager.createEntity()
-    entityManager.addComponent(new AppearanceComponent(appearance, visible), room)
+    entityManager.addComponent(new Appearance(appearance), room)
     entityManager.addComponent(new Location(parent), room)
-    entityManager.addComponent(new ContainerComponent(contents, open), room)
-    entityManager.addComponent(new ObjectPropertiesComponent(visible, transparent), room)
+    entityManager.addComponent(new Container(contents, open), room)
+    entityManager.addComponent(new ObjectProperties(visible, transparent), room)
     return room
 })
 
@@ -81,11 +81,11 @@ entityFactory.registerConstructor('container', (props = {}) => {
         transparent = false,
     } = props
     let container = entityManager.createEntity()
-    entityManager.addComponent(new AppearanceComponent(appearance, visible), container)
+    entityManager.addComponent(new Appearance(appearance), container)
     entityManager.addComponent(new Location(parent), container)
-    entityManager.addComponent(new ObjectDescriptorComponent(labels, descriptors), container)
-    entityManager.addComponent(new ContainerComponent(contents, open), container)
-    entityManager.addComponent(new ObjectPropertiesComponent(visible, transparent), container)
+    entityManager.addComponent(new Descriptors(labels, descriptors), container)
+    entityManager.addComponent(new Container(contents, open), container)
+    entityManager.addComponent(new ObjectProperties(visible, transparent), container)
     return container
 })
 
@@ -100,10 +100,10 @@ entityFactory.registerConstructor('thing', (props = {}) => {
         transparent = false,
     } = props
     let thing = entityManager.createEntity()
-    entityManager.addComponent(new AppearanceComponent(appearance, visible), thing)
+    entityManager.addComponent(new Appearance(appearance), thing)
     entityManager.addComponent(new Location(parent), thing)
-    entityManager.addComponent(new ObjectDescriptorComponent(labels, descriptors), thing)
-    entityManager.addComponent(new ObjectPropertiesComponent(visible, transparent), thing)
+    entityManager.addComponent(new Descriptors(labels, descriptors), thing)
+    entityManager.addComponent(new ObjectProperties(visible, transparent), thing)
     return thing
 })
 
@@ -117,11 +117,11 @@ entityFactory.registerConstructor('player', (props = {}) => {
         transparent = false,
     } = props
     let player = entityManager.createEntity()
-    entityManager.addComponent(new AppearanceComponent(appearance, visible), player)
+    entityManager.addComponent(new Appearance(appearance), player)
     entityManager.addComponent(new Location(parent), player)
-    entityManager.addComponent(new ObjectDescriptorComponent(['self', 'me', 'myself'], []), player)
-    entityManager.addComponent(new ContainerComponent(contents, open), player)
-    entityManager.addComponent(new ObjectPropertiesComponent(visible, transparent), player)
+    entityManager.addComponent(new Descriptors(['self', 'me', 'myself'], []), player)
+    entityManager.addComponent(new Container(contents, open), player)
+    entityManager.addComponent(new ObjectProperties(visible, transparent), player)
 
     return player
 })
@@ -147,7 +147,7 @@ if (entityManager.lowestFreeId === 10) {
         labels: ['THING', 'thing', 'thign'],
         appearance: 'An amorphous blob of greyish goop.',
     })
-    entityManager.getComponent('ContainerComponent', player).setContents([thing])
+    entityManager.getComponent('Container', player).setContents([thing])
 
     let crate = entityFactory.createContainer({
         parent: room,
@@ -162,7 +162,7 @@ if (entityManager.lowestFreeId === 10) {
         labels: ['rock'],
         appearance: 'It\'s just a stone.',
     })
-    entityManager.getComponent('ContainerComponent', crate).setContents([rock])
+    entityManager.getComponent('Container', crate).setContents([rock])
 
     // stuff.push(rock)
     let screw = entityFactory.createThing({
@@ -180,7 +180,7 @@ if (entityManager.lowestFreeId === 10) {
     })
     stuff.push(bolt)
 
-    entityManager.getComponent('ContainerComponent', room).setContents(stuff)
+    entityManager.getComponent('Container', room).setContents(stuff)
 
     let box = entityFactory.createContainer({
         labels: ['box'],
@@ -193,7 +193,7 @@ if (entityManager.lowestFreeId === 10) {
         labels: ['wrench'],
         appearance: 'A wrench shaped like a gibbous moon.',
     })
-    entityManager.getComponent('ContainerComponent', box).setContents([wrench])
+    entityManager.getComponent('Container', box).setContents([wrench])
 
     console.log(JSON.stringify({
         room,
@@ -234,16 +234,16 @@ if (entityManager.lowestFreeId === 10) {
     // console.log('player: 11')
     player = 11
     //
-    //     let entities = entityManager.getEntitiesWithComponent('ObjectDescriptorComponent')
+    //     let entities = entityManager.getEntitiesWithComponent('Descriptors')
     //     console.log(entities)
     //     entities.forEach((entity) => {
-    //         console.log(entityManager.getComponent('ObjectDescriptorComponent', entity))
+    //         console.log(entityManager.getComponent('Descriptors', entity))
     //         //
     //     })
 
-    //     entities = entityManager.getEntitiesWithComponent('ContainerComponent')
+    //     entities = entityManager.getEntitiesWithComponent('Container')
     //     entities.forEach((entity) => {
-    //         console.log(entityManager.getComponent('ContainerComponent', entity))
+    //         console.log(entityManager.getComponent('Container', entity))
     //     })
 
     //     entities = entityManager.getEntitiesWithComponent('Location')

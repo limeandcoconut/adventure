@@ -18,16 +18,16 @@ class LocatorSystem extends System {
         let room = location.getParent()
 
         let parent = em.getComponent('Location', object).getParent()
-        let properties = em.getComponent('ObjectPropertiesComponent', object)
+        let properties = em.getComponent('ObjectProperties', object)
         let apparent = properties.getVisible()
         let container
 
         while ((parent !== room && parent !== entity) && parent) {
-            if (!em.getComponent('ContainerComponent', parent).isOpen()) {
+            if (!em.getComponent('Container', parent).isOpen()) {
                 container = parent
             }
             if (apparent) {
-                let parentProperties = em.getComponent('ObjectPropertiesComponent', parent)
+                let parentProperties = em.getComponent('ObjectProperties', parent)
                 if (parentProperties) {
                     if (!parentProperties.getVisible() || (container && !parentProperties.getTransparent())) {
                         apparent = false

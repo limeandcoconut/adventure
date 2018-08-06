@@ -8,7 +8,7 @@ class InventorySystem extends System {
 
         let entity = action.entity.id
 
-        let container = em.getComponent('ContainerComponent', entity)
+        let container = em.getComponent('Container', entity)
         let inventory = container.getContents()
 
         inventory = this.formatInventory(inventory)
@@ -29,7 +29,7 @@ class InventorySystem extends System {
         console.log(inventory)
 
         inventory = inventory.map((id) => {
-            let container = em.getComponent('ContainerComponent', id)
+            let container = em.getComponent('Container', id)
             let item = {
                 id,
             }

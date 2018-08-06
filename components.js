@@ -1,4 +1,4 @@
-class ObjectDescriptorComponent {
+class Descriptors {
     constructor(labels, descriptors = [], name) {
         // if (!Array.isArray(labels)) {
         //     throw new TypeError('Names must be an Array.')
@@ -53,7 +53,7 @@ class ObjectDescriptorComponent {
     }
 }
 
-class AppearanceComponent {
+class Appearance {
     constructor(appearance) {
         this.setAppearance(appearance)
     }
@@ -70,7 +70,7 @@ class AppearanceComponent {
     }
 }
 
-class ObjectPropertiesComponent {
+class ObjectProperties {
     constructor(visible = true, transparent = false) {
         this.setTransparent(transparent)
         this.setVisible(visible)
@@ -101,7 +101,7 @@ class ObjectPropertiesComponent {
     }
 }
 
-class ContainerComponent {
+class Container {
     constructor(contents = [], open = true) {
         if (typeof contents.entries !== 'function') {
             if (!Array.isArray(contents)) {
@@ -170,9 +170,9 @@ class Location {
 
 module.exports = {
     PlayerInput,
-    ObjectDescriptorComponent,
-    ContainerComponent,
+    Descriptors,
+    Container,
     Location,
-    AppearanceComponent,
-    ObjectPropertiesComponent,
+    Appearance,
+    ObjectProperties,
 }
