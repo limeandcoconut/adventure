@@ -17,12 +17,9 @@ function preresolve(action) {
         const location = em.getComponent('Location', entity)
         const room = location.getParent()
 
-        // const roomProperties = em.getComponent('ObjectPropertiesComponent', room)
-        // const roomTransparent = roomProperties.getTransparent()
         const roomVisible = em.getComponent('ObjectPropertiesComponent', room).getVisible()
 
         const objects = []
-        // if (!roomVisible || !(roomContainer.isOpen() || roomTransparent)) {
         if (!roomVisible) {
             return objects
         }
@@ -46,26 +43,9 @@ function preresolve(action) {
         const container = em.getComponent('ContainerComponent', entity)
 
         const objects = []
-        // This would allow for nested pre-resolution.
-        // const location = em.getComponent('Location', entity)
-        // const room = location.getParent()
-
-        // const roomProperties = em.getComponent('ObjectPropertiesComponent', room)
-        // const roomTransparent = roomProperties.getTransparent()
-        // const roomVisible = em.getComponent('ObjectPropertiesComponent', room).getVisible()
-        // if (!roomVisible || !(roomContainer.isOpen() || roomTransparent)) {
-        // if (!roomVisible) {
-        //     return objects
-        // }
-
-        // const roomContainer = em.getComponent('ContainerComponent', room)
         const contents = container.getContents()
 
         for (let object of contents) {
-            // TODO: Dunno if you should be able to find invisible things on your person.
-            // if (!em.getComponent('ObjectPropertiesComponent', object).getVisible()) {
-            //     continue
-            // }
             objects.push({
                 id: object,
             })
@@ -74,7 +54,6 @@ function preresolve(action) {
         return objects
     }
 
-    // TODO: this.
     return new ResolveError('Cannot interpret preresolve.')
 }
 
