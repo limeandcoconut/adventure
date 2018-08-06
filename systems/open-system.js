@@ -27,6 +27,13 @@ class OpenSystem extends System {
 
         let container = em.getComponent('ContainerComponent', object)
 
+        if (!container) {
+            this.fail(action, {
+                reason: 'Not a Container.',
+            })
+            return
+        }
+
         if (container.isOpen()) {
             this.fail(action, {
                 reason: 'Already Open.',

@@ -101,13 +101,22 @@ let responses = {
             preresolve() {
                 return 'I don\'t see anything.'
             },
+            open({reason}) {
+                if (/already/i.test(reason)) {
+                    return 'It\'s already open.'
+                }
+                if (/not.*container/i.test(reason)) {
+                    let name = entityManager.getComponent('ObjectDescriptorComponent', container).getName()
+                    return `How do you open a ${name}?`
+                }
+            },
         },
         general({reason, id}) {
             if (/inapparent/i.test(reason)) {
                 let name = entityManager.getComponent('ObjectDescriptorComponent', id).getName()
                 return `You don't see any ${name} here.`
             }
-            return reason
+            return 'Done.'
         },
     },
     missingParseParts: {
