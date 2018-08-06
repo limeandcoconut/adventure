@@ -39,22 +39,20 @@ function preresolve(action) {
             })
         }
 
-        console.log(JSON.stringify(objects, null, 4))
-
         return objects
     }
 
     if (type === 'drop') {
         const container = em.getComponent('ContainerComponent', entity)
 
+        const objects = []
+        // This would allow for nested pre-resolution.
         // const location = em.getComponent('Location', entity)
         // const room = location.getParent()
 
         // const roomProperties = em.getComponent('ObjectPropertiesComponent', room)
         // const roomTransparent = roomProperties.getTransparent()
         // const roomVisible = em.getComponent('ObjectPropertiesComponent', room).getVisible()
-
-        const objects = []
         // if (!roomVisible || !(roomContainer.isOpen() || roomTransparent)) {
         // if (!roomVisible) {
         //     return objects
@@ -71,10 +69,7 @@ function preresolve(action) {
             objects.push({
                 id: object,
             })
-            console.log(object)
         }
-
-        console.log(JSON.stringify(objects, null, 4))
 
         return objects
     }
