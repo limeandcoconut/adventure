@@ -4,11 +4,12 @@ const actions = {}
 
 Action.setActionsManifest(actions)
 
+let baseProcess = ['resolve', 'locate']
+
 const get = new Action('get', [
-    'resolve',
-    'locate',
+    ...baseProcess,
     'get',
-]
+],
     // LocatorSystem: {
     //     apparent: true,
     //     accessible: true,
@@ -21,8 +22,7 @@ const inventory = new Action('inventory', [
 ])
 
 const drop = new Action('drop', [
-    'resolve',
-    'locate',
+    ...baseProcess,
     'drop',
 ])
 
@@ -39,11 +39,16 @@ Object.assign(actions, {
     i: inventory,
     go,
     open: new Action('open', [
-        'resolve',
-        'locate',
+        ...baseProcess,
         'open',
     ], {
         up: 'open',
+    }),
+    close: new Action('close', [
+        ...baseProcess,
+        'close',
+    ], {
+        up: 'close',
     }),
 })
 

@@ -1,7 +1,7 @@
 const {System} = require('rubricjs')
 const {entityManager: em} = require('../managers.js')
 
-class OpenSystem extends System {
+class CloseSystem extends System {
 
     update(action) {
 
@@ -35,16 +35,16 @@ class OpenSystem extends System {
             return
         }
 
-        if (container.isOpen()) {
+        if (!container.isOpen()) {
             this.fail(action, {
-                reason: 'Already Open.',
+                reason: 'Already Closed.',
             })
             return
         }
 
-        container.setOpen(true)
+        container.setOpen(false)
 
-        action.steps.set('open', {
+        action.steps.set('close', {
             success: true,
         })
     }
@@ -52,9 +52,9 @@ class OpenSystem extends System {
     fail(action, info) {
         info.success = false
         info.id = action.object.id
-        action.steps.set('open', info)
+        action.steps.set('close', info)
         action.live = false
     }
 }
 
-module.exports = OpenSystem
+module.exports = CloseSystem

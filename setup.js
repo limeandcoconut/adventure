@@ -5,6 +5,7 @@ const GetterSystem = require('./systems/getter-system')
 const DroppingSystem = require('./systems/dropping-system')
 const InventorySystem = require('./systems/inventory-system')
 const OpenSystem = require('./systems/open-system')
+const CloseSystem = require('./systems/close-system')
 const {
     ObjectDescriptorComponent,
     ContainerComponent,
@@ -19,6 +20,7 @@ let getterSystem = new GetterSystem()
 let droppingSystem = new DroppingSystem()
 let inventorySystem = new InventorySystem()
 let openSystem = new OpenSystem()
+let closeSystem = new CloseSystem()
 
 // resolverSystem.mutate(actionOutputChannel)
 // locatorSystem.mutate(actionOutputChannel)
@@ -40,6 +42,7 @@ let systems = {
     resolve: resolverSystem,
     locate: locatorSystem,
     open: openSystem,
+    close: closeSystem,
     get: getterSystem,
     drop: droppingSystem,
     inventory: inventorySystem,

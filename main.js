@@ -35,6 +35,7 @@ module.exports = function(line) {
         let action = actions[i]
         console.log('*********** ACTION **********')
         console.log(JSON.stringify(action, null, 4))
+        console.log(action)
         if (action instanceof Error) {
             return formatResponse(action)
         }
