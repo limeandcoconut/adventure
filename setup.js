@@ -225,8 +225,10 @@ if (entityManager.lowestFreeId === 10) {
     }, null, 4))
 
 } else {
-    console.log('skipped entities')
-    console.log('player: 11')
+    console.log('')
+    console.log('~~       reset       ~~')
+    // console.log('skipped entities')
+    // console.log('player: 11')
     player = 11
     //
     //     let entities = entityManager.getEntitiesWithComponent('ObjectDescriptorComponent')

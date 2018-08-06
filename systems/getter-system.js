@@ -21,7 +21,7 @@ class GetterSystem extends System {
             return
         }
 
-        console.log('-------- GET --------')
+        console.log('---------- GET ---------')
 
         let entity = action.entity.id
 
@@ -52,8 +52,6 @@ class GetterSystem extends System {
         container.setContents(inventory)
         parentContainer.setContents(parentInventory)
         objectLocation.setParent(entity)
-
-        console.log(em.getComponent('ContainerComponent', entity).getContents())
 
         action.steps.set('get', {
             success: true,

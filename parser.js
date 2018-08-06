@@ -18,6 +18,8 @@ let dictionary = {
 
     crate: 'noun',
 
+    fish: 'noun',
+
     all: 'noun',
     everything: 'noun',
 

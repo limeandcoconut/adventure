@@ -9,6 +9,9 @@ const {responses, missingParseParts} = require('./responses.js')
 const {systems, player} = require('./setup.js')
 
 module.exports = function(line) {
+    console.log('')
+    console.log('################################')
+    console.log('########### NEW INPUT ##########')
     // Lex and parse.
     let parseTree = parse(line)
     // Parser errors.
@@ -28,12 +31,10 @@ module.exports = function(line) {
     let actions = interpret(parseTree)
     // Filter null actions/nodes.
     let filteredActions = []
-    let iLen = actions.length
-    for (let i = 0; i < iLen; i++) {
+    for (let i = 0; i < actions.length; i++) {
         let action = actions[i]
         console.log('*********** ACTION **********')
         console.log(JSON.stringify(action, null, 4))
-        console.log(action)
         if (action instanceof Error) {
             return formatResponse(action)
         }
@@ -49,7 +50,7 @@ module.exports = function(line) {
     let i = 0
     while (i < actions.length) {
         let action = actions[i]
-        console.log('*********** EXECUTE i **********')
+        console.log('*********** EXECUTE MAIN **********')
 
         // Add properties to action.
         action.entity = {
@@ -93,13 +94,26 @@ module.exports = function(line) {
                     continue
                 }
 
+                if (!objects.length) {
+                    action.steps = new Map([
+                        ['preresolve', {
+                            success: false,
+                            reason: 'Cannot preresolve entity.',
+                        }],
+                    ])
+                    action.live = false
+                    output += formatResponse(action)
+                    i++
+                    continue
+                }
+
                 let objectCount = objects.length
                 let l = 0
                 let newAction
                 do {
                     newAction = Object.create(action)
                     newAction.object = objects[l]
-                    if (l === objectCount - 1) {
+                    if (l >= objectCount - 1) {
                         break
                     }
                     // Add properties to action.
@@ -119,14 +133,13 @@ module.exports = function(line) {
 
         let j = 0
         while (j < deferred.length) {
-            console.log('*********** EXECUTE j **********')
+            console.log('*********** EXECUTE DEFERRED **********')
             output += execute(deferred[j]) + '\n'
             j++
         }
         deferred = []
         i++
     }
-
     return output
 }
 
@@ -164,6 +177,7 @@ function execute(action) {
 }
 
 function formatResponse(output) {
+    // Errors:
     if (output instanceof Error) {
         if (output.isLexError) {
             let word = lexer.errorMeta.word
@@ -190,21 +204,32 @@ function formatResponse(output) {
         return responses.errors.fatal()
     }
 
+    // If there was no recognized input.
     if ((typeof output === 'string' || Array.isArray(output)) && !output.length) {
         return 'Beg your pardon?'
     }
 
+    // If the action succeeded.
     if (output.live) {
-        let hander = responses.success[output.type]
-        if (hander) {
-            return hander(output.info)
+        let handler = responses.success[output.type]
+        if (handler) {
+            let response = handler(output.info)
+            if (response) {
+                return response
+            }
         }
+        return responses.general(output.info)
+    // If the action failed.
     } else if (output.live === false) {
-        let step = Array.from(output.steps.keys()).pop()
+        let [step, info] = Array.from(output.steps.entries()).pop()
+        console.log(Array.from(output.steps.entries()).pop())
         let handler = responses.failure[step]
         if (handler) {
-            let info = Array.from(output.steps.values()).pop()
-            return handler(info)
+            let response = handler(info)
+            if (response) {
+                return response
+            }
         }
+        return responses.general(info)
     }
 }

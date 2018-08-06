@@ -27,14 +27,14 @@ function preresolve(action) {
         const roomContainer = em.getComponent('ContainerComponent', room)
         const contents = roomContainer.getContents()
 
-        for (let object of contents) {
+        contents.forEach((object) => {
             if (object === entity || !em.getComponent('ObjectPropertiesComponent', object).getVisible()) {
-                continue
+                return
             }
             objects.push({
                 id: object,
             })
-        }
+        })
 
         return objects
     }

@@ -30,9 +30,7 @@ let responses = {
             drop() {
                 return 'Dropped.'
             },
-            inventory({
-                inventory,
-            }) {
+            inventory({inventory}) {
                 if (!inventory.length) {
                     return `You don't have antying.`
                 }
@@ -63,14 +61,12 @@ let responses = {
 
                 return describeInventory(inventory)
             },
+            open() {
+                return 'Opened.'
+            },
         },
         failure: {
-            get({
-                reason,
-                container,
-                id,
-            }) {
-                console.log(reason, container, id)
+            get({reason, container, id}) {
                 if (/have/i.test(reason)) {
                     return 'You already have that.'
                 }
@@ -78,17 +74,8 @@ let responses = {
                     let name = entityManager.getComponent('ObjectDescriptorComponent', container).getName()
                     return `The ${name} is closed.`
                 }
-                if (/inapparent/i.test(reason)) {
-                    let name = entityManager.getComponent('ObjectDescriptorComponent', id).getName()
-                    return responses.general.inapparent(name)
-                }
-                return reason
             },
-            drop({
-                reason,
-                container,
-            }) {
-                console.log(reason)
+            drop({reason, container}) {
                 if (/don.?t/i.test(reason)) {
                     return `You don't have that`
                 }
@@ -96,13 +83,31 @@ let responses = {
                     let name = entityManager.getComponent('ObjectDescriptorComponent', container).getName()
                     return `The ${name} is closed.`
                 }
-                return reason
+            },
+            resolve({reason, object, objects}) {
+                console.log(object)
+                if (/cannot/i.test(reason)) {
+                    return `I don't see any ${object}.`
+                }
+                console.log(objects)
+                if (/multiple/i.test(reason)) {
+                    let names = objects.map((object) => entityManager.getComponent('ObjectDescriptorComponent', object).getName())
+                    let last = names.pop()
+                    names = names.join(', ')
+                    names += ', or the ' + last
+                    return `Do you mean the ${names}?`
+                }
+            },
+            preresolve() {
+                return 'I don\'t see anything.'
             },
         },
-        general: {
-            inapparent(object) {
-                return `You don't see any ${object} here.`
-            },
+        general({reason, id}) {
+            if (/inapparent/i.test(reason)) {
+                let name = entityManager.getComponent('ObjectDescriptorComponent', id).getName()
+                return `You don't see any ${name} here.`
+            }
+            return reason
         },
     },
     missingParseParts: {

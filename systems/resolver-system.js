@@ -11,14 +11,11 @@ class ResolverSystem extends System {
 
         if (typeof objects[0].id === 'undefined') {
             for (let object of objects) {
-                let {success, id, reason} = this.resolve(object)
-                if (success) {
-                    object.id = id
+                let result = this.resolve(object)
+                if (result.success) {
+                    object.id = result.id
                 } else {
-                    action.steps.set('resolve', {
-                        success,
-                        reason,
-                    })
+                    action.steps.set('resolve', result)
                     action.live = false
                     return
                 }
@@ -98,11 +95,12 @@ class ResolverSystem extends System {
         } else if (best.entities.length > 1) {
             result.success = false
             result.reason = `Multiple entities: ${best.entities}`
-            // result.fatal = true
+            result.objects = best.entities
         } else {
             result.success = false
-            // result.fatal = true
             result.reason = 'Cannot resolve entity.'
+            let descriptors = object.descriptors.length ? object.descriptors.join(' ') + ' ' : ''
+            result.object = descriptors + object.word
         }
 
         return result
