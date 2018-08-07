@@ -27,6 +27,7 @@ interpreter.handler('verb', (node) => {
         throw new InterpreterError('Verb expected an object.')
     }
 
+    // TODO: Why is this initialization here?
     let action = {}
     action = Object.create(actions[node.word])
     action.word = node.word

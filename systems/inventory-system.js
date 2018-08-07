@@ -12,11 +12,8 @@ class InventorySystem extends System {
         let inventory = container.getContents()
 
         inventory = this.formatInventory(inventory)
-        console.log(inventory)
 
-        action.info = {
-            inventory,
-        }
+        action.info.inventory = inventory
 
         action.steps.set('inventory', {
             success: true,
@@ -26,7 +23,6 @@ class InventorySystem extends System {
     formatInventory(inventory) {
 
         inventory = Array.from(inventory)
-        console.log(inventory)
 
         inventory = inventory.map((id) => {
             let container = em.getComponent('Container', id)

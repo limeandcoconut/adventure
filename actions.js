@@ -26,9 +26,10 @@ const drop = new Action('drop', [
     'drop',
 ])
 
-const go = new Action('go', [])
+const go = new Action('go', ['move'])
 
 Object.assign(actions, {
+    begin: new Action('begin', ['begin']),
     get,
     take: get,
     pick: new Action('pick', [], {

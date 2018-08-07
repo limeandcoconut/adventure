@@ -6,12 +6,18 @@ const DroppingSystem = require('./systems/dropping-system')
 const InventorySystem = require('./systems/inventory-system')
 const OpenSystem = require('./systems/open-system')
 const CloseSystem = require('./systems/close-system')
+const MovementSystem = require('./systems/movement-system')
+const BeginSystem = require('./systems/begin-system')
+
+const GeneralInputProcess = require('./processes/general-input-process')
+
 const {
     Descriptors,
     Container,
     Location,
     Appearance,
     ObjectProperties,
+    Area,
 } = require('./components.js')
 
 let resolverSystem = new ResolverSystem()
@@ -21,6 +27,8 @@ let droppingSystem = new DroppingSystem()
 let inventorySystem = new InventorySystem()
 let openSystem = new OpenSystem()
 let closeSystem = new CloseSystem()
+let movementSystem = new MovementSystem()
+let beginSystem = new BeginSystem()
 
 // resolverSystem.mutate(actionOutputChannel)
 // locatorSystem.mutate(actionOutputChannel)
@@ -46,7 +54,18 @@ let systems = {
     get: getterSystem,
     drop: droppingSystem,
     inventory: inventorySystem,
+    move: movementSystem,
+    begin: beginSystem,
 }
+
+const generalActionQueue = []
+let generalInputProcess = new GeneralInputProcess(generalActionQueue)
+
+let processes = [
+    generalInputProcess,
+]
+
+// beginningProcess.linkToProcess(generalInputProcess,)
 
 // TODO: pronouns
 // TODO: disambiguation
@@ -60,12 +79,15 @@ entityFactory.registerConstructor('room', (props = {}) => {
         appearance,
         visible = true,
         transparent = false,
+        visited,
+        title,
     } = props
     let room = entityManager.createEntity()
     entityManager.addComponent(new Appearance(appearance), room)
     entityManager.addComponent(new Location(parent), room)
     entityManager.addComponent(new Container(contents, open), room)
     entityManager.addComponent(new ObjectProperties(visible, transparent), room)
+    entityManager.addComponent(new Area(title, visited), room)
     return room
 })
 
@@ -131,6 +153,7 @@ let player
 if (entityManager.lowestFreeId === 10) {
     // Great! This is where you create an entity 🤖
     let room = entityFactory.createRoom({
+        title: 'Testing Chaimber 00178',
         appearance: 'A bare and forgettable testing room.',
     })
 
@@ -141,6 +164,8 @@ if (entityManager.lowestFreeId === 10) {
         appearance: 'You.',
     })
     stuff.push(player)
+
+    entityManager.getComponent('Area', room).setVisited([player])
 
     let thing = entityFactory.createThing({
         parent: player,
@@ -233,6 +258,7 @@ if (entityManager.lowestFreeId === 10) {
     // console.log('skipped entities')
     // console.log('player: 11')
     player = 11
+    // beginningProcess.setStartingPoint(10)
     //
     //     let entities = entityManager.getEntitiesWithComponent('Descriptors')
     //     console.log(entities)
@@ -256,4 +282,6 @@ if (entityManager.lowestFreeId === 10) {
 module.exports = {
     systems,
     player,
+    generalInputProcess,
+    processes,
 }

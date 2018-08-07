@@ -44,6 +44,7 @@ let dictionary = {
     go: 'verb',
     open: 'verb',
     close: 'verb',
+    begin: 'verb-intransitive',
     inventory: 'verb-intransitive',
     i: 'verb-intransitive',
 

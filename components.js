@@ -63,10 +63,39 @@ class Appearance {
     }
 
     setAppearance(appearance) {
-        if (typeof appearance !== 'undefined' && typeof appearance !== 'string') {
-            throw new TypeError('Argument "appearance" must be a string if defined.')
+        if (typeof appearance !== 'undefined' && typeof appearance !== 'string' && appearance !== null) {
+            throw new TypeError('Argument "appearance" must be a string or null.')
         }
         this.appearance = appearance
+    }
+}
+
+class Area {
+    constructor(title, visited = []) {
+        this.setTitle(title)
+        this.setVisited(visited)
+    }
+
+    getVisited() {
+        return this.visited.slice()
+    }
+
+    getTitle() {
+        return this.title
+    }
+
+    setVisited(visited) {
+        if (!Array.isArray(visited)) {
+            throw new TypeError('Argument "visited" must be an Array.')
+        }
+        this.visited = visited
+    }
+
+    setTitle(title) {
+        if (typeof title !== 'undefined' && typeof title !== 'string' && title !== null) {
+            throw new TypeError('Argument "title" must be a string or null.')
+        }
+        this.title = title
     }
 }
 
@@ -105,7 +134,7 @@ class Container {
     constructor(contents = [], open = true) {
         if (typeof contents.entries !== 'function') {
             if (!Array.isArray(contents)) {
-                throw new TypeError('Contents must be an Array or Set.')
+                throw new TypeError('Contents must be an Array or Set (maybe).')
             }
             contents = new Set(contents)
         }
@@ -121,7 +150,7 @@ class Container {
     setContents(contents) {
         if (typeof contents.entries !== 'function') {
             if (!Array.isArray(contents)) {
-                throw new TypeError('Contents must be an Array or Set.')
+                throw new TypeError('Contents must be an Array or Set (maybe).')
             }
             contents = new Set(contents)
         }
@@ -175,4 +204,5 @@ module.exports = {
     Location,
     Appearance,
     ObjectProperties,
+    Area,
 }

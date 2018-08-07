@@ -67,6 +67,25 @@ let responses = {
             close() {
                 return 'Closed.'
             },
+            go({parent, firstVisit}) {
+                let response = entityManager.getComponent('Area', parent).getTitle()
+                if (firstVisit) {
+                    response += '\n \n'
+                    response += entityManager.getComponent('Appearance', parent).getAppearance()
+                }
+                return response
+            },
+            begin({parent}) {
+                return '\n\n######################################\n \n' +
+                    'WELCOME TO THE TESTING AREA:\n' +
+                    'Congratulations on your new position!\n' +
+                    'This environment promotes fun and cooperation.\n \n' +
+                    '######################################\n \n' +
+                    responses.responses.success.go({
+                        parent,
+                        firstVisit: true,
+                    })
+            },
         },
         failure: {
             get({reason, container, id}) {
@@ -132,6 +151,9 @@ let responses = {
                 return 'Done.'
             }
             return 'Nope.'
+        },
+        noInput() {
+            return 'Beg your pardon?'
         },
     },
     missingParseParts: {

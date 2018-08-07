@@ -4,9 +4,12 @@ const {friendlyInterpret: interpret} = require('./interpreter')
 // const {LexError, ParseError} = require('parser')
 const {preresolve, ResolveError} = require('./preresolve.js')
 const {responses, missingParseParts} = require('./responses.js')
-
+const {begin} = require('./actions')
 /* eslint-disable require-jsdoc */
-const {systems, player} = require('./setup.js')
+const {systems, player, processes} = require('./setup.js')
+// const {systems, player, processes, generalInputProcess: gip} = require('./setup.js')
+
+let gameStarted = false
 
 module.exports = function(line) {
     console.log('')
@@ -23,7 +26,7 @@ module.exports = function(line) {
     console.log('*********** PARSE TREE **********')
     console.log(JSON.stringify(parseTree, null, 1))
 
-    if (!parseTree.length) {
+    if (!parseTree.length && gameStarted) {
         return formatResponse(parseTree)
     }
 
@@ -43,6 +46,19 @@ module.exports = function(line) {
     }
 
     actions = filteredActions
+
+    if (!gameStarted) {
+        gameStarted = true
+
+        if (!actions.length || actions[0].type !== 'begin') {
+            console.log(`It doesn't look like you've begun yet`)
+            let beginningAction = {}
+            // console.log(actions)
+            beginningAction = Object.create(begin)
+            beginningAction.word = 'begin'
+            actions.unshift(beginningAction)
+        }
+    }
 
     // Construct response from executing actions.
     let output = ''
@@ -130,12 +146,14 @@ module.exports = function(line) {
         // Add properties to action.
         action.steps = new Map()
         action.live = true
-        output += execute(action) + '\n'
+        action.initiative = 2
+        action.info = {}
+        output += execute(action)
 
         let j = 0
         while (j < deferred.length) {
             console.log('*********** EXECUTE DEFERRED **********')
-            output += execute(deferred[j]) + '\n'
+            output += execute(deferred[j])
             j++
         }
         deferred = []
@@ -148,32 +166,66 @@ function execute(action) {
 
     // Format a simple response.
     let response = ''
-    // Do each step listed by that action.
-    let procedure = action.procedure
-    procedure.every((step) => {
-        if (!action.live) {
-            return false
+    // All simultaneous actions.
+    let actions = [action]
+    // Run all processes.
+    for (let i = 0; i < processes.length; i++) {
+        let processActions = processes[i].update(action)
+        // If any actions were generated add them to the list.
+        if (typeof processActions !== 'undefined') {
+            actions = actions.concat(processActions)
         }
-        systems[step].update(action)
-        return true
+    }
+
+    // Sort actions by initiative.
+    actions = actions.sort((a, b) => {
+        if (a.initiative < b.initiative) {
+            return -1
+        }
+        if (b.initiative < a.initiative) {
+            return 1
+        }
+        return 0
     })
 
-    let output = formatResponse(action)
+    // console.log(actions)
 
-    if (!output) {
-        let res = {}
-        res.type = action.type
-        res.object = action.object
-        res.live = action.live
-        res.steps = {}
-        action.steps.forEach((step, name) => {
-            res.steps[name] = step.success || step.reason
+    for (let i = 0; i < actions.length; i++) {
+        const action = actions[i]
+
+        // console.log('ACTION: ', action)
+        // console.log(action.procedure)
+        // console.log(JSON.stringify(action.procedure, null, 4))
+
+        // Do each step listed by that action.
+        let procedure = action.procedure
+        procedure.every((step) => {
+            if (!action.live) {
+                return false
+            }
+            systems[step].update(action)
+            return true
         })
-        res.info = action.info
-        output += JSON.stringify(res, null, 4)
-        console.log(action)
+        // TODO: Adjust this to account for the acting entity.
+        let output = formatResponse(action) + '\n'
+
+        if (!output) {
+            let res = {}
+            res.type = action.type
+            res.object = action.object
+            res.live = action.live
+            res.steps = {}
+            action.steps.forEach((step, name) => {
+                res.steps[name] = step.success || step.reason
+            })
+            res.info = action.info
+            output += JSON.stringify(res, null, 4)
+            console.log(action)
+        }
+        response += output
+
     }
-    response += output
+
     return response
 }
 
@@ -207,7 +259,7 @@ function formatResponse(output) {
 
     // If there was no recognized input.
     if ((typeof output === 'string' || Array.isArray(output)) && !output.length) {
-        return 'Beg your pardon?'
+        return responses.noInput()
     }
 
     // If the action succeeded.
@@ -223,7 +275,6 @@ function formatResponse(output) {
     // If the action failed.
     } else if (output.live === false) {
         let [step, info] = Array.from(output.steps.entries()).pop()
-        console.log(Array.from(output.steps.entries()).pop())
         let handler = responses.failure[step]
         if (handler) {
             let response = handler(info)
