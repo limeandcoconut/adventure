@@ -71,11 +71,12 @@ let responses = {
             close() {
                 return 'Closed.'
             },
-            go({parent, look}) {
+            move({area, look}) {
+                console.log(area)
                 if (look) {
                     return responses.responses.success.look({look})
                 }
-                return `- ${em.getComponent('Area', parent).getTitle()} -\n`
+                return `- ${area.getTitle()} -\n`
             },
             begin(info) {
                 return '\n \nYou\'re in a room, utterly boring with just a hint of institutionalized over optimism. ' +
@@ -162,6 +163,24 @@ let responses = {
                 if (/not.*container/i.test(reason)) {
                     let name = em.getComponent('Descriptors', id).getName()
                     return `How do you close a ${name}?`
+                }
+            },
+            move({reason, direction}) {
+                let directions = {
+                    n: 'north',
+                    s: 'south',
+                    e: 'east',
+                    w: 'west',
+                    u: 'up',
+                    d: 'down',
+                    ne: 'northeast',
+                    nw: 'northwest',
+                    se: 'southeast',
+                    sw: 'southwest',
+                }
+                console.log(reason)
+                if (/no.*door/i.test(reason)) {
+                    return `There's no way to go ${directions[direction]}.`
                 }
             },
         },

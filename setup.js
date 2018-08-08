@@ -84,6 +84,7 @@ entityFactory.registerConstructor('room', (props = {}) => {
         transparent = false,
         visited,
         title,
+        doors,
     } = props
     let room = entityManager.createEntity()
     entityManager.addComponent(new Appearance(appearance), room)
@@ -91,7 +92,7 @@ entityFactory.registerConstructor('room', (props = {}) => {
     entityManager.addComponent(new Descriptors(['room']), room)
     entityManager.addComponent(new Container(contents, open), room)
     entityManager.addComponent(new ObjectProperties(visible, transparent), room)
-    entityManager.addComponent(new Area(title, visited), room)
+    entityManager.addComponent(new Area(title, visited, doors), room)
     return room
 })
 
@@ -156,42 +157,42 @@ let player
 
 if (entityManager.lowestFreeId === 10) {
     // Great! This is where you create an entity 🤖
-    let room = entityFactory.createRoom({
+    let testingChamber00178 = entityFactory.createRoom({
         title: 'Testing Chamber 00178',
         appearance: 'A bare and forgettable testing room.',
     })
 
-    let stuff = []
+    let anotherRoom = entityFactory.createRoom({
+        title: 'Another Room',
+        appearance: 'This all looks like a rented office space.',
+        doors: {
+            s: testingChamber00178,
+        },
+    })
 
     player = entityFactory.createPlayer({
-        parent: room,
+        parent: testingChamber00178,
         appearance: 'You.',
     })
-    stuff.push(player)
-
-    entityManager.getComponent('Area', room).setVisited([player])
 
     let thing = entityFactory.createThing({
         parent: player,
-        labels: ['THING', 'thing', 'thign'],
+        labels: ['thing', 'THING', 'thign'],
         appearance: 'An amorphous blob of greyish goop.',
     })
-    entityManager.getComponent('Container', player).setContents([thing])
 
     let crate = entityFactory.createContainer({
-        parent: room,
+        parent: testingChamber00178,
         open: false,
         labels: ['crate'],
         appearance: 'A weathered wooden crate.',
     })
-    stuff.push(crate)
 
     let rock = entityFactory.createThing({
         parent: crate,
         labels: ['rock'],
         appearance: 'It\'s just a stone.',
     })
-    // stuff.push(rock)
 
     let screw = entityFactory.createThing({
         parent: crate,
@@ -199,22 +200,18 @@ if (entityManager.lowestFreeId === 10) {
         descriptors: ['red', 'rusty'],
         appearance: 'A rusty screw with flaking red paint on the head.',
     })
-    // stuff.push(screw)
-    entityManager.getComponent('Container', crate).setContents([rock, screw])
 
     let bolt = entityFactory.createThing({
-        parent: room,
+        parent: testingChamber00178,
         labels: ['bolt', 'fixture'],
         descriptors: ['red'],
         appearance: 'A bolt with chpped red paint on the head.',
     })
-    stuff.push(bolt)
-
-    entityManager.getComponent('Container', room).setContents(stuff)
 
     let box = entityFactory.createContainer({
+        parent: anotherRoom,
         labels: ['box'],
-        open: false,
+        open: true,
         appearance: 'A small vaguely mildewed shoe box.',
     })
 
@@ -223,10 +220,22 @@ if (entityManager.lowestFreeId === 10) {
         labels: ['wrench'],
         appearance: 'A wrench shaped like a gibbous moon.',
     })
+
+    let testingArea = entityManager.getComponent('Area', testingChamber00178)
+    testingArea.setVisited([player])
+    testingArea.setDoors({
+        n: anotherRoom,
+    })
+
+    entityManager.getComponent('Container', player).setContents([thing])
+    entityManager.getComponent('Container', crate).setContents([rock, screw])
     entityManager.getComponent('Container', box).setContents([wrench])
+    entityManager.getComponent('Container', testingChamber00178).setContents([player, bolt, crate])
+    entityManager.getComponent('Container', anotherRoom).setContents([box])
 
     console.log(JSON.stringify({
-        room,
+        testingChamber00178,
+        anotherRoom,
         player,
         thing,
         rock,
@@ -238,22 +247,26 @@ if (entityManager.lowestFreeId === 10) {
 
     console.log(JSON.stringify({
         player: ['thing'],
-        room: [
+        testingChamber00178: [
             'player',
             // 'rock',
-            'screw',
+            // 'screw',
             'bolt',
             'crate',
         ],
+        anotherRoom: [
+            'box',
+        ],
         crate: [
             'rock',
+            'screw,',
         ],
         box: [
             'wrench',
         ],
         offscreen: [
-            'box',
-            'room',
+            'testingChamber00178',
+            'anotherRoom',
         ],
     }, null, 4))
 
@@ -262,7 +275,7 @@ if (entityManager.lowestFreeId === 10) {
     console.log('~~       reset       ~~')
     // console.log('skipped entities')
     // console.log('player: 11')
-    player = 11
+    player = 12
     // beginningProcess.setStartingPoint(10)
     //
     //     let entities = entityManager.getEntitiesWithComponent('Descriptors')

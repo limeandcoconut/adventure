@@ -1,10 +1,10 @@
 class Descriptors {
     constructor(labels, descriptors = [], name) {
         // if (!Array.isArray(labels)) {
-        //     throw new TypeError('Names must be an Array.')
+        //     throw new TypeError('Names must be an Array')
         // }
         // if (!labels.length) {
-        //     throw new RangeError('Names cannot be empty.')
+        //     throw new RangeError('Names cannot be empty')
         // }
         this.setLabels(labels)
         // this.labels = labels
@@ -27,27 +27,27 @@ class Descriptors {
 
     setDescriptors(descriptors) {
         if (!Array.isArray(descriptors)) {
-            throw new TypeError('Descriptors must be an Array.')
+            throw new TypeError('Descriptors must be an Array')
         }
         this.descriptors = descriptors
     }
 
     setLabels(labels) {
         if (!Array.isArray(labels)) {
-            throw new TypeError('Labels must be an Array.')
+            throw new TypeError('Labels must be an Array')
         }
         if (!labels.length) {
-            throw new RangeError('Labels cannot be empty.')
+            throw new RangeError('Labels cannot be empty')
         }
         this.labels = labels
     }
 
     setName(name) {
         if (!(typeof name === 'string')) {
-            throw new TypeError('Name must be a string.')
+            throw new TypeError('Name must be a string')
         }
         if (!name.length) {
-            throw new RangeError('Name cannot be empty string.')
+            throw new RangeError('Name cannot be empty string')
         }
         this.name = name
     }
@@ -64,16 +64,17 @@ class Appearance {
 
     setAppearance(appearance) {
         if (typeof appearance !== 'undefined' && typeof appearance !== 'string' && appearance !== null) {
-            throw new TypeError('Argument "appearance" must be a string or null.')
+            throw new TypeError('Argument "appearance" must be a string or null')
         }
         this.appearance = appearance
     }
 }
 
 class Area {
-    constructor(title, visited = []) {
+    constructor(title, visited = [], doors = {}) {
         this.setTitle(title)
         this.setVisited(visited)
+        this.setDoors(doors)
     }
 
     getVisited() {
@@ -84,18 +85,30 @@ class Area {
         return this.title
     }
 
+    getDoors() {
+        // TODO: Normalize this everywhere.
+        return Object.assign({}, this.doors)
+    }
+
     setVisited(visited) {
         if (!Array.isArray(visited)) {
-            throw new TypeError('Argument "visited" must be an Array.')
+            throw new TypeError('Argument "visited" must be an Array')
         }
         this.visited = visited
     }
 
     setTitle(title) {
         if (typeof title !== 'undefined' && typeof title !== 'string' && title !== null) {
-            throw new TypeError('Argument "title" must be a string or null.')
+            throw new TypeError('Argument "title" must be a string or null')
         }
         this.title = title
+
+    }
+    setDoors(doors) {
+        if (typeof doors !== 'object') {
+            throw new TypeError('Argument \'doors\' must be a string or null')
+        }
+        this.doors = doors
     }
 }
 
@@ -134,7 +147,7 @@ class Container {
     constructor(contents = [], open = true) {
         if (typeof contents.entries !== 'function') {
             if (!Array.isArray(contents)) {
-                throw new TypeError('Contents must be an Array or Set (maybe).')
+                throw new TypeError('Contents must be an Array or Set (maybe)')
             }
             contents = new Set(contents)
         }
@@ -150,7 +163,7 @@ class Container {
     setContents(contents) {
         if (typeof contents.entries !== 'function') {
             if (!Array.isArray(contents)) {
-                throw new TypeError('Contents must be an Array or Set (maybe).')
+                throw new TypeError('Contents must be an Array or Set (maybe)')
             }
             contents = new Set(contents)
         }
@@ -177,7 +190,7 @@ class PlayerInput {
 
     setQueue(queue) {
         if (!Array.isArray(queue)) {
-            throw new TypeError('Queue must be an Array.')
+            throw new TypeError('Queue must be an Array')
         }
         this.queue = queue
     }

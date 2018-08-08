@@ -3,23 +3,7 @@ const {entityManager: em} = require('../managers.js')
 
 class MovementSystem extends System {
 
-    update(action) {
-
-        // if (!action.object.apparent) {
-        //     this.fail(action, {
-        //         reason: 'Inapparent.',
-        //         container: action.object.container,
-        //     })
-        //     return
-        // }
-
-        // if (!action.object.accessible) {
-        //     this.fail(action, {
-        //         reason: 'Inaccessible.',
-        //         container: action.object.container,
-        //     })
-        //     return
-        // }
+    update(action)
 
         // console.log('-------- MOVE --------')
         if (action.object.id) {
@@ -28,38 +12,39 @@ class MovementSystem extends System {
             this.move(action)
         }
 
-        // let container = em.getComponent('Container', object)
-
-        // if (!container) {
-        //     this.fail(action, {
-        //         reason: 'Not a Container.',
-        //         id: action.object.id,
-        //     })
-        //     return
-        // }
-
-        // if (container.isMovement()) {
-        //     this.fail(action, {
-        //         reason: 'Already Movement.',
-        //     })
-        //     return
-        // }
-
-        // container.setMovement(true)
-
-        // if (result.success) {
-
-        // }
-
-        action.steps.set('move', {
-            success: true,
-        })
+        if (action.live) {
+            action.steps.set('move', {
+                success: true,
+            })
+        }
     }
 
     teleport(action) {
         let {entity: {id: entity}, object: {id: destination}} = action
+
+        this.goTo(em.getComponent('Location', entity), destination, entity, action)
+    }
+
+    move(action) {
+        let {entity: {id: entity}, object: {word: direction}} = action
         const location = em.getComponent('Location', entity)
-        // const parent =
+
+        let doors = em.getComponent('Area', location.getParent()).getDoors()
+        direction = direction.match(/^(n)?(?:orth)?(s)?(?:outh)?(e)?(?:ast)?(w)?(?:est)?$|^(d)?(?:own)$|^(u)?(?:p)?$/)
+        direction = direction.slice(1, 6).join('')
+
+        let destination = doors[direction]
+        action.info.direction = direction
+
+        if (typeof destination !== 'number') {
+            this.fail(action, {reason: 'No Door.', direction})
+            return
+        }
+
+        this.goTo(location, destination, entity, action)
+    }
+
+    goTo(location, destination, entity, action) {
         const parentContainer = em.getComponent('Container', location.getParent())
         const destinationContainer = em.getComponent('Container', destination)
 
@@ -74,23 +59,21 @@ class MovementSystem extends System {
 
         const area = em.getComponent('Area', destination)
         const visited = area.getVisited()
-        const firstVisit = !visited.includes(entity)
 
-        if (firstVisit) {
+        if (!visited.includes(entity)) {
             visited.push(entity)
             area.setVisited(visited)
             action.procedure.push('locate')
             action.procedure.push('look')
         }
 
-        action.info = {
-            parent: destination,
-        }
+        action.object.id = destination
+        action.info.parent = destination
+        action.info.area = area
     }
 
     fail(action, info) {
         info.success = false
-        // info.direction = action.object.word
         action.steps.set('move', info)
         action.live = false
     }

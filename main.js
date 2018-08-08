@@ -215,7 +215,7 @@ function execute(action) {
         let j = 0
         do {
             if (!action.live) {
-                j = procedure.length
+                break
             }
             systems[procedure[j]].update(action)
             j++
@@ -280,7 +280,8 @@ function formatResponse(output) {
 
     // If the action succeeded.
     if (output.live) {
-        let handler = responses.success[output.type]
+        let step = Array.from(output.steps.keys()).pop()
+        let handler = responses.success[step]
         if (handler) {
             let response = handler(output.info)
             if (response) {
