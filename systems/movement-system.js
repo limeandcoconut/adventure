@@ -3,7 +3,7 @@ const {entityManager: em} = require('../managers.js')
 
 class MovementSystem extends System {
 
-    update(action)
+    update(action) {
 
         // console.log('-------- MOVE --------')
         if (action.object.id) {
