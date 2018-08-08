@@ -16,9 +16,9 @@ class Action {
     modify(modifier) {
         let action = this.variants[modifier]
         if (!action) {
-            throw new Error('No variation of action.')
+            throw new Error('No variation of action')
         }
-        action = Object.create(this.actions[action])
+        action = Object.create(Action.actions[action])
         // Object.assign?
         action.word = `${this.word} ${modifier}`
         action.object = this.object
@@ -28,7 +28,7 @@ class Action {
 
     static setActionsManifest(actions) {
         if (typeof actions !== 'object') {
-            throw new TypeError('Argument "actions" must be an object')
+            throw new TypeError('Argument \'actions\' must be an object')
         }
         this.actions = actions
     }
