@@ -8,6 +8,7 @@ const OpenSystem = require('./systems/open-system')
 const CloseSystem = require('./systems/close-system')
 const MovementSystem = require('./systems/movement-system')
 const BeginSystem = require('./systems/begin-system')
+const LookSystem = require('./systems/look-system')
 
 const GeneralInputProcess = require('./processes/general-input-process')
 
@@ -29,6 +30,7 @@ let openSystem = new OpenSystem()
 let closeSystem = new CloseSystem()
 let movementSystem = new MovementSystem()
 let beginSystem = new BeginSystem()
+let lookSystem = new LookSystem()
 
 // resolverSystem.mutate(actionOutputChannel)
 // locatorSystem.mutate(actionOutputChannel)
@@ -56,6 +58,7 @@ let systems = {
     inventory: inventorySystem,
     move: movementSystem,
     begin: beginSystem,
+    look: lookSystem,
 }
 
 const generalActionQueue = []
@@ -85,6 +88,7 @@ entityFactory.registerConstructor('room', (props = {}) => {
     let room = entityManager.createEntity()
     entityManager.addComponent(new Appearance(appearance), room)
     entityManager.addComponent(new Location(parent), room)
+    entityManager.addComponent(new Descriptors(['room']), room)
     entityManager.addComponent(new Container(contents, open), room)
     entityManager.addComponent(new ObjectProperties(visible, transparent), room)
     entityManager.addComponent(new Area(title, visited), room)
@@ -153,7 +157,7 @@ let player
 if (entityManager.lowestFreeId === 10) {
     // Great! This is where you create an entity 🤖
     let room = entityFactory.createRoom({
-        title: 'Testing Chaimber 00178',
+        title: 'Testing Chamber 00178',
         appearance: 'A bare and forgettable testing room.',
     })
 
@@ -187,16 +191,17 @@ if (entityManager.lowestFreeId === 10) {
         labels: ['rock'],
         appearance: 'It\'s just a stone.',
     })
-    entityManager.getComponent('Container', crate).setContents([rock])
-
     // stuff.push(rock)
+
     let screw = entityFactory.createThing({
-        parent: room,
+        parent: crate,
         labels: ['screw', 'fixture'],
         descriptors: ['red', 'rusty'],
         appearance: 'A rusty screw with flaking red paint on the head.',
     })
-    stuff.push(screw)
+    // stuff.push(screw)
+    entityManager.getComponent('Container', crate).setContents([rock, screw])
+
     let bolt = entityFactory.createThing({
         parent: room,
         labels: ['bolt', 'fixture'],

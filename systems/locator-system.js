@@ -18,33 +18,37 @@ class LocatorSystem extends System {
         let room = location.getParent()
 
         let parent = em.getComponent('Location', object).getParent()
+        let root = parent
         let properties = em.getComponent('ObjectProperties', object)
         let apparent = properties.getVisible()
         let container
 
-        while ((parent !== room && parent !== entity) && parent) {
-            if (!em.getComponent('Container', parent).isOpen()) {
-                container = parent
+        while ((root !== room && root !== entity) && root) {
+            if (!em.getComponent('Container', root).isOpen()) {
+                container = root
             }
             if (apparent) {
-                let parentProperties = em.getComponent('ObjectProperties', parent)
-                if (parentProperties) {
-                    if (!parentProperties.getVisible() || (container && !parentProperties.getTransparent())) {
+                let rootProperties = em.getComponent('ObjectProperties', root)
+                if (rootProperties) {
+                    if (!rootProperties.getVisible() || (container && !rootProperties.getTransparent())) {
                         apparent = false
 
                     }
                 }
             }
 
-            parent = em.getComponent('Location', parent).getParent()
+            root = em.getComponent('Location', root).getParent()
         }
-        // Parent will always be the players locaion or the player itself.
-        let parentFlag = Boolean(parent)
-        action.object.accessible = parentFlag && !container
+        // Root will always be the entity's locaion or the player itself or null.
+        // If the root is null then the object is offscreen.
+        // This is fine in the case of the search object being the entity's location.
+        let rootFlag = Boolean(root) || object === room
+        action.object.accessible = rootFlag && !container
         action.object.container = container
-        // If it's visible and there's a parent location (it's not offscreen) then it is apparent.
-        action.object.apparent = apparent && parentFlag
-        action.object.locationParent = parent
+        // If it's visible and there's a root location (it's not offscreen) then it is apparent.
+        action.object.apparent = apparent && rootFlag
+        action.object.root = root
+        action.object.parent = parent
 
         action.steps.set('locate', {
             success: true,

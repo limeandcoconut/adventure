@@ -21,11 +21,11 @@ class GetterSystem extends System {
             return
         }
 
-        console.log('---------- GET ---------')
+        // console.log('---------- GET ---------')
 
         let entity = action.entity.id
 
-        if (action.object.locationParent === entity) {
+        if (action.object.parent === entity) {
             this.fail(action, {
                 reason: 'Already Have.',
             })

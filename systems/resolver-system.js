@@ -5,12 +5,13 @@ class ResolverSystem extends System {
 
     update(action) {
 
-        console.log('---------- RESOLVE ---------')
+        // console.log('---------- RESOLVE ---------')
 
         let objects = this.extractObjects(action)
 
         if (typeof objects[0].id === 'undefined') {
-            for (let object of objects) {
+            for (let i = 0; i < objects.length; i++) {
+                const object = objects[i]
                 let result = this.resolve(object)
                 if (result.success) {
                     object.id = result.id

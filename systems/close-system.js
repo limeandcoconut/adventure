@@ -21,7 +21,7 @@ class CloseSystem extends System {
             return
         }
 
-        console.log('-------- OPEN --------')
+        // console.log('-------- CLOSE --------')
 
         let object = action.object.id
 

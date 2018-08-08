@@ -5,7 +5,7 @@ class DroppingSystem extends System {
 
     update(action) {
         let entity = action.entity.id
-        if (action.object.locationParent !== entity) {
+        if (action.object.parent !== entity) {
             action.steps.set('drop', {
                 success: false,
                 // Consider making an Enum for this
@@ -26,7 +26,7 @@ class DroppingSystem extends System {
             return
         }
 
-        console.log('-------- DROP --------')
+        // console.log('-------- DROP --------')
 
         let object = action.object.id
 

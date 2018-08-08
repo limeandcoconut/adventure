@@ -1,4 +1,30 @@
-let {entityManager} = require('./managers.js')
+let {entityManager: em} = require('./managers.js')
+
+/* eslint-disable require-jsdoc */
+function describeContents({contents, opening = 'a ', closing = '', level = 0}) {
+    let tab = '    '
+    let indent = tab.repeat(level)
+    let output = ''
+    if (contents.length) {
+        if (level) {
+            output += `${indent}It contains:\n`
+        }
+    }
+    for (let i = 0; i < contents.length; i++) {
+        const {id, contents: itemContents} = contents[i]
+        const name = em.getComponent('Descriptors', id).getName()
+        output += `${tab}${indent}${opening}${name}${closing}\n`
+
+        if (itemContents) {
+            output += describeContents({
+                contents: itemContents,
+                level: level + 1,
+            })
+        }
+    }
+
+    return output
+}
 
 let responses = {
     responses: {
@@ -32,34 +58,12 @@ let responses = {
             },
             inventory({inventory}) {
                 if (!inventory.length) {
-                    return `You don't have antying.`
-                }
-                /* eslint-disable require-jsdoc */
-                function describeInventory(inventory, level = 0) {
-                    let tab = '    '
-                    let indent = tab.repeat(level)
-                    let output
-                    if (level) {
-                        output = `${indent}It contains:\n`
-                    } else {
-                        output = `You are carrying:\n`
-                    }
-
-                    inventory.forEach(({
-                        id,
-                        inventory,
-                    }) => {
-                        let name = entityManager.getComponent('Descriptors', id).getName()
-                        output += `${tab}${indent}${name}\n`
-                        if (inventory) {
-                            output += describeInventory(inventory, level + 1)
-                        }
-                    })
-
-                    return output
+                    return `You don't have anyting.`
                 }
 
-                return describeInventory(inventory)
+                let output = `You are carrying:\n`
+                output += describeContents({contents: inventory})
+                return output
             },
             open() {
                 return 'Opened.'
@@ -67,24 +71,43 @@ let responses = {
             close() {
                 return 'Closed.'
             },
-            go({parent, firstVisit}) {
-                let response = entityManager.getComponent('Area', parent).getTitle()
-                if (firstVisit) {
-                    response += '\n \n'
-                    response += entityManager.getComponent('Appearance', parent).getAppearance()
+            go({parent, look}) {
+                if (look) {
+                    return responses.responses.success.look({look})
                 }
-                return response
+                return `- ${em.getComponent('Area', parent).getTitle()} -\n`
             },
-            begin({parent}) {
-                return '\n\n######################################\n \n' +
+            begin(info) {
+                return '\n \nYou\'re in a room, utterly boring with just a hint of institutionalized over optimism. ' +
+                    'It\'s a small kindness not to describe the nearly blank nearly white walls and other environs in any detail. ' +
+                    'A cloying sense of insincerity pervades this place. Florescent lights hum overhead... \n' +
+                    'You notice a sign on the wall that has been laminated so that the paper is ever so slightly askew within the plastic coating - ' +
+                    'it would seem that such things are never perfect. It reads:' +
+                    '\n \n######################################\n \n' +
                     'WELCOME TO THE TESTING AREA:\n' +
                     'Congratulations on your new position!\n' +
                     'This environment promotes fun and cooperation.\n \n' +
                     '######################################\n \n' +
-                    responses.responses.success.go({
-                        parent,
-                        firstVisit: true,
-                    })
+                    'You can feel the ennui setting in already.\n \n' +
+                    responses.responses.success.look(info)
+            },
+            look({look: {object, area, contents}}) {
+                let output = ''
+                const context = {contents}
+                if (area) {
+                    output += `\n- ${area.getTitle()} -\n `
+                    context.opening = 'There is a '
+                    context.closing = ' here.'
+                }
+                output += `\n${em.getComponent('Appearance', object).getAppearance()}\n`
+
+                if (contents && contents.length) {
+                    if (!area) {
+                        output += `It contains:\n`
+                    }
+                    output += describeContents(context)
+                }
+                return output
             },
         },
         failure: {
@@ -93,7 +116,7 @@ let responses = {
                     return 'You already have that.'
                 }
                 if (/inaccessible/i.test(reason)) {
-                    let name = entityManager.getComponent('Descriptors', container).getName()
+                    let name = em.getComponent('Descriptors', container).getName()
                     return `The ${name} is closed.`
                 }
             },
@@ -102,7 +125,7 @@ let responses = {
                     return `You don't have that`
                 }
                 if (/inaccessible/i.test(reason)) {
-                    let name = entityManager.getComponent('Descriptors', container).getName()
+                    let name = em.getComponent('Descriptors', container).getName()
                     return `The ${name} is closed.`
                 }
             },
@@ -113,7 +136,7 @@ let responses = {
                 }
                 console.log(objects)
                 if (/multiple/i.test(reason)) {
-                    let names = objects.map((object) => entityManager.getComponent('Descriptors', object).getName())
+                    let names = objects.map((object) => em.getComponent('Descriptors', object).getName())
                     let last = names.pop()
                     names = names.join(', ')
                     names += ', or the ' + last
@@ -128,7 +151,7 @@ let responses = {
                     return 'It\'s already open.'
                 }
                 if (/not.*container/i.test(reason)) {
-                    let name = entityManager.getComponent('Descriptors', id).getName()
+                    let name = em.getComponent('Descriptors', id).getName()
                     return `How do you open a ${name}?`
                 }
             },
@@ -137,14 +160,14 @@ let responses = {
                     return 'It\'s already closed.'
                 }
                 if (/not.*container/i.test(reason)) {
-                    let name = entityManager.getComponent('Descriptors', id).getName()
+                    let name = em.getComponent('Descriptors', id).getName()
                     return `How do you close a ${name}?`
                 }
             },
         },
         general({success, reason, id}) {
             if (/inapparent/i.test(reason)) {
-                let name = entityManager.getComponent('Descriptors', id).getName()
+                let name = em.getComponent('Descriptors', id).getName()
                 return `You don't see any ${name} here.`
             }
             if (success) {

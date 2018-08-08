@@ -21,11 +21,11 @@ class MovementSystem extends System {
         //     return
         // }
 
-        console.log('-------- MOVE --------')
+        // console.log('-------- MOVE --------')
         if (action.object.id) {
-            action.info = this.teleport(action)
+            this.teleport(action)
         } else {
-            action.info = this.move(action)
+            this.move(action)
         }
 
         // let container = em.getComponent('Container', object)
@@ -56,7 +56,8 @@ class MovementSystem extends System {
         })
     }
 
-    teleport({entity: {id: entity}, object: {id: destination}}) {
+    teleport(action) {
+        let {entity: {id: entity}, object: {id: destination}} = action
         const location = em.getComponent('Location', entity)
         // const parent =
         const parentContainer = em.getComponent('Container', location.getParent())
@@ -74,14 +75,16 @@ class MovementSystem extends System {
         const area = em.getComponent('Area', destination)
         const visited = area.getVisited()
         const firstVisit = !visited.includes(entity)
+
         if (firstVisit) {
             visited.push(entity)
             area.setVisited(visited)
+            action.procedure.push('locate')
+            action.procedure.push('look')
         }
 
-        return {
+        action.info = {
             parent: destination,
-            firstVisit,
         }
     }
 

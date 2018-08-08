@@ -21,7 +21,7 @@ class OpenSystem extends System {
             return
         }
 
-        console.log('-------- OPEN --------')
+        // console.log('-------- OPEN --------')
 
         let object = action.object.id
 

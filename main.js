@@ -4,12 +4,14 @@ const {friendlyInterpret: interpret} = require('./interpreter')
 // const {LexError, ParseError} = require('parser')
 const {preresolve, ResolveError} = require('./preresolve.js')
 const {responses, missingParseParts} = require('./responses.js')
-const {begin} = require('./actions')
+const {begin, go} = require('./actions')
 /* eslint-disable require-jsdoc */
 const {systems, player, processes} = require('./setup.js')
 // const {systems, player, processes, generalInputProcess: gip} = require('./setup.js')
 
 let gameStarted = false
+
+const preresolveObjects = ['all', 'everything', 'room']
 
 module.exports = function(line) {
     console.log('')
@@ -37,8 +39,8 @@ module.exports = function(line) {
     for (let i = 0; i < actions.length; i++) {
         let action = actions[i]
         console.log('*********** ACTION **********')
-        console.log(JSON.stringify(action, null, 4))
-        console.log(action)
+        logAction(action)
+        console.log('')
         if (action instanceof Error) {
             return formatResponse(action)
         }
@@ -51,12 +53,30 @@ module.exports = function(line) {
         gameStarted = true
 
         if (!actions.length || actions[0].type !== 'begin') {
-            console.log(`It doesn't look like you've begun yet`)
-            let beginningAction = {}
-            // console.log(actions)
-            beginningAction = Object.create(begin)
+            console.log(`It doesn't look like you've begun yet. Lets do that.`)
+
+            // let lookAction = Object.create(look)
+            // lookAction.word = 'look'
+            // lookAction.object = {
+            //     word: 'room',
+            //     descriptors: [],
+            // }
+            // actions.unshift(lookAction)
+
+            // let goAction = Object.create(go)
+            // goAction.word = 'go'
+            // goAction.object = {
+            //     id: 10,
+            //     // word: 'room',
+            //     descriptors: [],
+            // }
+            // actions.unshift(goAction)
+
+            let beginningAction = Object.create(begin)
             beginningAction.word = 'begin'
             actions.unshift(beginningAction)
+
+            console.log(actions)
         }
     }
 
@@ -94,9 +114,8 @@ module.exports = function(line) {
             }
 
             //  If the action is targeting a generic object preresolve the object id(s).
-            let label = action.object.word
-            if (label === 'all' || label === 'everything') {
-                // Fail this action if there are descriptors attached to "all".
+            if (preresolveObjects.includes(action.object.word)) {
+                // Fail this action if there are descriptors attached to a preresolution object.
                 if (action.object.descriptors.length) {
                     output += formatResponse(new ResolveError(`Cannot resolve descriptors on "${action.word}."`))
                     i++
@@ -159,7 +178,7 @@ module.exports = function(line) {
         deferred = []
         i++
     }
-    return output
+    return output + '\n'
 }
 
 function execute(action) {
@@ -188,26 +207,23 @@ function execute(action) {
         return 0
     })
 
-    // console.log(actions)
-
     for (let i = 0; i < actions.length; i++) {
         const action = actions[i]
 
-        // console.log('ACTION: ', action)
-        // console.log(action.procedure)
-        // console.log(JSON.stringify(action.procedure, null, 4))
-
         // Do each step listed by that action.
         let procedure = action.procedure
-        procedure.every((step) => {
+        let j = 0
+        do {
             if (!action.live) {
-                return false
+                j = procedure.length
             }
-            systems[step].update(action)
-            return true
-        })
+            systems[procedure[j]].update(action)
+            j++
+        } while (j < procedure.length)
+
+        logAction(action)
         // TODO: Adjust this to account for the acting entity.
-        let output = formatResponse(action) + '\n'
+        let output = ` \n${formatResponse(action)}`
 
         if (!output) {
             let res = {}
@@ -225,7 +241,7 @@ function execute(action) {
         response += output
 
     }
-
+    console.log('\n \n')
     return response
 }
 
@@ -284,4 +300,12 @@ function formatResponse(output) {
         }
         return responses.general(info)
     }
+}
+
+function logAction(action) {
+    let steps = Array.from(action.steps)
+    action = JSON.parse(JSON.stringify(action))
+    // action.steps = steps
+    console.log(JSON.stringify(action, null, 4))
+    console.log(JSON.stringify(steps, null, 4))
 }

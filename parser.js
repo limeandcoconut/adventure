@@ -20,6 +20,8 @@ let dictionary = {
 
     fish: 'noun',
 
+    room: 'noun',
+
     all: 'noun',
     everything: 'noun',
 
@@ -28,14 +30,14 @@ let dictionary = {
     the: 'article',
     teh: 'article',
 
-    north: 'noun-conversion',
-    n: 'noun-conversion',
-    south: 'noun-conversion',
-    s: 'noun-conversion',
-    east: 'noun-conversion',
-    e: 'noun-conversion',
-    west: 'noun-conversion',
-    w: 'noun-conversion',
+    north: 'noun-verb-conversion',
+    n: 'noun-verb-conversion',
+    south: 'noun-verb-conversion',
+    s: 'noun-verb-conversion',
+    east: 'noun-verb-conversion',
+    e: 'noun-verb-conversion',
+    west: 'noun-verb-conversion',
+    w: 'noun-verb-conversion',
 
     get: 'verb',
     take: 'verb',
@@ -44,6 +46,8 @@ let dictionary = {
     go: 'verb',
     open: 'verb',
     close: 'verb',
+    look: 'verb-noun-conversion',
+    l: 'verb-noun-conversion',
     begin: 'verb-intransitive',
     inventory: 'verb-intransitive',
     i: 'verb-intransitive',
@@ -53,10 +57,12 @@ let dictionary = {
     red: 'adjective',
     rusty: 'adjective',
 
-    u: 'noun-conversion',
-    up: 'preposition-adverb-postfix-noun-conversion',
+    u: 'noun-verb-conversion',
+    up: 'preposition-adverb-postfix-noun-verb-conversion',
 
     on: 'preposition-adverb-postfix',
+
+    at: 'preposition-adverb-postfix',
 
     with: 'preposition-phrase-infix',
     except: 'preposition-phrase-infix',
@@ -101,6 +107,15 @@ let nounImpliedVerbs
         u: nsew,
         up: nsew,
     }
+}
+
+let look = {
+    type: dictionary.room,
+    word: 'room',
+}
+let verbImpliedNouns = {
+    look,
+    l: look,
 }
 
 let lexer = new Lexer(dictionary, ['article'])
@@ -197,6 +212,47 @@ parser.symbol('verb', function(tok) {
     }
 })
 
+// Adjusts for prepositions, is a prefix.
+parser.symbol('verb-noun-conversion', function(tok) {
+    let token = parser.token()
+    let objectToken = token
+    if (isPrepositionAdverb(token)) {
+        objectToken = parser.advance()
+        // If the next token couldn't be an object use it as an adverb.
+        // if (!isObject(token)) {
+        // If the token after that is an object use it as an adverb.
+        // }
+        // Rewind since the token is not being used as an adverb.
+        // parser.rewind(false)
+
+    }
+
+    let object
+    if (isObject(objectToken)) {
+        object = parser.expression(3, tok)
+    } else {
+        object = verbImpliedNouns[tok.word]
+    }
+
+    if (objectToken !== token) {
+        return token.led({
+            type: 'verb',
+            word: tok.word,
+            object,
+        }, token)
+
+        // let object = parser.expression(3, tok)
+    }
+    // parser.advance()
+    // Needs to advance before getting the expression. Dry code.
+
+    return {
+        type: 'verb',
+        word: tok.word,
+        object,
+    }
+})
+
 parser.symbol('verb-intransitive', verb => verb)
 
 parser.symbol('interpreter-error', interpreterError => interpreterError)
@@ -214,7 +270,7 @@ parser.symbol('interpreter-error', interpreterError => interpreterError)
 //     }
 // })
 
-parser.symbol('noun-conversion', function(tok, rbp) {
+parser.symbol('noun-verb-conversion', function(tok, rbp) {
     let noun = {
         type: 'noun',
         word: tok.word,
@@ -229,7 +285,7 @@ parser.symbol('noun-conversion', function(tok, rbp) {
     return token.nud(token, rbp)
 })
 
-parser.symbol('preposition-adverb-postfix-noun-conversion',
+parser.symbol('preposition-adverb-postfix-noun-verb-conversion',
     function(tok, rbp) {
         let noun = {
             type: 'noun',
@@ -337,7 +393,7 @@ parser.symbol('conjunction',
 parser.symbol(lexer.endToken)
 
 function isPrepositionAdverb({type}) {
-    return type === 'preposition-adverb-postfix-noun-conversion' || type === 'preposition-adverb-postfix'
+    return type === 'preposition-adverb-postfix-noun-verb-conversion' || type === 'preposition-adverb-postfix'
 }
 
 function isObject({type}) {

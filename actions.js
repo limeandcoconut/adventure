@@ -28,8 +28,19 @@ const drop = new Action('drop', [
 
 const go = new Action('go', ['move'])
 
+const look = new Action('look', [
+    ...baseProcess,
+    'look',
+], {
+    at: 'look',
+})
+
 Object.assign(actions, {
-    begin: new Action('begin', ['begin']),
+    begin: new Action('begin', [
+        'begin',
+        'locate',
+        'look',
+    ]),
     get,
     take: get,
     pick: new Action('pick', [], {
@@ -51,6 +62,8 @@ Object.assign(actions, {
     ], {
         up: 'close',
     }),
+    look,
+    l: look,
 })
 
 module.exports = actions

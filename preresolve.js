@@ -11,47 +11,56 @@ class ResolveError extends Error {
 function preresolve(action) {
 
     console.log('---------- PRERESOLVE ---------')
-    let {entity: {id: entity}, type} = action
+    let {entity: {id: entity}, type, object: {word}} = action
 
-    if (type === 'get') {
-        const location = em.getComponent('Location', entity)
-        const room = location.getParent()
+    if (word === 'all' || word === 'everything') {
+        if (type === 'get') {
+            const location = em.getComponent('Location', entity)
+            const room = location.getParent()
 
-        const roomVisible = em.getComponent('ObjectProperties', room).getVisible()
+            const roomVisible = em.getComponent('ObjectProperties', room).getVisible()
 
-        const objects = []
-        if (!roomVisible) {
+            const objects = []
+            if (!roomVisible) {
+                return objects
+            }
+
+            const roomContainer = em.getComponent('Container', room)
+            const contents = roomContainer.getContents()
+
+            contents.forEach((object) => {
+                if (object === entity || !em.getComponent('ObjectProperties', object).getVisible()) {
+                    return
+                }
+                objects.push({
+                    id: object,
+                })
+            })
+
             return objects
         }
 
-        const roomContainer = em.getComponent('Container', room)
-        const contents = roomContainer.getContents()
+        if (type === 'drop') {
+            const container = em.getComponent('Container', entity)
 
-        contents.forEach((object) => {
-            if (object === entity || !em.getComponent('ObjectProperties', object).getVisible()) {
-                return
+            const objects = []
+            const contents = container.getContents()
+
+            for (let object of contents) {
+                objects.push({
+                    id: object,
+                })
             }
-            objects.push({
-                id: object,
-            })
-        })
 
-        return objects
-    }
-
-    if (type === 'drop') {
-        const container = em.getComponent('Container', entity)
-
-        const objects = []
-        const contents = container.getContents()
-
-        for (let object of contents) {
-            objects.push({
-                id: object,
-            })
+            return objects
         }
+    } else if (word === 'room') {
+        if (type === 'look') {
 
-        return objects
+            return [{
+                id: em.getComponent('Location', entity).getParent(),
+            }]
+        }
     }
 
     return new ResolveError('Cannot interpret preresolve.')

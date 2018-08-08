@@ -5,8 +5,10 @@ class BeginSystem extends System {
 
     update(action) {
 
-        console.log('-------- BEGIN --------')
-        action.info.parent = em.getComponent('Location', action.entity.id).getParent()
+        // console.log('-------- BEGIN --------')
+        action.object = {
+            id: em.getComponent('Location', action.entity.id).getParent(),
+        }
         action.steps.set('begin', {success: true})
     }
 
