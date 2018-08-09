@@ -5,21 +5,51 @@ class LocatorSystem extends System {
 
     update(action) {
         let entity = action.entity.id
-        let object = action.object.id
+        // let object = action.object.id
 
-        if (typeof object === 'undefined') {
-            return
-            // why???
+        // if (typeof object === 'undefined') {
+        //     // In case of an infix.
+        //     return
+        // }
+
+        // console.log('---------- LOCATE ---------')
+
+        let objects = this.extractObjects(action)
+
+        for (let i = 0; i < objects.length; i++) {
+            const object = objects[i]
+            this.locate(object, entity)
+            // if (result.success) {
+            //     object.id = result.id
+            // } else {
+            //     action.steps.set('resolve', result)
+            //     action.live = false
+            //     return
+            // }
         }
 
-        console.log('---------- LOCATE ---------')
+        action.steps.set('locate', {
+            success: true,
+        })
 
+    }
+
+    extractObjects(action) {
+        if (action.object.type === 'infix') {
+            let {direct, indirect} = action.object
+            return [direct, indirect]
+        }
+
+        return [action.object]
+    }
+
+    locate(object, entity) {
         let location = em.getComponent('Location', entity)
         let room = location.getParent()
 
-        let parent = em.getComponent('Location', object).getParent()
+        let parent = em.getComponent('Location', object.id).getParent()
         let root = parent
-        let properties = em.getComponent('ObjectProperties', object)
+        let properties = em.getComponent('ObjectProperties', object.id)
         let apparent = properties.getVisible()
         let container
 
@@ -42,17 +72,16 @@ class LocatorSystem extends System {
         // Root will always be the entity's locaion or the player itself or null.
         // If the root is null then the object is offscreen.
         // This is fine in the case of the search object being the entity's location.
-        let rootFlag = Boolean(root) || object === room
-        action.object.accessible = rootFlag && !container
-        action.object.container = container
-        // If it's visible and there's a root location (it's not offscreen) then it is apparent.
-        action.object.apparent = apparent && rootFlag
-        action.object.root = root
-        action.object.parent = parent
+        let rootFlag = Boolean(root) || object.id === room
 
-        action.steps.set('locate', {
-            success: true,
-        })
+        object.accessible = rootFlag && !container
+        object.container = container
+        // If it's visible and there's a root location (it's not offscreen) then it is apparent.
+        object.apparent = apparent && rootFlag
+        object.root = root
+        object.parent = parent
+
+        console.log(object)
     }
 }
 

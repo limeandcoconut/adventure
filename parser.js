@@ -54,6 +54,7 @@ let dictionary = {
     go: 'verb',
     open: 'verb',
     close: 'verb',
+    put: 'verb',
     look: 'verb-noun-conversion',
     l: 'verb-noun-conversion',
     begin: 'verb-intransitive',
@@ -74,6 +75,8 @@ let dictionary = {
 
     with: 'preposition-phrase-infix',
     except: 'preposition-phrase-infix',
+
+    in: 'preposition-phrase-infix',
 
     and: 'conjunction',
 

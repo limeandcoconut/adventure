@@ -7,6 +7,7 @@ const {responses, missingParseParts} = require('./responses.js')
 const {begin, go} = require('./actions')
 /* eslint-disable require-jsdoc */
 const {systems, player, processes} = require('./setup.js')
+const {logAction} = require('./helpers')
 // const {systems, player, processes, generalInputProcess: gip} = require('./setup.js')
 
 let gameStarted = false
@@ -280,7 +281,7 @@ function formatResponse(output) {
 
     // If the action succeeded.
     if (output.live) {
-        let step = Array.from(output.steps.keys()).pop()
+        let [step, stepInfo] = Array.from(output.steps.entries()).pop()
         let handler = responses.success[step]
         if (handler) {
             let response = handler(output.info)
@@ -288,7 +289,8 @@ function formatResponse(output) {
                 return response
             }
         }
-        return responses.general(output.info)
+        console.log(output)
+        return responses.general(stepInfo)
     // If the action failed.
     } else if (output.live === false) {
         let [step, info] = Array.from(output.steps.entries()).pop()
@@ -303,15 +305,3 @@ function formatResponse(output) {
     }
 }
 
-function logAction(action) {
-    let steps = action.steps
-    if (steps) {
-        steps = Array.from(action.steps)
-    }
-    action = JSON.parse(JSON.stringify(action))
-    console.log(JSON.stringify(action, null, 4))
-    // action.steps = steps
-    if (steps) {
-        console.log(JSON.stringify(steps, null, 4))
-    }
-}

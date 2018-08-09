@@ -64,6 +64,10 @@ Object.assign(actions, {
     }),
     look,
     l: look,
+    put: new Action('put', [
+        ...baseProcess,
+        'put',
+    ]),
 })
 
 module.exports = actions

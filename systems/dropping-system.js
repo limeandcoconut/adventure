@@ -49,8 +49,6 @@ class DroppingSystem extends System {
         roomContainer.setContents(roomInventory)
         objectLocation.setParent(room)
 
-        console.log(em.getComponent('Container', entity).getContents())
-
         action.steps.set('drop', {
             success: true,
         })

@@ -113,27 +113,63 @@ class Area {
 }
 
 class ObjectProperties {
-    constructor(visible = true, transparent = false) {
-        this.setTransparent(transparent)
+    constructor({size, baseWeight, weight = baseWeight, visible = true, transparent = false}) {
+        this.setSize(size)
+        this.setBaseWeight(baseWeight)
+        this.setWeight(weight)
         this.setVisible(visible)
+        this.setTransparent(transparent)
     }
 
-    getTransparent() {
-        return this.transparent
+    getSize() {
+        return this.size
     }
 
-    setTransparent(transparent) {
-        this.assertBoolean(transparent)
-        this.transparent = transparent
+    getBaseWeight() {
+        return this.baseWeight
+    }
+
+    getWeight() {
+        return this.weight
     }
 
     getVisible() {
         return this.visible
     }
 
+    getTransparent() {
+        return this.transparent
+    }
+
+    setSize(size) {
+        if (typeof size !== 'number') {
+            throw new TypeError('Argument \'size\' must be a number')
+        }
+        this.size = size
+    }
+
+    setWeight(weight) {
+        if (typeof weight !== 'number') {
+            throw new TypeError('Argument \'weight\' must be a number')
+        }
+        this.weight = weight
+    }
+
+    setBaseWeight(baseWeight) {
+        if (typeof baseWeight !== 'number') {
+            throw new TypeError('Argument \'baseWeight\' must be a number')
+        }
+        this.baseWeight = baseWeight
+    }
+
     setVisible(visible) {
         this.assertBoolean(visible)
         this.visible = visible
+    }
+
+    setTransparent(transparent) {
+        this.assertBoolean(transparent)
+        this.transparent = transparent
     }
 
     assertBoolean(bool) {
@@ -144,37 +180,81 @@ class ObjectProperties {
 }
 
 class Container {
-    constructor(contents = [], open = true) {
-        if (typeof contents.entries !== 'function') {
-            if (!Array.isArray(contents)) {
-                throw new TypeError('Contents must be an Array or Set (maybe)')
-            }
-            contents = new Set(contents)
-        }
+    constructor({volume, maxLoad, freeVolume = volume, contents = [], open = true}) {
+        this.setVolume(volume)
+        this.setFreeVolume(freeVolume)
+        this.setMaxLoad(maxLoad)
+        // this.setLoad(load)
+        this.setContents(contents)
+        this.setOpen(open)
+    }
 
-        this.contents = contents
-        this.open = open
+    getMaxLoad() {
+        return this.maxLoad
+    }
+
+    getVolume() {
+        return this.volume
+    }
+
+    getFreeVolume() {
+        return this.freeVolume
     }
 
     getContents() {
         return new Set(this.contents)
     }
 
+    // getLoad() {
+    //     return this.load
+    // }
+
+    isOpen() {
+        return this.open
+    }
+
+    setVolume(volume) {
+        if (typeof volume !== 'number') {
+            throw new TypeError('Argument \'volume\' must be a number')
+        }
+        this.volume = volume
+    }
+
+    setFreeVolume(freeVolume) {
+        if (typeof freeVolume !== 'number') {
+            throw new TypeError('Argument \'freeVolume\' must be a number')
+        }
+        this.freeVolume = freeVolume
+    }
+
+    setMaxLoad(maxLoad) {
+        if (typeof maxLoad !== 'number') {
+            throw new TypeError('Argument \'maxLoad\' must be a number')
+        }
+        this.maxLoad = maxLoad
+    }
+
+    // setLoad(load) {
+    //     if (typeof load !== 'number') {
+    //         throw new TypeError('Argument \'load\' must be a number')
+    //     }
+    //     this.load = load
+    // }
+
     setContents(contents) {
         if (typeof contents.entries !== 'function') {
             if (!Array.isArray(contents)) {
-                throw new TypeError('Contents must be an Array or Set (maybe)')
+                throw new TypeError('Argument \'contents\' must be an Array or Set')
             }
             contents = new Set(contents)
         }
         this.contents = contents
     }
 
-    isOpen() {
-        return this.open
-    }
-
     setOpen(open) {
+        if (typeof open !== 'boolean') {
+            throw new TypeError('Argument \'open\' must be a boolean')
+        }
         this.open = open
     }
 }

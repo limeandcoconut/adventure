@@ -45,7 +45,7 @@ class GetterSystem extends System {
         let hadObject = parentInventory.delete(object)
         // If the parent's inventory didn't match the record of the object throw.
         if (!hadObject) {
-            throw new Error(`Container "${container}" didn't have object "${object}".`)
+            throw new Error(`Container "${parent}" didn't have object "${object}".`)
         }
         inventory.add(object)
 
