@@ -99,19 +99,21 @@ module.exports = function(line) {
             //  If the action is a bifurcation.
             if (action.object.type === 'bifurcation') {
                 // Split into two actions.
-                let right = Object.create(action)
-                right.object = action.object.right
+                do {
+                    let right = Object.create(action)
+                    right.object = action.object.right
 
-                let left = Object.create(action)
-                left.object = action.object.left
+                    let left = Object.create(action)
+                    left.object = action.object.left
 
-                // Add properties to action.
-                right.steps = new Map()
-                right.live = true
-                // Defer the right side.
-                deferred.push(right)
-                // Execute the left.
-                action = left
+                    // Add properties to action.
+                    right.steps = new Map()
+                    right.live = true
+                    // Defer the right side.
+                    deferred.push(right)
+                    // Execute the left.
+                    action = left
+                } while (action.object.type === 'bifurcation')
             }
 
             //  If the action is targeting a generic object preresolve the object id(s).
