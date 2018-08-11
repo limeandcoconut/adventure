@@ -4,10 +4,14 @@ const {entityManager: em} = require('../managers.js')
 class ResolverSystem extends System {
 
     update(action) {
-
+        let object = action.object
         // console.log('---------- RESOLVE ---------')
 
-        let objects = this.extractObjects(action)
+        let objects = []
+        while (object) {
+            objects.push(object)
+            object = object.object
+        }
 
         if (typeof objects[0].id === 'undefined') {
             for (let i = 0; i < objects.length; i++) {
@@ -28,14 +32,14 @@ class ResolverSystem extends System {
         })
     }
 
-    extractObjects(action) {
-        if (action.object.type === 'infix') {
-            let {direct, indirect} = action.object
-            return [direct, indirect]
-        }
+    // extractObjects(action) {
+    //     if (action.object.type === 'infix') {
+    //         let {direct, indirect} = action.object
+    //         return [direct, indirect]
+    //     }
 
-        return [action.object]
-    }
+    //     return [action.object]
+    // }
 
     resolve(object) {
         let descriptors = object.descriptors.slice()

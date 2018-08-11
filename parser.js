@@ -20,10 +20,10 @@ let dictionary = {
 
     fish: 'noun',
 
-    room: 'noun',
+    room: 'pronoun',
 
-    all: 'noun',
-    everything: 'noun',
+    all: 'noun-multiple',
+    everything: 'noun-multiple',
 
     anything: 'noun',
 
@@ -208,7 +208,7 @@ parser.symbol('verb', function(tok) {
         let nextToken = parser.advance()
         // If the next token couldn't be an object use it as an adverb.
         // Or, if the token after that is an object use it as an adverb.
-        if (!isObject(token) || isObject(nextToken)) {
+        if (!isObject(token, true) || isObject(nextToken, true)) {
             // parser.advance()
             // Needs to advance before getting the expression. Dry code.
             return token.led({
@@ -247,7 +247,7 @@ parser.symbol('verb-noun-conversion', function(tok) {
     }
 
     let object
-    if (isObject(objectToken)) {
+    if (isObject(objectToken, true)) {
         object = parser.expression(3, tok)
     } else {
         object = verbImpliedNouns[tok.word]
@@ -334,6 +334,10 @@ parser.symbol('preposition-adverb-postfix-noun-verb-conversion',
 
 parser.symbol('noun', noun => noun)
 
+parser.symbol('pronoun', noun => noun)
+
+parser.symbol('noun-multiple', noun => noun)
+
 // Implies its' own noun if one is missing; prefix.
 parser.symbol('adjective', function(tok) {
     let object
@@ -363,7 +367,7 @@ parser.symbol('preposition-adverb-postfix', null, 3, function(left, tok) {
 parser.symbol('preposition-phrase-infix', null, 4, function(left, tok) {
     let parent
     let top = left
-    while (!isObject(left)) {
+    while (!isObject(left, true) && left.type !== 'conjunction') {
         parent = left
         left = left.object
     }
@@ -397,7 +401,7 @@ parser.symbol('conjunction',
     6,
     function(left, tok) {
         let token = parser.token()
-        if (!isObject(token) && token.type !== parser.endToken) {
+        if (!isObject(token, true) && token.type !== parser.endToken) {
             return left
         }
         return {
@@ -415,8 +419,8 @@ function isPrepositionAdverb({type}) {
     return type === 'preposition-adverb-postfix-noun-verb-conversion' || type === 'preposition-adverb-postfix'
 }
 
-function isObject({type}) {
-    return type === 'adjective' || /noun/.test(type)
+function isObject({type}, greedy = false) {
+    return type === 'adjective' || type === 'noun' || (greedy && /noun/.test(type) && !/verb/.test(type))
 }
 
 module.exports = {

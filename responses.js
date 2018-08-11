@@ -58,7 +58,7 @@ let responses = {
             },
             inventory({inventory}) {
                 if (!inventory.length) {
-                    return `You don't have anyting.`
+                    return `You don't have anything.`
                 }
 
                 let output = `You are carrying:\n`

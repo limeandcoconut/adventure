@@ -1,19 +1,21 @@
 const {entityManager: em} = require('./managers.js')
 
 /* eslint-disable require-jsdoc */
-class ResolveError extends Error {
-    constructor(message) {
-        super(message)
-        this.isResolveError = true
-    }
-}
+// class ResolveError extends Error {
+//     constructor(message) {
+//         super(message)
+//         this.isResolveError = true
+//     }
+// }
 
-function preresolve(action) {
+function preresolve(object, type, {id: entity}) {
 
     console.log('---------- PRERESOLVE ---------')
-    let {entity: {id: entity}, type, object: {word}} = action
-
-    if (word === 'all' || word === 'everything') {
+    // let {entity: {id: entity}, type, object} = action
+    console.log(JSON.stringify(object, null, 4))
+    console.log(JSON.stringify(object.type, null, 4))
+    console.log(JSON.stringify(object.word, null, 4))
+    if (object.type === 'noun-multiple') {
         if (type === 'get') {
             const location = em.getComponent('Location', entity)
             const room = location.getParent()
@@ -22,6 +24,12 @@ function preresolve(action) {
 
             const objects = []
             if (!roomVisible) {
+                objects.push({
+                    result: {
+                        reason: 'Cannot preresolve entity.',
+                        success: false,
+                    },
+                })
                 return objects
             }
 
@@ -36,6 +44,15 @@ function preresolve(action) {
                     id: object,
                 })
             })
+            console.log(JSON.stringify(objects, null, 4))
+            if (!objects.length) {
+                objects.push({
+                    result: {
+                        reason: 'Cannot preresolve entity.',
+                        success: false,
+                    },
+                })
+            }
 
             return objects
         }
@@ -52,9 +69,18 @@ function preresolve(action) {
                 })
             }
 
+            if (!objects.length) {
+                objects.push({
+                    result: {
+                        reason: 'Cannot preresolve entity.',
+                        success: false,
+                    },
+                })
+            }
+
             return objects
         }
-    } else if (word === 'room') {
+    } else if (object.word === 'room') {
         if (type === 'look') {
 
             return [{
@@ -63,10 +89,10 @@ function preresolve(action) {
         }
     }
 
-    return new ResolveError('Cannot interpret preresolve.')
+    // return new ResolveError('Cannot interpret preresolve.')
 }
 
 module.exports = {
     preresolve,
-    ResolveError,
+    // ResolveError,
 }

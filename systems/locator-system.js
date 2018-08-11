@@ -5,7 +5,7 @@ class LocatorSystem extends System {
 
     update(action) {
         let entity = action.entity.id
-        // let object = action.object.id
+        let object = action.object
 
         // if (typeof object === 'undefined') {
         //     // In case of an infix.
@@ -14,7 +14,11 @@ class LocatorSystem extends System {
 
         // console.log('---------- LOCATE ---------')
 
-        let objects = this.extractObjects(action)
+        let objects = []
+        while (object) {
+            objects.push(object)
+            object = object.object
+        }
 
         for (let i = 0; i < objects.length; i++) {
             const object = objects[i]
@@ -34,14 +38,14 @@ class LocatorSystem extends System {
 
     }
 
-    extractObjects(action) {
-        if (action.object.type === 'infix') {
-            let {direct, indirect} = action.object
-            return [direct, indirect]
-        }
+    // extractObjects(action) {
+    //     if (action.object.type === 'infix') {
+    //         let {direct, indirect} = action.object
+    //         return [direct, indirect]
+    //     }
 
-        return [action.object]
-    }
+    //     return [action.object]
+    // }
 
     locate(object, entity) {
         let location = em.getComponent('Location', entity)
@@ -73,7 +77,6 @@ class LocatorSystem extends System {
         // If the root is null then the object is offscreen.
         // This is fine in the case of the search object being the entity's location.
         let rootFlag = Boolean(root) || object.id === room
-
         object.accessible = rootFlag && !container
         object.container = container
         // If it's visible and there's a root location (it's not offscreen) then it is apparent.
@@ -81,7 +84,7 @@ class LocatorSystem extends System {
         object.root = root
         object.parent = parent
 
-        console.log(object)
+        // console.log(object)
     }
 }
 

@@ -1,18 +1,13 @@
-// const {entityManager} = require('./managers.js')
 const {friendlyParse: parse, parser, lexer} = require('./parser.js')
 const {friendlyInterpret: interpret} = require('./interpreter')
-// const {LexError, ParseError} = require('parser')
-const {preresolve, ResolveError} = require('./preresolve.js')
+const {preresolve} = require('./preresolve.js')
 const {responses, missingParseParts} = require('./responses.js')
 const {begin, go} = require('./actions')
-/* eslint-disable require-jsdoc */
+/* eslint-disable require-jsdoc, max-depth, no-loop-func */
 const {systems, player, processes} = require('./setup.js')
 const {logAction} = require('./helpers')
-// const {systems, player, processes, generalInputProcess: gip} = require('./setup.js')
 
 let gameStarted = false
-
-const preresolveObjects = ['all', 'everything', 'room']
 
 module.exports = function(line) {
     console.log('')
@@ -84,10 +79,8 @@ module.exports = function(line) {
     // Construct response from executing actions.
     let output = ''
 
-    let deferred = []
-    let i = 0
-    while (i < actions.length) {
-        let action = actions[i]
+    while (actions.length) {
+        let action = actions.shift()
         console.log('*********** EXECUTE MAIN **********')
 
         // Add properties to action.
@@ -95,91 +88,88 @@ module.exports = function(line) {
             id: player,
         }
 
-        if (action.object) {
-            //  If the action is a bifurcation.
-            if (action.object.type === 'bifurcation') {
-                // Split into two actions.
-                do {
-                    let right = Object.create(action)
-                    right.object = action.object.right
-
-                    let left = Object.create(action)
-                    left.object = action.object.left
-
-                    // Add properties to action.
-                    right.steps = new Map()
-                    right.live = true
-                    // Defer the right side.
-                    deferred.push(right)
-                    // Execute the left.
-                    action = left
-                } while (action.object.type === 'bifurcation')
-            }
-
-            //  If the action is targeting a generic object preresolve the object id(s).
-            if (preresolveObjects.includes(action.object.word)) {
-                // Fail this action if there are descriptors attached to a preresolution object.
-                if (action.object.descriptors.length) {
-                    output += formatResponse(new ResolveError(`Cannot resolve descriptors on "${action.word}."`))
-                    i++
-                    continue
+        if (action.object && !action.steps) {
+            //  If the action is a bifurcation get all variants of this objects action.
+            let variants = bifurcate(action.object, (object) => {
+                const objects = []
+                if (object.type === 'bifurcation') {
+                    let left = object
+                    do {
+                        objects.unshift(left.right)
+                        left = left.left
+                    } while (left.type === 'bifurcation')
+                    objects.unshift(left)
+                } else {
+                    objects.push(object)
                 }
+                return objects
+            })
 
-                let objects
-                objects = preresolve(action)
-                if (objects instanceof Error) {
-                    output += formatResponse(objects)
-                    i++
-                    continue
-                }
-
-                if (!objects.length) {
-                    action.steps = new Map([
-                        ['preresolve', {
-                            success: false,
-                            reason: 'Cannot preresolve entity.',
-                        }],
-                    ])
-                    action.live = false
-                    output += formatResponse(action)
-                    i++
-                    continue
-                }
-
-                let objectCount = objects.length
-                let l = 0
-                let newAction
-                do {
-                    newAction = Object.create(action)
-                    newAction.object = objects[l]
-                    if (l >= objectCount - 1) {
-                        break
-                    }
+            // If there are variations create a new action for each one.
+            if (variants.length) {
+                variants = variants.map((object) => {
+                    // Create new action.
+                    let newAction = Object.create(action)
+                    newAction.object = object
                     // Add properties to action.
                     newAction.steps = new Map()
                     newAction.live = true
-                    deferred.push(newAction)
-                } while (++l)
+                    return newAction
+                })
+                // Add the new variant actions to the list.
+                actions = variants.concat(actions)
 
-                action = newAction
+                logVariants(actions)
+                // Set the current action to the first one
+                action = actions.shift()
+            }
+
+            // If there are multiple nouns or pronouns preresolve them, recursively.
+            variants = bifurcate(action.object, (object) => {
+                let objects
+                if (object.type === 'noun-multiple' || object.type === 'pronoun') {
+                    objects = preresolve(object, action.type, action.entity)
+                } else {
+                    objects = [object]
+                }
+                return objects
+            })
+
+            // If there are variants create a new action for each one.
+            if (variants.length) {
+                variants = variants.map((object) => {
+                    // Create new action.
+                    let newAction = Object.create(action)
+                    newAction.object = object
+                    // If the resolution failed at any point, fail this action.
+                    // Add properties to action.
+                    newAction.steps = new Map()
+                    if (object.result) {
+                        newAction.steps.set('preresolve', object.result)
+                        newAction.live = false
+                    } else {
+                        newAction.steps.set('preresolve', {success: true})
+                        newAction.live = true
+                    }
+                    // console.log(newAction.object)
+                    return newAction
+                })
+
+                // Add the new actions to the list.
+                actions = variants.concat(actions)
+                // Set the current action.
+                action = actions.shift()
             }
         }
 
         // Add properties to action.
-        action.steps = new Map()
-        action.live = true
+        if (!action.steps) {
+            action.steps = new Map()
+            action.live = true
+        }
         action.initiative = 2
         action.info = {}
         output += execute(action)
-
-        let j = 0
-        while (j < deferred.length) {
-            console.log('*********** EXECUTE DEFERRED **********')
-            output += execute(deferred[j])
-            j++
-        }
-        deferred = []
-        i++
     }
     return output + '\n'
 }
@@ -191,6 +181,9 @@ function execute(action) {
     // All simultaneous actions.
     let actions = [action]
     // Run all processes.
+
+    logAction(action)
+
     for (let i = 0; i < processes.length; i++) {
         let processActions = processes[i].update(action)
         // If any actions were generated add them to the list.
@@ -216,6 +209,8 @@ function execute(action) {
         // Do each step listed by that action.
         let procedure = action.procedure
         let j = 0
+        // action.live = false
+        // action.steps.set('foo', {})
         do {
             if (!action.live) {
                 break
@@ -224,7 +219,7 @@ function execute(action) {
             j++
         } while (j < procedure.length)
 
-        logAction(action)
+        // logAction(action)
         // TODO: Adjust this to account for the acting entity.
         let output = ` \n${formatResponse(action)}`
 
@@ -246,6 +241,35 @@ function execute(action) {
     }
     console.log('\n \n')
     return response
+}
+
+function bifurcate(object, method) {
+    // Flatten any the tree structure using the provided method.
+    const objects = method(object)
+    // If there was no infix involved, pass the direct objects along.
+    let indirect = object.object
+    if (!indirect) {
+        return objects
+    }
+    // Flatten any indirect objects recursively.
+    let indirectObjects = []
+    indirectObjects = indirectObjects.concat(bifurcate(indirect, method))
+    // Create a new variant of this object for each indirect object child it has.
+    let variants = []
+    for (let i = 0; i < indirectObjects.length; i++) {
+        for (let j = 0; j < objects.length; j++) {
+            let variant = Object.create(objects[j])
+            let indirect = indirectObjects[i]
+            // If the direct object resolved properly but the indirect didn't pass the message up.
+            if (!variant.result && indirect.result) {
+                variant.result = indirect.result
+            }
+            variant.object = indirect
+            variants.push(variant)
+        }
+    }
+
+    return variants
 }
 
 function formatResponse(output) {
@@ -305,5 +329,59 @@ function formatResponse(output) {
         }
         return responses.general(info)
     }
+}
+
+function logVariants(actions) {
+    // console.log('---------- PRERESOLVE ---------')
+    // let n = 0
+    // actions.forEach((v) => {
+    //     n++
+    //     console.log(n)
+    //     let result = '{\n'
+    //     result += JSON.stringify(v.type, null, 4) + ', \n"object": {\n    "id": '
+    //     // result += JSON.stringify(v.type, null, 4) + ', \n"object": {\n    "type": '
+    //     if (!v.object) {
+    //         console.log(result)
+    //         return
+    //     }
+    //     result += JSON.stringify(v.object.id, null, 4) + ', \n    "result":'
+    //     result += JSON.stringify(v.object.result, null, 4) + ','
+    //     // result += JSON.stringify(v.object.word, null, 4) + ','
+    //     if (!v.object.object) {
+    //         console.log(result)
+    //         return
+    //     }
+    //     result += ' \n    "object":' + JSON.stringify(v.object.object, null, 8).slice(0, -2) + '\n    }, \n}'
+    //     console.log(result)
+    // })
+    // console.log(JSON.stringify(actions, null, 4))
+
+    let n = 0
+    actions.forEach((v) => {
+        n++
+        console.log(n)
+        let result = '{\n'
+        result += JSON.stringify(v.type, null, 4) + ', \n"object": {\n    '
+        if (!v.object) {
+            console.log(result)
+            return
+        }
+        if (v.object.id) {
+            result += '"id": '
+            result += JSON.stringify(v.object.id, null, 4) + ', \n    "result":'
+            result += JSON.stringify(v.object.result, null, 4) + ', \n    "word":'
+            result += JSON.stringify(v.object.word, null, 4) + ','
+        } else {
+            result += '"type": '
+            result += JSON.stringify(v.object.type, null, 4) + ', \n    "word":'
+            result += JSON.stringify(v.object.word, null, 4) + ','
+        }
+        if (!v.object.object) {
+            console.log(result)
+            return
+        }
+        result += ' \n    "object":' + JSON.stringify(v.object.object, null, 8).slice(0, -2) + '\n    }, \n}'
+        console.log(result)
+    })
 }
 

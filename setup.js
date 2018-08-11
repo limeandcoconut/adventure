@@ -185,7 +185,7 @@ if (entityManager.lowestFreeId === 10) {
     // Great! This is where you create an entity 🤖
     let testingChamber00178 = entityFactory.createRoom({
         title: 'Testing Chamber 00178',
-        appearance: 'A bare and forgettable offices space.',
+        appearance: 'A bare and forgettable office space.',
         volume: Number.POSITIVE_INFINITY,
         maxLoad: Number.POSITIVE_INFINITY,
         size: Number.POSITIVE_INFINITY,
@@ -226,7 +226,7 @@ if (entityManager.lowestFreeId === 10) {
 
     let crate = entityFactory.createContainer({
         parent: testingChamber00178,
-        open: false,
+        open: true,
         labels: ['crate'],
         appearance: 'A weathered wooden crate.',
         volume: 4,
@@ -239,7 +239,7 @@ if (entityManager.lowestFreeId === 10) {
     })
 
     let rock = entityFactory.createThing({
-        parent: crate,
+        parent: testingChamber00178,
         labels: ['rock'],
         appearance: 'It\'s just a stone.',
         size: 1,
@@ -248,7 +248,7 @@ if (entityManager.lowestFreeId === 10) {
     })
 
     let screw = entityFactory.createThing({
-        parent: crate,
+        parent: testingChamber00178,
         labels: ['screw', 'fixture'],
         descriptors: ['red', 'rusty'],
         appearance: 'A rusty screw with flaking red paint on the head.',
@@ -297,9 +297,9 @@ if (entityManager.lowestFreeId === 10) {
     })
 
     entityManager.getComponent('Container', player).setContents([thing])
-    entityManager.getComponent('Container', crate).setContents([rock, screw, box])
+    entityManager.getComponent('Container', crate).setContents([box])
     entityManager.getComponent('Container', box).setContents([wrench])
-    entityManager.getComponent('Container', testingChamber00178).setContents([player, bolt, crate])
+    entityManager.getComponent('Container', testingChamber00178).setContents([player, bolt, crate, screw, rock])
     // entityManager.getComponent('Container', anotherRoom).setContents([])
 
     console.log(JSON.stringify({

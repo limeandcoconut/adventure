@@ -12,10 +12,30 @@ interpreter.handler('noun', (node) => {
     }
 })
 
+interpreter.handler('noun-multiple', (node) => {
+    return {
+        type: 'noun-multiple',
+        word: node.word,
+    }
+})
+
+interpreter.handler('pronoun', (node) => {
+    return {
+        type: 'pronoun',
+        word: node.word,
+    }
+})
+
 interpreter.handler('adjective', (node) => {
     let noun = interpreter.parseNode(node.object)
     if (!noun) {
         throw new InterpreterError('Adjective expected a noun.')
+    }
+    if (noun.type === 'noun-multiple') {
+        throw new InterpreterError('Adjectove can\'t use multiple nouns.')
+    }
+    if (noun.type === 'pronoun') {
+        throw new InterpreterError('Adjective an\'t use pronouns.')
     }
     noun.descriptors.push(node.word)
     return noun
@@ -60,20 +80,22 @@ interpreter.handler('preposition-adverb-postfix', (node) => {
 })
 
 interpreter.handler('preposition-phrase-infix', (node) => {
-    let direct = interpreter.parseNode(node.direct)
-    if (!direct) {
+    let object = interpreter.parseNode(node.direct)
+    if (!object) {
         throw new InterpreterError('preposition-phrase-infix expected a direct object.')
     }
-    let indirect = interpreter.parseNode(node.indirect)
-    if (!indirect) {
+    object.object = interpreter.parseNode(node.indirect)
+    if (!object.object) {
         throw new InterpreterError('preposition-phrase-infix expected an indirect object.')
     }
-    return {
-        type: 'infix',
-        word: node.word,
-        direct,
-        indirect,
-    }
+    return object
+    // return {
+    //     type: 'infix',
+    //     word: node.word,
+    //     // direct,
+    //     // indirect,
+    //     object,
+    // }
 })
 
 interpreter.handler('conjunction', (node) => {
