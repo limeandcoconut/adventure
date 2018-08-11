@@ -1,6 +1,6 @@
 const {System} = require('rubricjs')
 const {entityManager: em} = require('../managers.js')
-const {formatContents} = require('../helpers.js')
+const {formatContents} = require('./methods')
 
 class LookSystem extends System {
 

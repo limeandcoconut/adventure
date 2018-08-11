@@ -1,10 +1,11 @@
 const {System} = require('rubricjs')
 const {entityManager: em} = require('../managers.js')
+const {put} = require('./methods')
 
 class DroppingSystem extends System {
 
     update(action) {
-        let entity = action.entity.id
+        const entity = action.entity.id
         if (action.object.parent !== entity) {
             action.steps.set('drop', {
                 success: false,
@@ -26,28 +27,35 @@ class DroppingSystem extends System {
             return
         }
 
-        // console.log('-------- DROP --------')
+        console.log('-------- DROP --------')
 
-        let object = action.object.id
+        const object = action.object.id
+        const source = entity
+        const destination = em.getComponent('Location', entity).getParent()
 
-        let container = em.getComponent('Container', entity)
-        let inventory = container.getContents()
-
-        let room = em.getComponent('Location', entity).getParent()
-        let roomContainer = em.getComponent('Container', room)
-        let roomInventory = roomContainer.getContents()
-
-        let objectLocation = em.getComponent('Location', object)
-
-        let hadObject = inventory.delete(object)
-        if (!hadObject) {
-            throw new Error(`Entity "${entity}" didn't have object "${object}".`)
+        let result = put(object, source, destination)
+        if (result) {
+            this.fail(action, result)
+            return
         }
-        roomInventory.add(object)
 
-        container.setContents(inventory)
-        roomContainer.setContents(roomInventory)
-        objectLocation.setParent(room)
+        // let container = em.getComponent('Container', entity)
+        // let inventory = container.getContents()
+
+        // let roomContainer = em.getComponent('Container', room)
+        // let roomInventory = roomContainer.getContents()
+
+        // let objectLocation = em.getComponent('Location', object)
+
+        // let hadObject = inventory.delete(object)
+        // if (!hadObject) {
+        //     throw new Error(`Entity "${entity}" didn't have object "${object}".`)
+        // }
+        // roomInventory.add(object)
+
+        // container.setContents(inventory)
+        // roomContainer.setContents(roomInventory)
+        // objectLocation.setParent(room)
 
         action.steps.set('drop', {
             success: true,
