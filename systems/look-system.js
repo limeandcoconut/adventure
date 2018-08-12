@@ -30,8 +30,9 @@ class LookSystem extends System {
             look.contents = formatContents(container.getContents(), entity)
         }
 
-        action.info.look = look
-        action.steps.set('look', {success: true})
+        // action.info.look = look
+        look.success = true
+        action.steps.set('look', look)
     }
 
     fail(action, info) {

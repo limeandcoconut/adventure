@@ -1,6 +1,8 @@
 class Action {
-    constructor(type, procedure, variants, requirements) {
+    constructor({type, procedure, reporter, variants, requirements}) {
         this.type = type
+        this.procedure = procedure
+        this.reporter = reporter
         this.variants = variants || {}
         this.requirements = requirements || {
             LocatorSystem: {
@@ -8,7 +10,6 @@ class Action {
                 accessible: true,
             },
         }
-        this.procedure = procedure
         // this.requiredLocal = 'present'
         // this.requiredApparent = true
     }

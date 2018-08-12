@@ -71,10 +71,11 @@ let responses = {
             close() {
                 return 'Closed.'
             },
-            move({area, look}) {
+            move({area}) {
+                // TODO: better reporting
                 console.log(area)
-                if (look) {
-                    return responses.responses.success.look({look})
+                if (false) {
+                    return responses.responses.success.look({})
                 }
                 return `- ${area.getTitle()} -\n`
             },
@@ -92,7 +93,7 @@ let responses = {
                     'You can feel the ennui setting in already.\n \n' +
                     responses.responses.success.look(info)
             },
-            look({look: {object, area, contents}}) {
+            look({object, area, contents}) {
                 let output = ''
                 const context = {contents}
                 if (area) {

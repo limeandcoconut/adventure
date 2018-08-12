@@ -14,10 +14,11 @@ class InventorySystem extends System {
 
         contents = formatContents(contents, entity)
 
-        action.info.inventory = contents
+        // action.info.inventory = contents
 
         action.steps.set('inventory', {
             success: true,
+            inventory: contents,
         })
     }
 }

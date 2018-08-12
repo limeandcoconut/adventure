@@ -13,19 +13,22 @@ class ResolverSystem extends System {
             object = object.object
         }
 
-        if (typeof objects[0].id === 'undefined') {
-            for (let i = 0; i < objects.length; i++) {
-                const object = objects[i]
-                let result = this.resolve(object)
-                if (result.success) {
-                    object.id = result.id
-                } else {
-                    action.steps.set('resolve', result)
-                    action.live = false
-                    return
-                }
+        // if (typeof objects[0].id === 'undefined') {
+        for (let i = 0; i < objects.length; i++) {
+            const object = objects[i]
+            if (typeof object.id !== 'undefined') {
+                continue
+            }
+            let result = this.resolve(object)
+            if (result.success) {
+                object.id = result.id
+            } else {
+                action.steps.set('resolve', result)
+                action.live = false
+                return
             }
         }
+        // }
 
         action.steps.set('resolve', {
             success: true,

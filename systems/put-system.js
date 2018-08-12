@@ -1,14 +1,22 @@
 const {System} = require('rubricjs')
-const {entityManager: em} = require('../managers.js')
-const {logAction} = require('../helpers')
+// const {entityManager: em} = require('../managers.js')
+// const {logAction} = require('../helpers')
 const {put} = require('./methods')
 /* eslint-disable require-jsdoc */
 class PutSystem extends System {
 
     update(action) {
-        logAction(action)
+        // logAction(action)
         let {entity: {id: entity}, object} = action
         let indirect = object.object
+
+        if (object.id === indirect.id) {
+            this.fail(action, {
+                reason: 'Inceptive.',
+                object: object.id,
+            })
+            return
+        }
 
         if (!object.apparent) {
             this.fail(action, {
