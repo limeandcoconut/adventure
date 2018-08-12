@@ -29,13 +29,13 @@ interpreter.handler('pronoun', (node) => {
 interpreter.handler('adjective', (node) => {
     let noun = interpreter.parseNode(node.object)
     if (!noun) {
-        throw new InterpreterError('Adjective expected a noun.')
+        throw new InterpreterError('adjective expected a noun.')
     }
     if (noun.type === 'noun-multiple') {
-        throw new InterpreterError('Adjectove can\'t use multiple nouns.')
+        throw new InterpreterError('adjective can\'t use multiple nouns.')
     }
     if (noun.type === 'pronoun') {
-        throw new InterpreterError('Adjective an\'t use pronouns.')
+        throw new InterpreterError('adjective can\'t use pronouns.')
     }
     noun.descriptors.push(node.word)
     return noun
@@ -66,7 +66,7 @@ interpreter.handler('adverb', (node) => {
 
     let action = interpreter.parseNode(node.object)
     if (!(action instanceof Action)) {
-        throw new InterpreterError('Adverb expected an action.')
+        throw new InterpreterError('adverb expected an action.')
     }
     return action.modify(node.word)
 })
@@ -87,6 +87,9 @@ interpreter.handler('preposition-phrase-infix', (node) => {
     object.object = interpreter.parseNode(node.indirect)
     if (!object.object) {
         throw new InterpreterError('preposition-phrase-infix expected an indirect object.')
+    }
+    if (object.object.type === 'noun-multiple') {
+        throw new InterpreterError('preposition-phrase-infix can\'t use multiple nouns as indirect object.')
     }
     return object
     // return {
