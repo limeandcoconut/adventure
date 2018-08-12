@@ -119,21 +119,21 @@ module.exports = function(line) {
                 // Add the new variant actions to the list.
                 actions = variants.concat(actions)
 
-                logVariants(actions)
+                // logVariants(actions)
                 // Set the current action to the first one
                 action = actions.shift()
             }
 
             // If there are multiple nouns or pronouns preresolve them, recursively.
-            variants = bifurcate(action.object, (object) => {
+            variants = bifurcate(action.object, (object, context) => {
                 let objects
                 if (object.type === 'noun-multiple' || object.type === 'pronoun') {
-                    objects = preresolve(object, action.type, action.entity)
+                    objects = preresolve(object, action.entity, context)
                 } else {
                     objects = [object]
                 }
                 return objects
-            })
+            }, action)
 
             // If there are variants create a new action for each one.
             if (variants.length) {
@@ -157,6 +157,7 @@ module.exports = function(line) {
 
                 // Add the new actions to the list.
                 actions = variants.concat(actions)
+                // logVariants(actions)
                 // Set the current action.
                 action = actions.shift()
             }
@@ -168,7 +169,7 @@ module.exports = function(line) {
             action.live = true
         }
         action.initiative = 2
-        action.info = {}
+        // action.info = {}
         output += execute(action)
     }
     return output + '\n'
@@ -182,7 +183,7 @@ function execute(action) {
     let actions = [action]
     // Run all processes.
 
-    logAction(action)
+    // logAction(action)
 
     for (let i = 0; i < processes.length; i++) {
         let processActions = processes[i].update(action)
@@ -223,6 +224,10 @@ function execute(action) {
         // TODO: Adjust this to account for the acting entity.
         let output = ` \n${formatResponse(action)}`
 
+        if (typeof action.info !== 'undefined') {
+            output += ` \n${JSON.stringify(action.info, null, 4)}`
+        }
+
         if (!output) {
             let res = {}
             res.type = action.type
@@ -232,7 +237,7 @@ function execute(action) {
             action.steps.forEach((step, name) => {
                 res.steps[name] = step.success || step.reason
             })
-            res.info = action.info
+            // res.info = action.info
             output += JSON.stringify(res, null, 4)
             console.log(action)
         }
@@ -243,9 +248,9 @@ function execute(action) {
     return response
 }
 
-function bifurcate(object, method) {
+function bifurcate(object, method, context) {
     // Flatten any the tree structure using the provided method.
-    const objects = method(object)
+    const objects = method(object, context)
     // If there was no infix involved, pass the direct objects along.
     let indirect = object.object
     if (!indirect) {
@@ -307,27 +312,27 @@ function formatResponse(output) {
 
     // If the action succeeded.
     if (output.live) {
-        let [step, stepInfo] = Array.from(output.steps.entries()).pop()
-        let handler = responses.success[step]
+        // let [step, stepInfo] = Array.from(output.steps.entries()).pop()
+        let handler = responses.success[output.reporter]
         if (handler) {
-            let response = handler(output.info)
+            let response = handler(output.steps)
             if (response) {
                 return response
             }
         }
         console.log(output)
-        return responses.general(stepInfo)
+        return responses.general(output.steps)
     // If the action failed.
     } else if (output.live === false) {
-        let [step, info] = Array.from(output.steps.entries()).pop()
+        let [step] = Array.from(output.steps.keys()).pop()
         let handler = responses.failure[step]
         if (handler) {
-            let response = handler(info)
+            let response = handler(output.steps)
             if (response) {
                 return response
             }
         }
-        return responses.general(info)
+        return responses.general(output.steps)
     }
 }
 
