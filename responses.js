@@ -126,10 +126,10 @@ let responses = {
                 }
                 return output
             },
-            put({put, get}) {
+            put(steps) {
                 let output = ''
-                if (get) {
-                    output += responses.responses.success.get(get)
+                if (steps.get) {
+                    output += responses.responses.success.get(steps)
                     output += ' \n'
                 }
                 return output + 'Done.'
@@ -203,28 +203,37 @@ let responses = {
                     se: 'southeast',
                     sw: 'southwest',
                 }
-                console.log(reason)
                 if (/no.*door/i.test(reason)) {
                     return `There's no way to go ${directions[direction]}.`
                 }
             },
-            put({put: {reason, object}}) {
-                if (/inceptive/i.test(reason)) {
-                    let name = em.getComponent('Descriptors', object).getName()
-                    return `You can't put a ${name} inside itself!`
+            put(steps) {
+                let {put: {reason, object, container, destination}, get} = steps
+                let output = ''
+                if (get) {
+                    output += responses.responses.success.get(steps)
+                    output += ' \n'
                 }
+                let name = em.getComponent('Descriptors', object).getName()
+                if (/inceptive/i.test(reason)) {
+                    return output + `You can't put a ${name} inside itself!`
+                }
+                object = em.getComponent('Descriptors', object).getName()
                 if (/big/i.test(reason)) {
-                    return 'That\'s too big to fit.'
+                    destination = em.getComponent('Descriptors', destination).getName()
+                    return output + `The ${object} is too big for the ${destination}.`
                 }
                 if (/heavy/i.test(reason)) {
-                    return 'That\'s too heavy to fit.'
+                    container = em.getComponent('Descriptors', container).getName()
+                    return output + `The ${object} is just too heavy for the ${container}.`
                 }
-                return reason
+                return output + reason
             },
         },
-        general({steps, fault, type, object}) {
+        general(action) {
+            let {steps, fault} = action
             if (fault) {
-                let {reason, id} = steps[fault]
+                let {reason, id, object, container, destination} = steps[fault]
                 if (/inapparent/i.test(reason)) {
                     let name = em.getComponent('Descriptors', id).getName()
                     return `You don't see any ${name} here.`
@@ -239,16 +248,33 @@ let responses = {
                 }
 
                 if (/big/i.test(reason)) {
-                    return 'That\'s too big to fit.'
+                    let objectWord = 'It\'s'
+                    if (typeof object !== 'undefined') {
+                        objectWord = 'The ' + em.getComponent('Descriptors', object).getName() + ' is'
+                    }
+                    let destinationWord = ''
+                    if (typeof destination !== 'undefined') {
+                        destinationWord = ' in the ' + em.getComponent('Descriptors', destination).getName()
+                    }
+                    return `${objectWord} too big to fit${destinationWord}.`
                 }
                 if (/heavy/i.test(reason)) {
-                    return 'That\'s too heavy to fit.'
+                    let objectWord = 'It\'s'
+                    if (typeof object !== 'undefined') {
+                        objectWord = 'The ' + em.getComponent('Descriptors', object).getName() + ' is'
+                    }
+                    let containerWord = ''
+                    if (typeof container !== 'undefined') {
+                        containerWord = ' for the ' + em.getComponent('Descriptors', container).getName()
+                    }
+                    return `${objectWord} too heavy${containerWord}.`
                 }
 
                 const word = fault.replace(/^\w/, c => c.toUpperCase())
                 return `${word} Nope.`
             }
-            return `${type} Done.`
+            const word = action.type.replace(/^\w/, c => c.toUpperCase())
+            return `${word}, done.`
         },
         noInput() {
             return 'Beg your pardon?'

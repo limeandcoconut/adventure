@@ -39,6 +39,8 @@ const methods = {
         if (objectSize > destinationFreeVolume) {
             return {
                 reason: 'Too Big.',
+                object,
+                destination,
             }
         }
 
@@ -54,13 +56,12 @@ const methods = {
 
         // Refit if the load is valid through the whole tree.
         const objectWeight = objectProperties.getWeight()
+        // If a reason is returned then this failed.
         // If parents are returned that means this was successful and they should be modified.
         sourceParents = this.checkWeight(objectWeight, destination, destinationContainer, sourceParents)
-        if (!sourceParents) {
-        // If not, fail.
-            return {
-                reason: 'Too Heavy.',
-            }
+        if (sourceParents.reason) {
+            sourceParents.object = object
+            return sourceParents
         }
 
         // Weights were successfully refit so refit the parents' weights.
@@ -114,7 +115,10 @@ const methods = {
         const maxWeight = targetBaseWeight + maxLoad
         // If the new weight is withing limits this step succeeds.
         if (newWeight > maxWeight) {
-            return false
+            return {
+                reason: 'Too heavy.',
+                container: target,
+            }
         }
 
         const parent = em.getComponent('Location', target).getParent()
@@ -122,10 +126,11 @@ const methods = {
         if (parent) {
             const parentContainer = em.getComponent('Container', parent)
             // If the rest of the tree cannot support this, fail all the way down.
+            // If a reason is returned then this has failed.
             // If parents are returned that means this was successful and they should be modified.
             sourceParents = this.checkWeight(weight, parent, parentContainer, sourceParents)
-            if (!sourceParents) {
-                return false
+            if (sourceParents.reason) {
+                return sourceParents
             }
         }
         // If there is no parent then there is nothing to check and the whole operation succeeds.

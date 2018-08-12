@@ -48,6 +48,8 @@ let dictionary = {
     southeast: 'noun-verb-conversion',
     sw: 'noun-verb-conversion',
     southwest: 'noun-verb-conversion',
+    d: 'noun-verb-conversion',
+    down: 'noun-verb-conversion',
 
     get: 'verb',
     take: 'verb',
@@ -129,6 +131,8 @@ let nounImpliedVerbs
         southwest: nsew,
         u: nsew,
         up: nsew,
+        d: nsew,
+        down: nsew,
     }
 }
 

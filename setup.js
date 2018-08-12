@@ -172,7 +172,7 @@ entityFactory.registerConstructor('player', (props = {}) => {
     let player = entityManager.createEntity()
     entityManager.addComponent(new Appearance(appearance), player)
     entityManager.addComponent(new Location(parent), player)
-    entityManager.addComponent(new Descriptors(['self', 'me', 'myself'], []), player)
+    entityManager.addComponent(new Descriptors(['you', 'self', 'me', 'myself'], []), player)
     entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, open}), player)
     entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, visible, transparent}), player)
 

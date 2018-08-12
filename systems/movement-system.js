@@ -6,7 +6,7 @@ class MovementSystem extends System {
 
     update(action) {
 
-        // console.log('-------- MOVE --------')
+        console.log('-------- MOVE --------')
         // const method = typeof action.object.id !== 'undefined' ? this.teleport : this.move
         // let method
         let info
@@ -38,8 +38,8 @@ class MovementSystem extends System {
         const parent = em.getComponent('Location', entity).getParent()
 
         let doors = em.getComponent('Area', parent).getDoors()
-        direction = direction.match(/^(n)?(?:orth)?(s)?(?:outh)?(e)?(?:ast)?(w)?(?:est)?$|^(d)?(?:own)$|^(u)?(?:p)?$/)
-        direction = direction.slice(1, 6).join('')
+        direction = direction.match(/^(n)?(?:orth)?(s)?(?:outh)?(e)?(?:ast)?(w)?(?:est)?$|^(d)?(?:own)?$|^(u)?(?:p)?$/)
+        direction = direction.slice(1, 7).join('')
 
         let destination = doors[direction]
         // action.info.direction = direction
