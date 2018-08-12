@@ -292,7 +292,7 @@ function bifurcate(object, method, context) {
 
     return variants
 }
-
+/* eslint-disable complexity */
 function formatResponse(output) {
     // Errors:
     if (output instanceof Error) {
@@ -315,10 +315,27 @@ function formatResponse(output) {
                 return responses.errors.understandWord(token.word)
             }
             return responses.errors.understandSentence()
-        } else if (output.isResolutionError) {
+        // } else if (output.isResolutionError) {
+        //     return responses.errors.understandSentence()
+        } else if (output.isInterpreterError) {
+            if (/multiple/i.test(output.message)) {
+                let context
+                if (/adjective/i.test(output.message)) {
+                    context = 'adjective'
+                } else if (/indirect/i.test(output.message)) {
+                    context = 'indirect'
+                }
+                return responses.errors.multipleNoun(context)
+            } else if (/pronoun/i.test(output.message)) {
+                let context
+                if (/adjective/i.test(output.message)) {
+                    context = 'adjective'
+                }
+                return responses.errors.pronoun(context)
+            }
             return responses.errors.understandSentence()
         }
-        return responses.errors.fatal()
+        return responses.errors.fatal(output)
     }
 
     // If there was no recognized input.

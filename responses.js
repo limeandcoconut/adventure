@@ -29,6 +29,21 @@ function describeContents({contents, opening = 'a ', closing = '', level = 0}) {
 let responses = {
     responses: {
         errors: {
+            multipleNoun(context) {
+                if (context === 'adjective') {
+                    return 'You can\'t use adjectives with multiple nouns.'
+                }
+                if (context === 'indirect') {
+                    return 'You can\'t use multiple nouns as indirect objects like that.'
+                }
+                return 'You can\'t use multiple nouns in that way.'
+            },
+            pronoun(context) {
+                if (context === 'adjective') {
+                    return 'You can\'t use adjectives with pronouns like that.'
+                }
+                return 'You can\'t use a pronoun in that way.'
+            },
             unknownWord(word) {
                 return `I'm sorry, I don't know the word "${word}".`
             },
@@ -111,6 +126,14 @@ let responses = {
                 }
                 return output
             },
+            put({put, get}) {
+                let output = ''
+                if (get) {
+                    output += responses.responses.success.get(get)
+                    output += ' \n'
+                }
+                return output + 'Done.'
+            },
         },
         failure: {
             get({get: {reason, container}}) {
@@ -185,13 +208,41 @@ let responses = {
                     return `There's no way to go ${directions[direction]}.`
                 }
             },
+            put({put: {reason, object}}) {
+                if (/inceptive/i.test(reason)) {
+                    let name = em.getComponent('Descriptors', object).getName()
+                    return `You can't put a ${name} inside itself!`
+                }
+                if (/big/i.test(reason)) {
+                    return 'That\'s too big to fit.'
+                }
+                if (/heavy/i.test(reason)) {
+                    return 'That\'s too heavy to fit.'
+                }
+                return reason
+            },
         },
-        general({steps, fault, type}) {
+        general({steps, fault, type, object}) {
             if (fault) {
                 let {reason, id} = steps[fault]
                 if (/inapparent/i.test(reason)) {
                     let name = em.getComponent('Descriptors', id).getName()
                     return `You don't see any ${name} here.`
+                }
+
+                if (/inceptive/i.test(reason)) {
+                    let word = 'It'
+                    if (typeof object !== 'undefined') {
+                        word = 'The ' + em.getComponent('Descriptors', object).getName()
+                    }
+                    return `The ${word} can't do that to itself!`
+                }
+
+                if (/big/i.test(reason)) {
+                    return 'That\'s too big to fit.'
+                }
+                if (/heavy/i.test(reason)) {
+                    return 'That\'s too heavy to fit.'
                 }
 
                 const word = fault.replace(/^\w/, c => c.toUpperCase())

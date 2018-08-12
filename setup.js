@@ -290,6 +290,15 @@ if (entityManager.lowestFreeId === 10) {
         // weight: 2,
     })
 
+    let weight = entityFactory.createThing({
+        parent: anotherRoom,
+        labels: ['weight'],
+        descriptors: ['lead', 'heavy'],
+        appearance: 'A heavy lead weight.',
+        size: 1,
+        baseWeight: 4,
+    })
+
     let testingArea = entityManager.getComponent('Area', testingChamber00178)
     testingArea.setVisited([player])
     testingArea.setDoors({
@@ -300,7 +309,7 @@ if (entityManager.lowestFreeId === 10) {
     entityManager.getComponent('Container', crate).setContents([box])
     entityManager.getComponent('Container', box).setContents([wrench])
     entityManager.getComponent('Container', testingChamber00178).setContents([player, bolt, crate, screw, rock])
-    // entityManager.getComponent('Container', anotherRoom).setContents([])
+    entityManager.getComponent('Container', anotherRoom).setContents([weight])
 
     console.log(JSON.stringify({
         testingChamber00178,

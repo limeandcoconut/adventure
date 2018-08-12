@@ -1,7 +1,7 @@
 class InterpreterError extends Error {
     constructor(message) {
         super(message)
-        this.isInterpretError = true
+        this.isInterpreterError = true
     }
 }
 

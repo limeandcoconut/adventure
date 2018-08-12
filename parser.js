@@ -14,6 +14,8 @@ let dictionary = {
 
     wrench: 'noun',
 
+    weight: 'noun',
+
     box: 'noun',
 
     crate: 'noun',
@@ -65,6 +67,8 @@ let dictionary = {
 
     red: 'adjective',
     rusty: 'adjective',
+    heavy: 'adjective',
+    lead: 'adjective',
 
     u: 'noun-verb-conversion',
     up: 'preposition-adverb-postfix-noun-verb-conversion',
@@ -341,7 +345,7 @@ parser.symbol('noun-multiple', noun => noun)
 // Implies its' own noun if one is missing; prefix.
 parser.symbol('adjective', function(tok) {
     let object
-    if (!isObject(parser.token())) {
+    if (!isObject(parser.token(), true)) {
         object = {
             type: 'noun',
             word: 'anything',

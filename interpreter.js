@@ -31,6 +31,8 @@ interpreter.handler('adjective', (node) => {
     if (!noun) {
         throw new InterpreterError('adjective expected a noun.')
     }
+    console.log('NOUN')
+    console.log(noun)
     if (noun.type === 'noun-multiple') {
         throw new InterpreterError('adjective can\'t use multiple nouns.')
     }
@@ -44,7 +46,7 @@ interpreter.handler('adjective', (node) => {
 interpreter.handler('verb', (node) => {
     let object = interpreter.parseNode(node.object)
     if (!object) {
-        throw new InterpreterError('Verb expected an object.')
+        throw new InterpreterError('verb expected an object.')
     }
 
     // TODO: Why is this initialization here?
@@ -129,8 +131,8 @@ module.exports = {
             return interpreter.interpret(nodes)
         } catch (error) {
             console.log(error)
-            console.log(error.isInterpretError)
-            if (error.isInterpretError) {
+            console.log(error.isInterpreterError)
+            if (error.isInterpreterError) {
                 return [error]
             }
             throw error
