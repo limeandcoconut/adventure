@@ -44,16 +44,17 @@ class OpenSystem extends System {
 
         container.setOpen(true)
 
-        action.steps.set('open', {
+        action.steps.open = {
             success: true,
-        })
+        }
     }
 
     fail(action, info) {
         info.success = false
         info.id = action.object.id
-        action.steps.set('open', info)
+        action.steps.open = info
         action.live = false
+        action.fault = 'open'
     }
 }
 

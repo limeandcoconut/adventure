@@ -28,16 +28,16 @@ const helpers = {
         return newContents
     },
     logAction(action) {
-        let steps = action.steps
-        if (steps) {
-            steps = Array.from(action.steps)
-        }
-        action = JSON.parse(JSON.stringify(action))
+        // let steps = action.steps
+        // if (steps) {
+        //     steps = Array.from(action.steps)
+        // }
+        // action = JSON.parse(JSON.stringify(action))
         console.log(JSON.stringify(action, null, 4))
         // action.steps = steps
-        if (steps) {
-            console.log(JSON.stringify(steps, null, 4))
-        }
+        // if (steps) {
+        //     console.log(JSON.stringify(steps, null, 4))
+        // }
     },
 }
 

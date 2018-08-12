@@ -23,16 +23,17 @@ class ResolverSystem extends System {
             if (result.success) {
                 object.id = result.id
             } else {
-                action.steps.set('resolve', result)
+                action.steps.resolve = result
                 action.live = false
+                action.fault = 'resolve'
                 return
             }
         }
         // }
 
-        action.steps.set('resolve', {
+        action.steps.resolve = {
             success: true,
-        })
+        }
     }
 
     // extractObjects(action) {

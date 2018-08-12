@@ -2,118 +2,140 @@ const Action = require('./action')
 
 const actions = {}
 
-Action.setActionsManifest(actions)
+// Action.setActionsManifest(actions)
 
 let baseProcess = ['resolve', 'locate']
 
-const get = new Action({
-    type: 'get',
-    procedure: [
-        ...baseProcess,
-        'get',
-    ],
-    reporter: 'get',
-    // LocatorSystem: {
-    //     apparent: true,
-    //     accessible: true,
-    //     // container:
-    // },
-})
+class Get extends Action {
+    constructor({word, object}) {
+        super({word, object})
 
-const inventory = new Action({
-    type: 'inventory',
-    procedure: [
-        'inventory',
-    ],
-    reporter: 'inventory',
-})
+        this.type = 'get'
+        this.procedure = baseProcess.concat('get')
+        this.reporter = this.type
+    }
+}
 
-const drop = new Action({
-    type: 'drop',
-    procedure: [
-        ...baseProcess,
-        'drop',
-    ],
-    reporter: 'drop',
-})
+class Inventory extends Action {
+    constructor({word, object}) {
+        super({word, object})
 
-const go = new Action({
-    type: 'go',
-    procedure: ['move'],
-    reporter: 'move',
-})
+        this.type = 'inventory'
+        this.procedure = ['inventory']
+        this.reporter = this.type
+    }
+}
 
-const look = new Action({
-    type: 'look',
-    procedure: [
-        ...baseProcess,
-        'look',
-    ],
-    reporter: 'look',
-    variants: {
-        at: 'look',
-    },
-})
+class Drop extends Action {
+    constructor({word, object}) {
+        super({word, object})
 
-const begin = new Action({
-    type: 'begin',
-    procedure: [
-        'begin',
-        'locate',
-        'look',
-    ],
-    reporter: 'begin',
-})
+        this.type = 'drop'
+        this.procedure = baseProcess.concat('drop')
+        this.reporter = this.type
+    }
+}
 
-const open = new Action({
-    type: 'open',
-    procedure: [
-        ...baseProcess,
-        'open',
-    ],
-    reporter: 'open',
-    variants: {
-        up: 'open',
-    },
-})
+class Go extends Action {
+    constructor({word, object}) {
+        super({word, object})
 
-const close = new Action({
-    type: 'close',
-    procedure: [
-        ...baseProcess,
-        'close',
-    ],
-    reporter: 'close',
-    variants: {
-        up: 'close',
-    },
-})
+        this.type = 'go'
+        this.procedure = ['move']
+        this.reporter = 'move'
+    }
+}
 
-const put = new Action({
-    type: 'put',
-    procedure: [
-        ...baseProcess,
-        'put',
-    ],
-    reporter: 'put',
-})
+class Look extends Action {
+    constructor({word, object}) {
+        super({word, object})
+
+        this.type = 'look'
+        this.procedure = baseProcess.concat('look')
+        this.reporter = this.type
+        this.variants = {
+            at: Look,
+        }
+    }
+}
+
+class Begin extends Action {
+    constructor({word, object}) {
+        super({word, object})
+
+        this.type = 'begin'
+        this.procedure = [
+            'begin',
+            'locate',
+            'look',
+        ]
+        this.reporter = this.type
+    }
+}
+
+class Open extends Action {
+    constructor({word, object}) {
+        super({word, object})
+
+        this.type = 'open'
+        this.procedure = baseProcess.concat('open')
+        this.reporter = this.type
+        this.variants = {
+            up: Open,
+        }
+    }
+}
+
+class Close extends Action {
+    constructor({word, object}) {
+        super({word, object})
+
+        this.type = 'close'
+        this.procedure = baseProcess.concat('close')
+        this.reporter = this.type
+        this.variants = {
+            up: Close,
+        }
+    }
+}
+
+class Put extends Action {
+    constructor({word, object}) {
+        super({word, object})
+
+        this.type = 'put'
+        this.procedure = baseProcess.concat('put')
+        this.reporter = this.type
+    }
+}
+
+class Pick extends Action {
+    constructor({word, object}) {
+        super({word, object})
+
+        this.type = 'pick'
+        this.procedure = []
+        this.reporter = ''
+        this.variants = {
+            up: Get,
+        }
+    }
+}
 
 Object.assign(actions, {
-    begin,
-    get,
-    take: get,
-    pick: new Action('pick', [], {
-        up: 'get',
-    }),
-    drop,
-    inventory,
-    i: inventory,
-    go,
-    open,
-    close,
-    look,
-    l: look,
-    put,
+    begin: Begin,
+    get: Get,
+    take: Get,
+    pick: Pick,
+    drop: Drop,
+    inventory: Inventory,
+    i: Inventory,
+    go: Go,
+    open: Open,
+    close: Close,
+    look: Look,
+    l: Look,
+    put: Put,
 })
 
 module.exports = actions

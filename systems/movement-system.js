@@ -18,8 +18,11 @@ class MovementSystem extends System {
         }
 
         // if (action.live) {
-        action.steps.set('move', info)
-        action.live = info.success
+        action.steps.move = info
+        if (!info.success) {
+            action.live = false
+            action.fault = 'move'
+        }
         // }
     }
 

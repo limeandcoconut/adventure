@@ -73,16 +73,17 @@ class PutSystem extends System {
             return
         }
 
-        action.steps.set('put', {
+        action.steps.put = {
             success: true,
-        })
+        }
     }
 
     fail(action, info) {
         info.success = false
         info.id = action.object.id
-        action.steps.set('put', info)
+        action.steps.put = info
         action.live = false
+        action.fault = 'put'
     }
 }
 

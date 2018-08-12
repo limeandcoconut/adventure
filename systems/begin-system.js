@@ -9,7 +9,7 @@ class BeginSystem extends System {
         action.object = {
             id: em.getComponent('Location', action.entity.id).getParent(),
         }
-        action.steps.set('begin', {success: true})
+        action.steps.begin = {success: true}
     }
 
     // linkToProcess(generalInputProcess) {

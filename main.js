@@ -2,7 +2,7 @@ const {friendlyParse: parse, parser, lexer} = require('./parser.js')
 const {friendlyInterpret: interpret} = require('./interpreter')
 const {preresolve} = require('./preresolve.js')
 const {responses, missingParseParts} = require('./responses.js')
-const {begin, go} = require('./actions')
+const {begin: Begin, go: Go} = require('./actions')
 /* eslint-disable require-jsdoc, max-depth, no-loop-func */
 const {systems, player, processes} = require('./setup.js')
 const {logAction} = require('./helpers')
@@ -68,8 +68,11 @@ module.exports = function(line) {
             // }
             // actions.unshift(goAction)
 
-            let beginningAction = Object.create(begin)
-            beginningAction.word = 'begin'
+            // let beginningAction = Object.create(begin)
+            // beginningAction.word = 'begin'
+            // actions.unshift(beginningAction)
+            let beginningAction = new Begin('begin')
+            // beginningAction.word = 'begin'
             actions.unshift(beginningAction)
 
             console.log(actions)
@@ -88,44 +91,51 @@ module.exports = function(line) {
             id: player,
         }
 
-        if (action.object && !action.steps) {
-            //  If the action is a bifurcation get all variants of this objects action.
-            let variants = bifurcate(action.object, (object) => {
-                const objects = []
-                if (object.type === 'bifurcation') {
-                    let left = object
-                    do {
-                        objects.unshift(left.right)
-                        left = left.left
-                    } while (left.type === 'bifurcation')
-                    objects.unshift(left)
-                } else {
-                    objects.push(object)
-                }
-                return objects
-            })
+        if (action.object) {
 
-            // If there are variations create a new action for each one.
-            if (variants.length) {
-                variants = variants.map((object) => {
-                    // Create new action.
-                    let newAction = Object.create(action)
-                    newAction.object = object
-                    // Add properties to action.
-                    newAction.steps = new Map()
-                    newAction.live = true
-                    return newAction
+            if (!action.bifurcated) {
+                //  If the action is a bifurcation get all variants of this objects action.
+                let variants = bifurcate(action.object, (object) => {
+                    const objects = []
+                    if (object.type === 'bifurcation') {
+                        let left = object
+                        do {
+                            objects.unshift(left.right)
+                            left = left.left
+                        } while (left.type === 'bifurcation')
+                        objects.unshift(left)
+                    } else {
+                        objects.push(object)
+                    }
+                    return objects
                 })
-                // Add the new variant actions to the list.
-                actions = variants.concat(actions)
 
-                // logVariants(actions)
-                // Set the current action to the first one
-                action = actions.shift()
+                // If there are variations create a new action for each one.
+                if (variants.length) {
+                    variants = variants.map((object) => {
+                        // Create new action.
+
+                        let newAction = action.clone()
+                        // let newAction = Object.create(action)
+                        newAction.object = object
+                        action.bifurcated = true
+                        // Add properties to action.
+                        // newAction.steps = new Map()
+                        // newAction.steps = {}
+                        // newAction.live = true
+                        return newAction
+                    })
+                    // Add the new variant actions to the list.
+                    actions = variants.concat(actions)
+
+                    // logVariants(actions)
+                    // Set the current action to the first one
+                    action = actions.shift()
+                }
             }
 
             // If there are multiple nouns or pronouns preresolve them, recursively.
-            variants = bifurcate(action.object, (object, context) => {
+            let variants = bifurcate(action.object, (object, context) => {
                 let objects
                 if (object.type === 'noun-multiple' || object.type === 'pronoun') {
                     objects = preresolve(object, action.entity, context)
@@ -139,17 +149,20 @@ module.exports = function(line) {
             if (variants.length) {
                 variants = variants.map((object) => {
                     // Create new action.
-                    let newAction = Object.create(action)
+                    // let newAction = Object.create(action)
+                    const newAction = action.clone()
                     newAction.object = object
                     // If the resolution failed at any point, fail this action.
                     // Add properties to action.
-                    newAction.steps = new Map()
+                    // newAction.steps = {}
                     if (object.result) {
-                        newAction.steps.set('preresolve', object.result)
+                        // newAction.steps.set('preresolve', object.result)
+                        newAction.steps.preresolve = object.result
                         newAction.live = false
+                        newAction.fault = 'preresolve'
                     } else {
-                        newAction.steps.set('preresolve', {success: true})
-                        newAction.live = true
+                        newAction.steps.preresolve = {success: true}
+                        // newAction.live = true
                     }
                     // console.log(newAction.object)
                     return newAction
@@ -164,10 +177,11 @@ module.exports = function(line) {
         }
 
         // Add properties to action.
-        if (!action.steps) {
-            action.steps = new Map()
-            action.live = true
-        }
+        // if (!action.steps) {
+        //     // action.steps = new Map()
+        //     action.steps = {}
+        //     action.live = true
+        // }
         action.initiative = 2
         // action.info = {}
         output += execute(action)
@@ -225,21 +239,23 @@ function execute(action) {
         let output = ` \n${formatResponse(action)}`
 
         if (typeof action.info !== 'undefined') {
-            output += ` \n${JSON.stringify(action.info, null, 4)}`
+            output += ` \ninfo: ${JSON.stringify(action.info, null, 4)}`
         }
 
         if (!output) {
-            let res = {}
-            res.type = action.type
-            res.object = action.object
-            res.live = action.live
-            res.steps = {}
-            action.steps.forEach((step, name) => {
-                res.steps[name] = step.success || step.reason
-            })
+            // let res = {}
+            // res.type = action.type
+            // res.object = action.object
+            // res.live = action.live
+            // res.steps = action.steps
+            // res.steps = {}
+            // action.steps.forEach((step, name) => {
+            //     res.steps[name] = step.success || step.reason
+            // })
             // res.info = action.info
-            output += JSON.stringify(res, null, 4)
-            console.log(action)
+            // output += JSON.stringify(res, null, 4)
+            // console.log(action)
+            output += console.log(JSON.stringify(action, null, 4))
         }
         response += output
 
@@ -313,26 +329,27 @@ function formatResponse(output) {
     // If the action succeeded.
     if (output.live) {
         // let [step, stepInfo] = Array.from(output.steps.entries()).pop()
-        let handler = responses.success[output.reporter]
+        const handler = responses.success[output.reporter]
         if (handler) {
-            let response = handler(output.steps)
+            const response = handler(output.steps)
             if (response) {
                 return response
             }
         }
-        console.log(output)
-        return responses.general(output.steps)
+        // console.log(output)
+        return responses.general(output)
     // If the action failed.
     } else if (output.live === false) {
-        let [step] = Array.from(output.steps.keys()).pop()
-        let handler = responses.failure[step]
+        // let [step] = Array.from(output.steps.keys()).pop()
+        const fault = output.fault
+        const handler = responses.failure[fault]
         if (handler) {
-            let response = handler(output.steps)
+            const response = handler(output.steps, fault)
             if (response) {
                 return response
             }
         }
-        return responses.general(output.steps)
+        return responses.general(output)
     }
 }
 

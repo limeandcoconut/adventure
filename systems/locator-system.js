@@ -32,10 +32,9 @@ class LocatorSystem extends System {
             // }
         }
 
-        action.steps.set('locate', {
+        action.steps.locate = {
             success: true,
-        })
-
+        }
     }
 
     // extractObjects(action) {

@@ -48,18 +48,28 @@ interpreter.handler('verb', (node) => {
     }
 
     // TODO: Why is this initialization here?
-    let action = {}
-    action = Object.create(actions[node.word])
-    action.word = node.word
-    action.object = object
-    return action
+    const constructor = actions[node.word]
+    if (!constructor) {
+        throw new InterpreterError(`Unknown action type: ${node.word}`)
+    }
+    // const action = new constructor(object, node.word)
+    // let action = {}
+    // action = Object.create(actions[node.word])
+    // action.word = node.word
+    // action.object = object
+    return new constructor({ word: node.word, object})
 })
 
 interpreter.handler('verb-intransitive', (node) => {
-    let action = {}
-    action = Object.create(actions[node.word])
-    action.word = node.word
-    return action
+    const constructor = actions[node.word]
+    if (!constructor) {
+        throw new InterpreterError(`Unknown action type: ${node.word}`)
+    }
+    return new constructor({ word: node.word})
+    // let action = {}
+    // action = Object.create(actions[node.word])
+    // action.word = node.word
+    // return action
 })
 
 interpreter.handler('adverb', (node) => {

@@ -16,10 +16,10 @@ class InventorySystem extends System {
 
         // action.info.inventory = contents
 
-        action.steps.set('inventory', {
+        action.steps.inventory = {
             success: true,
             inventory: contents,
-        })
+        }
     }
 }
 

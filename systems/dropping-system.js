@@ -7,23 +7,25 @@ class DroppingSystem extends System {
     update(action) {
         const entity = action.entity.id
         if (action.object.parent !== entity) {
-            action.steps.set('drop', {
-                success: false,
-                // Consider making an Enum for this
-                reason: 'Don\'t have it.',
+            this.fail(action, {
+                reason: 'Don\'t have.',
             })
-            action.live = false
-            // console.log(action)
+            return
+        }
+
+        if (!action.object.apparent) {
+            this.fail(action, {
+                reason: 'Inapparent.',
+                container: action.object.container,
+            })
             return
         }
 
         if (!action.object.accessible) {
-            action.steps.set('drop', {
-                success: false,
+            this.fail(action, {
                 reason: 'Inaccessible',
                 container: action.object.container,
             })
-            action.live = false
             return
         }
 
@@ -57,9 +59,17 @@ class DroppingSystem extends System {
         // roomContainer.setContents(roomInventory)
         // objectLocation.setParent(room)
 
-        action.steps.set('drop', {
+        action.steps.drop = {
             success: true,
-        })
+        }
+    }
+
+    fail(action, info) {
+        info.success = false
+        // info.id = action.object.id
+        action.steps.drop = info
+        action.live = false
+        action.fault = 'drop'
     }
 }
 

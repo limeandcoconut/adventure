@@ -44,16 +44,17 @@ class CloseSystem extends System {
 
         container.setOpen(false)
 
-        action.steps.set('close', {
+        action.steps.close = {
             success: true,
-        })
+        }
     }
 
     fail(action, info) {
         info.success = false
         info.id = action.object.id
-        action.steps.set('close', info)
+        action.steps.close = info
         action.live = false
+        action.fault = 'close'
     }
 }
 

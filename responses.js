@@ -56,7 +56,7 @@ let responses = {
             drop() {
                 return 'Dropped.'
             },
-            inventory({inventory}) {
+            inventory({inventory: {inventory}}) {
                 if (!inventory.length) {
                     return `You don't have anything.`
                 }
@@ -71,15 +71,15 @@ let responses = {
             close() {
                 return 'Closed.'
             },
-            move({area}) {
+            move(steps) {
                 // TODO: better reporting
-                console.log(area)
-                if (false) {
-                    return responses.responses.success.look({})
+                // console.log(area)
+                if (steps.look) {
+                    return responses.responses.success.look(steps)
                 }
-                return `- ${area.getTitle()} -\n`
+                return `- ${steps.move.area.getTitle()} -\n`
             },
-            begin(info) {
+            begin(steps) {
                 return '\n \nYou\'re in a room, utterly boring with just a hint of institutionalized over optimism. ' +
                     'It\'s a small kindness not to describe the nearly blank nearly white walls and other environs in any detail. ' +
                     'A cloying sense of insincerity pervades this place. Florescent lights hum overhead... \n' +
@@ -91,9 +91,9 @@ let responses = {
                     'This environment promotes fun and cooperation.\n \n' +
                     '######################################\n \n' +
                     'You can feel the ennui setting in already.\n \n' +
-                    responses.responses.success.look(info)
+                    responses.responses.success.look(steps)
             },
-            look({object, area, contents}) {
+            look({look: {object, area, contents}}) {
                 let output = ''
                 const context = {contents}
                 if (area) {
@@ -113,7 +113,7 @@ let responses = {
             },
         },
         failure: {
-            get({reason, container, id}) {
+            get({get: {reason, container}}) {
                 if (/have/i.test(reason)) {
                     return 'You already have that.'
                 }
@@ -122,7 +122,7 @@ let responses = {
                     return `The ${name} is closed.`
                 }
             },
-            drop({reason, container}) {
+            drop({drop: {reason, container}}) {
                 if (/don.?t/i.test(reason)) {
                     return `You don't have that`
                 }
@@ -131,7 +131,7 @@ let responses = {
                     return `The ${name} is closed.`
                 }
             },
-            resolve({reason, object, objects}) {
+            resolve({resolve: {reason, object, objects}}) {
                 console.log(object)
                 if (/cannot/i.test(reason)) {
                     return `I don't see any ${object}.`
@@ -145,10 +145,11 @@ let responses = {
                     return `Do you mean the ${names}?`
                 }
             },
-            preresolve() {
-                return 'I don\'t see anything.'
+            preresolve({preresolve: {reason}}) {
+                // return 'I don\'t see anything.'
+                return reason
             },
-            open({reason, id}) {
+            open({open: {reason, id}}) {
                 if (/already/i.test(reason)) {
                     return 'It\'s already open.'
                 }
@@ -157,7 +158,7 @@ let responses = {
                     return `How do you open a ${name}?`
                 }
             },
-            close({reason, id}) {
+            close({close: {reason, id}}) {
                 if (/already/i.test(reason)) {
                     return 'It\'s already closed.'
                 }
@@ -166,7 +167,7 @@ let responses = {
                     return `How do you close a ${name}?`
                 }
             },
-            move({reason, direction}) {
+            move({move: {reason, direction}}) {
                 let directions = {
                     n: 'north',
                     s: 'south',
@@ -185,15 +186,18 @@ let responses = {
                 }
             },
         },
-        general({success, reason, id}) {
-            if (/inapparent/i.test(reason)) {
-                let name = em.getComponent('Descriptors', id).getName()
-                return `You don't see any ${name} here.`
+        general({steps, fault, type}) {
+            if (fault) {
+                let {reason, id} = steps[fault]
+                if (/inapparent/i.test(reason)) {
+                    let name = em.getComponent('Descriptors', id).getName()
+                    return `You don't see any ${name} here.`
+                }
+
+                const word = fault.replace(/^\w/, c => c.toUpperCase())
+                return `${word} Nope.`
             }
-            if (success) {
-                return 'Done.'
-            }
-            return 'Nope.'
+            return `${type} Done.`
         },
         noInput() {
             return 'Beg your pardon?'

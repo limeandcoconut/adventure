@@ -60,16 +60,17 @@ class GetterSystem extends System {
         // parentContainer.setContents(parentInventory)
         // objectLocation.setParent(entity)
 
-        action.steps.set('get', {
+        action.steps.get = {
             success: true,
-        })
+        }
     }
 
     fail(action, info) {
         info.success = false
         info.id = action.object.id
-        action.steps.set('get', info)
+        action.steps.get = info
         action.live = false
+        action.fault = 'get'
     }
 }
 

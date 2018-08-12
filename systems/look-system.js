@@ -32,14 +32,15 @@ class LookSystem extends System {
 
         // action.info.look = look
         look.success = true
-        action.steps.set('look', look)
+        action.steps.look = look
     }
 
     fail(action, info) {
         info.success = false
         info.id = action.object.id
-        action.steps.set('look', info)
+        action.steps.look = info
         action.live = false
+        action.fault = 'look'
     }
 
 }
