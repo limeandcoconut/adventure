@@ -22,6 +22,14 @@ class GetterSystem extends System {
             return
         }
 
+        if (action.object.fixture) {
+            this.fail(action, {
+                reason: 'Fixture.',
+                object: action.object.id,
+            })
+            return
+        }
+
         // console.log('---------- GET ---------')
 
         let entity = action.entity.id

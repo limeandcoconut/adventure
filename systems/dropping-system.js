@@ -23,8 +23,16 @@ class DroppingSystem extends System {
 
         if (!action.object.accessible) {
             this.fail(action, {
-                reason: 'Inaccessible',
+                reason: 'Inaccessible.',
                 container: action.object.container,
+            })
+            return
+        }
+
+        if (action.object.fixture) {
+            this.fail(action, {
+                reason: 'Fixture.',
+                object: action.object.id,
             })
             return
         }
@@ -49,6 +57,7 @@ class DroppingSystem extends System {
     fail(action, info) {
         info.success = false
         action.steps.drop = info
+        info.id = action.object.id
         action.live = false
         action.fault = 'drop'
     }

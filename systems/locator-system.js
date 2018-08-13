@@ -20,19 +20,21 @@ class LocatorSystem extends System {
             this.locate(object, entity)
         }
 
+        console.log(objects)
+
         action.steps.locate = {
             success: true,
         }
     }
 
     locate(object, entity) {
-        let location = em.getComponent('Location', entity)
-        let room = location.getParent()
+        const room = em.getComponent('Location', entity).getParent()
 
-        let parent = em.getComponent('Location', object.id).getParent()
+        const parent = em.getComponent('Location', object.id).getParent()
         let root = parent
-        let properties = em.getComponent('ObjectProperties', object.id)
-        let apparent = properties.getVisible()
+        const properties = em.getComponent('ObjectProperties', object.id)
+        let apparent = properties.isVisible()
+        const fixture = properties.isFixture()
         let container
 
         while ((root !== room && root !== entity) && root) {
@@ -42,7 +44,7 @@ class LocatorSystem extends System {
             if (apparent) {
                 let rootProperties = em.getComponent('ObjectProperties', root)
                 if (rootProperties) {
-                    if (!rootProperties.getVisible() || (container && !rootProperties.getTransparent())) {
+                    if (!rootProperties.isVisible() || (container && !rootProperties.isTransparent())) {
                         apparent = false
 
                     }
@@ -57,6 +59,7 @@ class LocatorSystem extends System {
         let rootFlag = Boolean(root) || object.id === room
         object.accessible = rootFlag && !container
         object.container = container
+        object.fixture = fixture
         // If it's visible and there's a root location (it's not offscreen) then it is apparent.
         object.apparent = apparent && rootFlag
         object.root = root

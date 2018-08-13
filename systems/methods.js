@@ -10,14 +10,14 @@ const methods = {
             const id = contents[i]
 
             let properties = em.getComponent('ObjectProperties', id)
-            if (id === entity || (!properties && properties.getVisible())) {
+            if (id === entity || (properties && !properties.isVisible())) {
                 continue
             }
             let item = {
                 id,
             }
             let container = em.getComponent('Container', id)
-            if (container && (container.isOpen() || (properties && properties.getTransparent()))) {
+            if (container && (container.isOpen() || (properties && properties.isTransparent()))) {
                 item.contents = methods.formatContents(container.getContents(), entity)
             }
             newContents.push(item)
@@ -27,20 +27,16 @@ const methods = {
     },
 
     put(object, source, destination) {
-        const destinationContainer = em.getComponent('Container', destination)
-        const destinationFreeVolume = destinationContainer.getFreeVolume()
-
         const objectProperties = em.getComponent('ObjectProperties', object)
-        const objectSize = objectProperties.getSize()
 
-        // If the object wont fit into the destination fail.
-        if (objectSize > destinationFreeVolume) {
+        if (objectProperties.isFixture()) {
             return {
-                reason: 'Too Big.',
+                reason: 'Fixture.',
                 object,
-                destination,
             }
         }
+
+        const destinationContainer = em.getComponent('Container', destination)
 
         // Build a list of containers already carrying this load.
         let parent = source
@@ -49,8 +45,33 @@ const methods = {
         do {
             parent = em.getComponent('Location', parent).getParent()
             sourceParents.push(parent)
-        // If the destination is in the list or the list is complete stop.
+            // If the destination is in the list or the list is complete stop.
         } while (parent && parent !== destination)
+
+        // If the destination is closed and doesn't contain the source, fail.
+        if (!destinationContainer.isOpen() && !sourceParents.includes(destination)) {
+            return {
+                success: false,
+                reason: 'Destination closed.',
+                object,
+                destination,
+            }
+        }
+
+        const destinationFreeVolume = destinationContainer.getFreeVolume()
+
+        const objectSize = objectProperties.getSize()
+
+        // If the object wont fit into the destination fail.
+        if (objectSize > destinationFreeVolume) {
+            return {
+                success: false,
+                reason: 'Too Big.',
+                object,
+                destination,
+                // container: destination,
+            }
+        }
 
         // Refit if the load is valid through the whole tree.
         const objectWeight = objectProperties.getWeight()
@@ -114,6 +135,7 @@ const methods = {
         // If the new weight is withing limits this step succeeds.
         if (newWeight > maxWeight) {
             return {
+                success: false,
                 reason: 'Too heavy.',
                 container: target,
             }
@@ -167,7 +189,6 @@ const methods = {
 
 const keys = Object.keys(methods)
 for (let key of keys) {
-    console.log(key)
     if (Object.prototype.hasOwnProperty.call(methods, key)) {
         methods[key] = methods[key].bind(methods)
     }

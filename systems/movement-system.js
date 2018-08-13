@@ -53,6 +53,13 @@ class MovementSystem extends System {
     }
 
     goTo(parent, destination, entity, action) {
+        if (em.getComponent('ObjectProperties', entity).isFixture()) {
+            return {
+                success: false,
+                reason: 'Fixture.',
+            }
+        }
+
         const putResult = put(entity, parent, destination)
         if (putResult) {
             putResult.success = false

@@ -2,6 +2,8 @@
 
 ## TODO:
 
+- [ ] Add flag for containers that can't be opened or closed
+- [ ] Fix refering to things that are invisible
 - [ ] Normalize component returns to either copy Arrays or not
 
 - [ ] Make sure all symbols are necessary. Parser should build plausible structure, interpreter should interpret and validate specifics.
@@ -11,7 +13,7 @@
 - [ ] Add game error class for expected errors in design like teleporting to wrong id
 - [ ] Remove false length optomization on "fors" 
 
-- [ ] Make different narrators: mopey, excited, normal, etc.
+- [ ] Make different narrators: mopey, excited, normal, defensive, etc.
 - [ ] Multiple response on room put
 
 - [x] generalize put operation to work for any source and target

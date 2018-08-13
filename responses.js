@@ -134,22 +134,14 @@ let responses = {
             },
         },
         failure: {
-            get({get: {reason, container}}) {
+            get({get: {reason}}) {
                 if (/have/i.test(reason)) {
                     return 'You already have that.'
                 }
-                if (/inaccessible/i.test(reason)) {
-                    let name = em.getComponent('Descriptors', container).getName()
-                    return `The ${name} is closed.`
-                }
             },
-            drop({drop: {reason, container}}) {
+            drop({drop: {reason}}) {
                 if (/don.?t/i.test(reason)) {
                     return `You don't have that`
-                }
-                if (/inaccessible/i.test(reason)) {
-                    let name = em.getComponent('Descriptors', container).getName()
-                    return `The ${name} is closed.`
                 }
             },
             resolve({resolve: {reason, object, objects}}) {
@@ -217,15 +209,23 @@ let responses = {
                     return output + `You can't put a ${name} inside itself!`
                 }
                 object = em.getComponent('Descriptors', object).getName()
-                if (/big/i.test(reason)) {
+                if (destination) {
                     destination = em.getComponent('Descriptors', destination).getName()
+                }
+                if (/big/i.test(reason)) {
                     return output + `The ${object} is too big for the ${destination}.`
                 }
                 if (/heavy/i.test(reason)) {
                     container = em.getComponent('Descriptors', container).getName()
                     return output + `The ${object} is just too heavy for the ${container}.`
                 }
-                return output + reason
+                if (/closed/i.test(reason)) {
+                    // destination = em.getComponent('Descriptors', destination).getName()
+                    return `The ${destination} is closed.`
+                }
+                if (output.length) {
+                    return output + reason
+                }
             },
         },
         general(action) {
@@ -236,19 +236,22 @@ let responses = {
                     let name = em.getComponent('Descriptors', id).getName()
                     return `You don't see any ${name} here.`
                 }
-
+                let objectName
+                if (typeof object !== 'undefined') {
+                    objectName = em.getComponent('Descriptors', object).getName()
+                }
                 if (/inceptive/i.test(reason)) {
                     let word = 'It'
-                    if (typeof object !== 'undefined') {
-                        word = 'The ' + em.getComponent('Descriptors', object).getName()
+                    if (objectName) {
+                        word = 'The ' + objectName
                     }
                     return `The ${word} can't do that to itself!`
                 }
 
                 if (/big/i.test(reason)) {
                     let objectWord = 'It\'s'
-                    if (typeof object !== 'undefined') {
-                        objectWord = 'The ' + em.getComponent('Descriptors', object).getName() + ' is'
+                    if (objectName) {
+                        objectWord = `The ${objectName} is`
                     }
                     let destinationWord = ''
                     if (typeof destination !== 'undefined') {
@@ -258,14 +261,23 @@ let responses = {
                 }
                 if (/heavy/i.test(reason)) {
                     let objectWord = 'It\'s'
-                    if (typeof object !== 'undefined') {
-                        objectWord = 'The ' + em.getComponent('Descriptors', object).getName() + ' is'
+                    if (objectName) {
+                        objectWord = `The ${objectName} is`
                     }
                     let containerWord = ''
                     if (typeof container !== 'undefined') {
                         containerWord = ' for the ' + em.getComponent('Descriptors', container).getName()
                     }
                     return `${objectWord} too heavy${containerWord}.`
+                }
+
+                if (/inaccessible/i.test(reason)) {
+                    let name = em.getComponent('Descriptors', container).getName()
+                    return `The ${name} is closed.`
+                }
+
+                if (/fixture/i.test(reason)) {
+                    return `You can't move the ${objectName}.`
                 }
 
                 const word = fault.replace(/^\w/, c => c.toUpperCase())

@@ -113,10 +113,11 @@ class Area {
 }
 
 class ObjectProperties {
-    constructor({size, baseWeight, weight = baseWeight, visible = true, transparent = false}) {
+    constructor({size, baseWeight, weight = baseWeight, fixture = false, visible = true, transparent = false}) {
         this.setSize(size)
         this.setBaseWeight(baseWeight)
         this.setWeight(weight)
+        this.setFixture(fixture)
         this.setVisible(visible)
         this.setTransparent(transparent)
     }
@@ -133,11 +134,15 @@ class ObjectProperties {
         return this.weight
     }
 
-    getVisible() {
+    isFixture() {
+        return this.fixture
+    }
+
+    isVisible() {
         return this.visible
     }
 
-    getTransparent() {
+    isTransparent() {
         return this.transparent
     }
 
@@ -162,30 +167,30 @@ class ObjectProperties {
         this.baseWeight = baseWeight
     }
 
+    setFixture(fixture) {
+        assertBoolean(fixture)
+        this.fixture = fixture
+    }
+
     setVisible(visible) {
-        this.assertBoolean(visible)
+        assertBoolean(visible)
         this.visible = visible
     }
 
     setTransparent(transparent) {
-        this.assertBoolean(transparent)
+        assertBoolean(transparent)
         this.transparent = transparent
-    }
-
-    assertBoolean(bool) {
-        if (typeof bool !== 'boolean') {
-            throw new TypeError('Argument must be a boolean')
-        }
     }
 }
 
 class Container {
-    constructor({volume, maxLoad, freeVolume = volume, contents = [], open = true}) {
+    constructor({volume, maxLoad, freeVolume = volume, contents = [], fixtures = [], open = true}) {
         this.setVolume(volume)
         this.setFreeVolume(freeVolume)
         this.setMaxLoad(maxLoad)
         // this.setLoad(load)
         this.setContents(contents)
+        this.setFixtures(fixtures)
         this.setOpen(open)
     }
 
@@ -205,9 +210,9 @@ class Container {
         return new Set(this.contents)
     }
 
-    // getLoad() {
-    //     return this.load
-    // }
+    getFixtures() {
+        return this.fixtures
+    }
 
     isOpen() {
         return this.open
@@ -234,13 +239,6 @@ class Container {
         this.maxLoad = maxLoad
     }
 
-    // setLoad(load) {
-    //     if (typeof load !== 'number') {
-    //         throw new TypeError('Argument \'load\' must be a number')
-    //     }
-    //     this.load = load
-    // }
-
     setContents(contents) {
         if (typeof contents.entries !== 'function') {
             if (!Array.isArray(contents)) {
@@ -251,6 +249,16 @@ class Container {
         this.contents = contents
     }
 
+    setFixtures(fixtures) {
+        if (typeof fixtures.entries !== 'function') {
+            if (!Array.isArray(fixtures)) {
+                throw new TypeError('Argument \'fixtures\' must be an Array or Set')
+            }
+            fixtures = new Set(fixtures)
+        }
+        this.fixtures = fixtures
+    }
+
     setOpen(open) {
         if (typeof open !== 'boolean') {
             throw new TypeError('Argument \'open\' must be a boolean')
@@ -259,22 +267,22 @@ class Container {
     }
 }
 
-class PlayerInput {
-    constructor() {
-        this.queue = []
-    }
+// class PlayerInput {
+//     constructor() {
+//         this.queue = []
+//     }
 
-    getQueue() {
-        return this.queue.slice()
-    }
+//     getQueue() {
+//         return this.queue.slice()
+//     }
 
-    setQueue(queue) {
-        if (!Array.isArray(queue)) {
-            throw new TypeError('Queue must be an Array')
-        }
-        this.queue = queue
-    }
-}
+//     setQueue(queue) {
+//         if (!Array.isArray(queue)) {
+//             throw new TypeError('Queue must be an Array')
+//         }
+//         this.queue = queue
+//     }
+// }
 
 class Location {
     constructor(parent = null) {
@@ -290,8 +298,15 @@ class Location {
     }
 }
 
+/* eslint-disable require-jsdoc */
+function assertBoolean(bool) {
+    if (typeof bool !== 'boolean') {
+        throw new TypeError('Argument must be a boolean')
+    }
+}
+
 module.exports = {
-    PlayerInput,
+    // PlayerInput,
     Descriptors,
     Container,
     Location,

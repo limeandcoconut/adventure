@@ -5,7 +5,7 @@ const {formatContents} = require('./methods')
 class InventorySystem extends System {
 
     update(action) {
-        // console.log('-------- INVENTORY --------')
+        console.log('-------- INVENTORY --------')
 
         let entity = action.entity.id
 

@@ -1,32 +1,35 @@
 const {entityManager: em} = require('./managers.js')
 
 const helpers = {
-    formatContents(contents, entity) {
+    // formatContents(contents, entity) {
 
-        contents = Array.from(contents)
+    //     contents = Array.from(contents)
+    //     console.log(contents)
+    //     const newContents = []
+    //     for (let i = 0; i < contents.length; i++) {
+    //         const id = contents[i]
 
-        const newContents = []
-        for (let i = 0; i < contents.length; i++) {
-            const id = contents[i]
+    //         // }
+    //         // contents = contents.map((id) => {
+    //         let properties = em.getComponent('ObjectProperties', id)
+    //         console.log('HERE')
+    //         throw 'here'
+    //         console.log(properties && !properties.isVisible())
+    //         if (id === entity || (properties && !properties.isVisible())) {
+    //             continue
+    //         }
+    //         let item = {
+    //             id,
+    //         }
+    //         let container = em.getComponent('Container', id)
+    //         if (container && (container.isOpen() || (properties && properties.isTransparent()))) {
+    //             item.contents = helpers.formatContents(container.getContents(), entity)
+    //         }
+    //         newContents.push(item)
+    //     }
 
-            // }
-            // contents = contents.map((id) => {
-            let properties = em.getComponent('ObjectProperties', id)
-            if (id === entity || (!properties && properties.getVisible())) {
-                continue
-            }
-            let item = {
-                id,
-            }
-            let container = em.getComponent('Container', id)
-            if (container && (container.isOpen() || (properties && properties.getTransparent()))) {
-                item.contents = helpers.formatContents(container.getContents(), entity)
-            }
-            newContents.push(item)
-        }
-
-        return newContents
-    },
+    //     return newContents
+    // },
     logAction(action) {
         // let steps = action.steps
         // if (steps) {

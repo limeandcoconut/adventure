@@ -62,26 +62,27 @@ entityFactory.registerConstructor('room', (props = {}) => {
         volume,
         maxLoad,
         freeVolume,
-        contents = [],
+        contents,
+        fixtures,
         open,
         appearance,
         size,
         baseWeight,
         weight,
-        visible = true,
-        transparent = false,
+        fixture,
+        visible,
+        transparent,
         visited,
         title,
         doors,
     } = props
 
-    console.log(volume)
     let room = entityManager.createEntity()
     entityManager.addComponent(new Appearance(appearance), room)
     entityManager.addComponent(new Location(parent), room)
     entityManager.addComponent(new Descriptors(['room']), room)
-    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, open}), room)
-    entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, visible, transparent}), room)
+    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, fixtures, open}), room)
+    entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}), room)
     entityManager.addComponent(new Area(title, visited, doors), room)
     return room
 })
@@ -92,7 +93,8 @@ entityFactory.registerConstructor('container', (props = {}) => {
         volume,
         maxLoad,
         freeVolume,
-        contents = [],
+        contents,
+        fixtures,
         open,
         labels,
         descriptors,
@@ -100,15 +102,16 @@ entityFactory.registerConstructor('container', (props = {}) => {
         size,
         baseWeight,
         weight,
-        visible = true,
-        transparent = false,
+        fixture,
+        visible,
+        transparent,
     } = props
     let container = entityManager.createEntity()
     entityManager.addComponent(new Appearance(appearance), container)
     entityManager.addComponent(new Location(parent), container)
     entityManager.addComponent(new Descriptors(labels, descriptors), container)
-    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, open}), container)
-    entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, visible, transparent}), container)
+    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, fixtures, open}), container)
+    entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}), container)
     return container
 })
 
@@ -121,14 +124,15 @@ entityFactory.registerConstructor('thing', (props = {}) => {
         size,
         baseWeight,
         weight,
-        visible = true,
-        transparent = false,
+        fixture,
+        visible,
+        transparent,
     } = props
     let thing = entityManager.createEntity()
     entityManager.addComponent(new Appearance(appearance), thing)
     entityManager.addComponent(new Location(parent), thing)
     entityManager.addComponent(new Descriptors(labels, descriptors), thing)
-    entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, visible, transparent}), thing)
+    entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}), thing)
     return thing
 })
 
@@ -138,21 +142,23 @@ entityFactory.registerConstructor('player', (props = {}) => {
         volume,
         maxLoad,
         freeVolume,
-        contents = [],
+        contents,
+        fixtures,
         open,
         appearance,
         size,
         baseWeight,
         weight,
-        visible = true,
-        transparent = false,
+        fixture,
+        visible,
+        transparent,
     } = props
     let player = entityManager.createEntity()
     entityManager.addComponent(new Appearance(appearance), player)
     entityManager.addComponent(new Location(parent), player)
     entityManager.addComponent(new Descriptors(['you', 'self', 'me', 'myself'], []), player)
-    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, open}), player)
-    entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, visible, transparent}), player)
+    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, fixtures, open}), player)
+    entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}), player)
 
     return player
 })
@@ -200,6 +206,26 @@ if (entityManager.lowestFreeId === 10) {
         appearance: 'An amorphous blob of greyish goop.',
         size: 1,
         baseWeight: 1,
+    })
+
+    let sign = entityFactory.createThing({
+        parent: testingChamber00178,
+        labels: ['sign'],
+        descriptors: ['paper', 'plastic', 'laminated'],
+        appearance: 'A poorly laminated 8.5" x 11" sign. It has the look of something made by a cheerful person, it has however, not been treated very well in it\'s term of service since then. It hangs rather like something crucified: resolute, but not a happy thing.',
+        size: 0,
+        baseWeight: 0,
+        fixture: true,
+    })
+
+    let coin = entityFactory.createThing({
+        parent: player,
+        labels: ['coin', 'money'],
+        descriptors: ['round', 'shiny', 'silver', 'cold'],
+        appearance: 'A large, shiny, silver, coin. It lies cold in the hand.',
+        size: 0,
+        baseWeight: 0,
+        visible: false,
     })
 
     let crate = entityFactory.createContainer({
@@ -268,7 +294,22 @@ if (entityManager.lowestFreeId === 10) {
         descriptors: ['lead', 'heavy'],
         appearance: 'A heavy lead weight.',
         size: 1,
+        baseWeight: 1,
+    })
+
+    let tray = entityFactory.createContainer({
+        parent: anotherRoom,
+        labels: ['tray', 'basket'],
+        descriptors: ['wire', 'mesh'],
+        appearance: 'A little wire mesh tray with a lid for filing papers in.',
+        volume: 1,
+        // freeVolume: 1,
+        maxLoad: 2,
+        size: 1,
         baseWeight: 4,
+        // weight: 1,
+        open: false,
+        transparent: true,
     })
 
     let testingArea = entityManager.getComponent('Area', testingChamber00178)
@@ -277,11 +318,12 @@ if (entityManager.lowestFreeId === 10) {
         n: anotherRoom,
     })
 
-    entityManager.getComponent('Container', player).setContents([thing])
+    entityManager.getComponent('Container', player).setContents([thing, coin])
     entityManager.getComponent('Container', crate).setContents([box])
     entityManager.getComponent('Container', box).setContents([wrench])
     entityManager.getComponent('Container', testingChamber00178).setContents([player, bolt, crate, screw, rock])
-    entityManager.getComponent('Container', anotherRoom).setContents([weight])
+    entityManager.getComponent('Container', testingChamber00178).setFixtures([sign])
+    entityManager.getComponent('Container', anotherRoom).setContents([weight, tray])
 
     console.log(JSON.stringify({
         testingChamber00178,
@@ -294,6 +336,7 @@ if (entityManager.lowestFreeId === 10) {
         box,
         crate,
         weight,
+        coin,
     }, null, 4))
 
     // console.log(JSON.stringify({

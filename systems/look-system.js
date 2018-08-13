@@ -16,22 +16,22 @@ class LookSystem extends System {
         // console.log('-------- LOOK --------')
 
         const {object: {id: object}, entity: {id: entity}} = action
-        const look = {}
+        const info = {}
 
-        look.object = object
+        info.object = object
 
         const area = em.getComponent('Area', object)
-        look.area = area
+        info.area = area
 
         const container = em.getComponent('Container', object)
         const properties = em.getComponent('ObjectProperties', object)
-        const isTransparent = properties && properties.getTransparent()
+        const isTransparent = properties && properties.isTransparent()
         if (container && (container.isOpen() || isTransparent)) {
-            look.contents = formatContents(container.getContents(), entity)
+            info.contents = formatContents(container.getContents(), entity)
         }
 
-        look.success = true
-        action.steps.look = look
+        info.success = true
+        action.steps.look = info
     }
 
     fail(action, info) {

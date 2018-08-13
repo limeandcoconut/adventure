@@ -15,6 +15,14 @@ class PutSystem extends System {
             return
         }
 
+        if (object.fixture) {
+            this.fail(action, {
+                reason: 'Fixture.',
+                object: object.id,
+            })
+            return
+        }
+
         if (!object.apparent) {
             this.fail(action, {
                 reason: 'Inapparent.',

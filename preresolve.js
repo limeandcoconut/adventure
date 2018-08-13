@@ -33,7 +33,7 @@ function room(entity) {
 function local(entity) {
     const location = em.getComponent('Location', entity)
     const room = location.getParent()
-    const roomVisible = em.getComponent('ObjectProperties', room).getVisible()
+    const roomVisible = em.getComponent('ObjectProperties', room).isVisible()
 
     const result = [{
         result: {
@@ -51,7 +51,7 @@ function local(entity) {
     const contents = roomContainer.getContents()
 
     contents.forEach((object) => {
-        if (object === entity || !em.getComponent('ObjectProperties', object).getVisible()) {
+        if (object === entity || !em.getComponent('ObjectProperties', object).isVisible()) {
             return
         }
         objects.push({

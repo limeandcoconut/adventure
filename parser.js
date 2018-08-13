@@ -22,7 +22,32 @@ let dictionary = {
 
     fish: 'noun',
 
+    coin: 'noun',
+    money: 'noun',
+
+    tray: 'noun',
+    basket: 'noun',
+
+    sign: 'noun',
+    paper: 'noun',
+    plastic: 'noun',
+    laminated: 'noun',
+
+    you: 'noun',
+    self: 'noun',
+
     room: 'pronoun',
+
+    red: 'adjective',
+    rusty: 'adjective',
+    heavy: 'adjective',
+    lead: 'adjective',
+    silver: 'adjective',
+    round: 'adjective',
+    cold: 'adjective',
+    shiny: 'adjective',
+    wire: 'adjective',
+    mesh: 'adjective',
 
     all: 'noun-multiple',
     everything: 'noun-multiple',
@@ -66,11 +91,6 @@ let dictionary = {
     i: 'verb-intransitive',
 
     quickly: 'adverb',
-
-    red: 'adjective',
-    rusty: 'adjective',
-    heavy: 'adjective',
-    lead: 'adjective',
 
     u: 'noun-verb-conversion',
     up: 'preposition-adverb-postfix-noun-verb-conversion',

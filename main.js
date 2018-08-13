@@ -325,6 +325,7 @@ function formatResponse(output) {
     } else if (output.live === false) {
         const fault = output.fault
         const handler = responses.failure[fault]
+        console.log(JSON.stringify(output.steps, null, 4))
         if (handler) {
             const response = handler(output.steps, fault)
             if (response) {
