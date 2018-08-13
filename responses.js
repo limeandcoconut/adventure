@@ -132,6 +132,9 @@ let responses = {
                 }
                 return output + 'Done.'
             },
+            read({read: {text}}) {
+                return `"${text}"`
+            },
         },
         failure: {
             get({get: {reason}}) {
@@ -225,6 +228,11 @@ let responses = {
                 }
                 if (output.length) {
                     return output + reason
+                }
+            },
+            read({read: {reason}}) {
+                if (/read/i.test(reason)) {
+                    return `It doesn't say anything.`
                 }
             },
         },

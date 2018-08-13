@@ -10,6 +10,7 @@ const MovementSystem = require('./systems/movement-system')
 const BeginSystem = require('./systems/begin-system')
 const LookSystem = require('./systems/look-system')
 const PutSystem = require('./systems/put-system')
+const ReadSystem = require('./systems/read-system')
 
 const GeneralInputProcess = require('./processes/general-input-process')
 
@@ -18,6 +19,7 @@ const {
     Container,
     Location,
     Appearance,
+    Text,
     ObjectProperties,
     Area,
 } = require('./components.js')
@@ -33,6 +35,7 @@ let movementSystem = new MovementSystem()
 let beginSystem = new BeginSystem()
 let lookSystem = new LookSystem()
 let putSystem = new PutSystem()
+let readSystem = new ReadSystem()
 
 let systems = {
     resolve: resolverSystem,
@@ -46,6 +49,7 @@ let systems = {
     begin: beginSystem,
     look: lookSystem,
     put: putSystem,
+    read: readSystem,
 }
 
 const generalActionQueue = []
@@ -127,12 +131,16 @@ entityFactory.registerConstructor('thing', (props = {}) => {
         fixture,
         visible,
         transparent,
+        text,
     } = props
     let thing = entityManager.createEntity()
     entityManager.addComponent(new Appearance(appearance), thing)
     entityManager.addComponent(new Location(parent), thing)
     entityManager.addComponent(new Descriptors(labels, descriptors), thing)
     entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}), thing)
+    if (text) {
+        entityManager.addComponent(new Text(text), thing)
+    }
     return thing
 })
 
@@ -216,6 +224,9 @@ if (entityManager.lowestFreeId === 10) {
         size: 0,
         baseWeight: 0,
         fixture: true,
+        text: 'WELCOME TO THE TESTING AREA:\n' +
+            'Congratulations on your new position!\n' +
+            'This environment promotes fun and cooperation.',
     })
 
     let coin = entityFactory.createThing({

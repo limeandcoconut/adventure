@@ -84,6 +84,7 @@ let dictionary = {
     open: 'verb',
     close: 'verb',
     put: 'verb',
+    read: 'verb',
     look: 'verb-noun-conversion',
     l: 'verb-noun-conversion',
     begin: 'verb-intransitive',

@@ -70,6 +70,23 @@ class Appearance {
     }
 }
 
+class Text {
+    constructor(text) {
+        this.setText(text)
+    }
+
+    getText() {
+        return this.text
+    }
+
+    setText(text) {
+        if (typeof text !== 'undefined' && typeof text !== 'string' && text !== null) {
+            throw new TypeError('Argument "text" must be a string or null')
+        }
+        this.text = text
+    }
+}
+
 class Area {
     constructor(title, visited = [], doors = {}) {
         this.setTitle(title)
@@ -311,6 +328,7 @@ module.exports = {
     Container,
     Location,
     Appearance,
+    Text,
     ObjectProperties,
     Area,
 }

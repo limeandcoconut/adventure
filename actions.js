@@ -16,6 +16,19 @@ class Get extends Action {
     }
 }
 
+class Pick extends Action {
+    constructor({word, object}) {
+        super({word, object})
+
+        this.type = 'pick'
+        this.procedure = []
+        this.reporter = ''
+        this.variants = {
+            up: Get,
+        }
+    }
+}
+
 class Inventory extends Action {
     constructor({word, object}) {
         super({word, object})
@@ -109,22 +122,20 @@ class Put extends Action {
     }
 }
 
-class Pick extends Action {
+class Read extends Action {
     constructor({word, object}) {
         super({word, object})
 
-        this.type = 'pick'
-        this.procedure = []
-        this.reporter = ''
-        this.variants = {
-            up: Get,
-        }
+        this.type = 'read'
+        this.procedure = baseProcess.concat('read')
+        this.reporter = this.type
     }
 }
 
 Object.assign(actions, {
     begin: Begin,
     get: Get,
+    put: Put,
     take: Get,
     pick: Pick,
     drop: Drop,
@@ -135,7 +146,7 @@ Object.assign(actions, {
     close: Close,
     look: Look,
     l: Look,
-    put: Put,
+    read: Read,
 })
 
 module.exports = actions
