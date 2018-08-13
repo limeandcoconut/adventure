@@ -2,6 +2,10 @@ const {Interpreter, InterpreterError} = require('./interpreter-class')
 const actions = require('./actions')
 const Action = require('./action')
 
+const multipleObjectVerbs = [
+    'put',
+]
+
 const interpreter = new Interpreter()
 
 interpreter.handler('noun', (node) => {
@@ -29,15 +33,13 @@ interpreter.handler('pronoun', (node) => {
 interpreter.handler('adjective', (node) => {
     let noun = interpreter.parseNode(node.object)
     if (!noun) {
-        throw new InterpreterError('adjective expected a noun.')
+        throw new InterpreterError('adjective expected a noun')
     }
-    console.log('NOUN')
-    console.log(noun)
     if (noun.type === 'noun-multiple') {
-        throw new InterpreterError('adjective can\'t use multiple nouns.')
+        throw new InterpreterError('adjective can\'t use multiple nouns')
     }
     if (noun.type === 'pronoun') {
-        throw new InterpreterError('adjective can\'t use pronouns.')
+        throw new InterpreterError('adjective can\'t use pronouns')
     }
     noun.descriptors.push(node.word)
     return noun
@@ -46,7 +48,11 @@ interpreter.handler('adjective', (node) => {
 interpreter.handler('verb', (node) => {
     let object = interpreter.parseNode(node.object)
     if (!object) {
-        throw new InterpreterError('verb expected an object.')
+        throw new InterpreterError('verb expected an object')
+    }
+
+    if (multipleObjectVerbs.includes(node.word) && !object.object) {
+        throw new InterpreterError('verb expected an indirect object')
     }
 
     // TODO: Why is this initialization here?
@@ -78,7 +84,7 @@ interpreter.handler('adverb', (node) => {
 
     let action = interpreter.parseNode(node.object)
     if (!(action instanceof Action)) {
-        throw new InterpreterError('adverb expected an action.')
+        throw new InterpreterError('adverb expected an action')
     }
     return action.modify(node.word)
 })
@@ -86,7 +92,7 @@ interpreter.handler('adverb', (node) => {
 interpreter.handler('preposition-adverb-postfix', (node) => {
     let action = interpreter.parseNode(node.object)
     if (!(action instanceof Action)) {
-        throw new InterpreterError('preposition-adverb-postfix expected an action.')
+        throw new InterpreterError('preposition-adverb-postfix expected an action')
     }
     return action.modify(node.word)
 })
@@ -94,14 +100,14 @@ interpreter.handler('preposition-adverb-postfix', (node) => {
 interpreter.handler('preposition-phrase-infix', (node) => {
     let object = interpreter.parseNode(node.direct)
     if (!object) {
-        throw new InterpreterError('preposition-phrase-infix expected a direct object.')
+        throw new InterpreterError('preposition-phrase-infix expected a direct object')
     }
     object.object = interpreter.parseNode(node.indirect)
     if (!object.object) {
-        throw new InterpreterError('preposition-phrase-infix expected an indirect object.')
+        throw new InterpreterError('preposition-phrase-infix expected an indirect object')
     }
     if (object.object.type === 'noun-multiple') {
-        throw new InterpreterError('preposition-phrase-infix can\'t use multiple nouns as indirect object.')
+        throw new InterpreterError('preposition-phrase-infix can\'t use multiple nouns as indirect object')
     }
     return object
     // return {
@@ -190,14 +196,14 @@ module.exports = {
 //         case 'adverb': {
 //             // let action = parseNode(node.object)
 //             // if (!action) {
-//             //     throw new Error('Adverb expected a action.')
+//             //     throw new Error('Adverb expected a action')
 //             // }
 //             // action.circumstances.push(node.word)
 //             // return action
 
 //             let action = parseNode(node.object)
 //             if (!action) {
-//                 throw new Error('Adverb expected a action.')
+//                 throw new Error('Adverb expected a action')
 //             }
 //             return action.modify(node.word)
 //         }
