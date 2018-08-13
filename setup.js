@@ -34,22 +34,6 @@ let beginSystem = new BeginSystem()
 let lookSystem = new LookSystem()
 let putSystem = new PutSystem()
 
-// resolverSystem.mutate(actionOutputChannel)
-// locatorSystem.mutate(actionOutputChannel)
-// getterSystem.mutate(actionOutputChannel)
-// droppingSystem.mutate(actionOutputChannel)
-// inventorySystem.mutate(actionOutputChannel)
-// openSystem.mutate(actionOutputChannel)
-
-// let systems = [
-//     resolverSystem,
-//     locatorSystem,
-//     openSystem,
-//     getterSystem,
-//     droppingSystem,
-//     inventorySystem,
-// ]
-
 let systems = {
     resolve: resolverSystem,
     locate: locatorSystem,
@@ -71,12 +55,7 @@ let processes = [
     generalInputProcess,
 ]
 
-// beginningProcess.linkToProcess(generalInputProcess,)
-
-// TODO: pronouns
-// TODO: disambiguation
-// TODO: auto subject assertion
-// TODO: ALL, EXCEPT
+// Register a factory method for creating entities
 entityFactory.registerConstructor('room', (props = {}) => {
     let {
         parent,
@@ -133,7 +112,6 @@ entityFactory.registerConstructor('container', (props = {}) => {
     return container
 })
 
-// Register a factory method for creating entities
 entityFactory.registerConstructor('thing', (props = {}) => {
     let {
         parent,
@@ -232,7 +210,6 @@ if (entityManager.lowestFreeId === 10) {
         volume: 4,
         freeVolume: 2,
         maxLoad: 6,
-        // load: 2,
         size: 3,
         baseWeight: 3,
         weight: 5,
@@ -244,7 +221,6 @@ if (entityManager.lowestFreeId === 10) {
         appearance: 'It\'s just a stone.',
         size: 1,
         baseWeight: 1,
-        // weight: 1,
     })
 
     let screw = entityFactory.createThing({
@@ -254,7 +230,6 @@ if (entityManager.lowestFreeId === 10) {
         appearance: 'A rusty screw with flaking red paint on the head.',
         size: 1,
         baseWeight: 1,
-        // weight: 1,
     })
 
     let bolt = entityFactory.createThing({
@@ -264,7 +239,6 @@ if (entityManager.lowestFreeId === 10) {
         appearance: 'A bolt with chpped red paint on the head.',
         size: 1,
         baseWeight: 1,
-        // weight: 1,
     })
 
     let box = entityFactory.createContainer({
@@ -275,7 +249,6 @@ if (entityManager.lowestFreeId === 10) {
         volume: 2,
         freeVolume: 1,
         maxLoad: 2,
-        // load: 2,
         size: 2,
         baseWeight: 1,
         weight: 2,
@@ -287,7 +260,6 @@ if (entityManager.lowestFreeId === 10) {
         appearance: 'A wrench shaped like a gibbous moon.',
         size: 1,
         baseWeight: 1,
-        // weight: 2,
     })
 
     let weight = entityFactory.createThing({
@@ -321,32 +293,31 @@ if (entityManager.lowestFreeId === 10) {
         bolt,
         box,
         crate,
+        weight,
     }, null, 4))
 
-    console.log(JSON.stringify({
-        player: ['thing'],
-        testingChamber00178: [
-            'player',
-            // 'rock',
-            // 'screw',
-            'bolt',
-            'crate',
-        ],
-        anotherRoom: [
-            'box',
-        ],
-        crate: [
-            'rock',
-            'screw,',
-        ],
-        box: [
-            'wrench',
-        ],
-        offscreen: [
-            'testingChamber00178',
-            'anotherRoom',
-        ],
-    }, null, 4))
+    // console.log(JSON.stringify({
+    //     player: ['thing'],
+    //     testingChamber00178: [
+    //         'player',
+    //         'bolt',
+    //         'crate',
+    //     ],
+    //     anotherRoom: [
+    //         'box',
+    //     ],
+    //     crate: [
+    //         'rock',
+    //         'screw,',
+    //     ],
+    //     box: [
+    //         'wrench',
+    //     ],
+    //     offscreen: [
+    //         'testingChamber00178',
+    //         'anotherRoom',
+    //     ],
+    // }, null, 4))
 
 } else {
     console.log('')

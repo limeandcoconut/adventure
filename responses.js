@@ -87,8 +87,6 @@ let responses = {
                 return 'Closed.'
             },
             move(steps) {
-                // TODO: better reporting
-                // console.log(area)
                 if (steps.look) {
                     return responses.responses.success.look(steps)
                 }
@@ -280,6 +278,7 @@ let responses = {
             return 'Beg your pardon?'
         },
     },
+    // Shouldn't this be in the parser or --> interpreter?
     missingParseParts: {
         'conjunction': 'noun',
         'verb': 'noun',

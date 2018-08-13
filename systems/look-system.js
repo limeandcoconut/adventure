@@ -30,7 +30,6 @@ class LookSystem extends System {
             look.contents = formatContents(container.getContents(), entity)
         }
 
-        // action.info.look = look
         look.success = true
         action.steps.look = look
     }
@@ -42,7 +41,6 @@ class LookSystem extends System {
         action.live = false
         action.fault = 'look'
     }
-
 }
 
 module.exports = LookSystem

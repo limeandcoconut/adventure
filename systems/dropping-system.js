@@ -41,24 +41,6 @@ class DroppingSystem extends System {
             return
         }
 
-        // let container = em.getComponent('Container', entity)
-        // let inventory = container.getContents()
-
-        // let roomContainer = em.getComponent('Container', room)
-        // let roomInventory = roomContainer.getContents()
-
-        // let objectLocation = em.getComponent('Location', object)
-
-        // let hadObject = inventory.delete(object)
-        // if (!hadObject) {
-        //     throw new Error(`Entity "${entity}" didn't have object "${object}".`)
-        // }
-        // roomInventory.add(object)
-
-        // container.setContents(inventory)
-        // roomContainer.setContents(roomInventory)
-        // objectLocation.setParent(room)
-
         action.steps.drop = {
             success: true,
         }
@@ -66,7 +48,6 @@ class DroppingSystem extends System {
 
     fail(action, info) {
         info.success = false
-        // info.id = action.object.id
         action.steps.drop = info
         action.live = false
         action.fault = 'drop'

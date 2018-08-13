@@ -7,11 +7,6 @@ class LocatorSystem extends System {
         let entity = action.entity.id
         let object = action.object
 
-        // if (typeof object === 'undefined') {
-        //     // In case of an infix.
-        //     return
-        // }
-
         // console.log('---------- LOCATE ---------')
 
         let objects = []
@@ -23,28 +18,12 @@ class LocatorSystem extends System {
         for (let i = 0; i < objects.length; i++) {
             const object = objects[i]
             this.locate(object, entity)
-            // if (result.success) {
-            //     object.id = result.id
-            // } else {
-            //     action.steps.set('resolve', result)
-            //     action.live = false
-            //     return
-            // }
         }
 
         action.steps.locate = {
             success: true,
         }
     }
-
-    // extractObjects(action) {
-    //     if (action.object.type === 'infix') {
-    //         let {direct, indirect} = action.object
-    //         return [direct, indirect]
-    //     }
-
-    //     return [action.object]
-    // }
 
     locate(object, entity) {
         let location = em.getComponent('Location', entity)
@@ -82,8 +61,6 @@ class LocatorSystem extends System {
         object.apparent = apparent && rootFlag
         object.root = root
         object.parent = parent
-
-        // console.log(object)
     }
 }
 

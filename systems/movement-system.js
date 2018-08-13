@@ -6,9 +6,7 @@ class MovementSystem extends System {
 
     update(action) {
 
-        console.log('-------- MOVE --------')
-        // const method = typeof action.object.id !== 'undefined' ? this.teleport : this.move
-        // let method
+        // console.log('-------- MOVE --------')
         let info
 
         if (action.object.id) {
@@ -17,13 +15,11 @@ class MovementSystem extends System {
             info = this.move(action)
         }
 
-        // if (action.live) {
         action.steps.move = info
         if (!info.success) {
             action.live = false
             action.fault = 'move'
         }
-        // }
     }
 
     teleport(action) {
@@ -34,7 +30,6 @@ class MovementSystem extends System {
 
     move(action) {
         let {entity: {id: entity}, object: {word: direction}} = action
-        // const location =
         const parent = em.getComponent('Location', entity).getParent()
 
         let doors = em.getComponent('Area', parent).getDoors()
@@ -42,7 +37,6 @@ class MovementSystem extends System {
         direction = direction.slice(1, 7).join('')
 
         let destination = doors[direction]
-        // action.info.direction = direction
 
         if (typeof destination !== 'number') {
             return {
@@ -65,18 +59,6 @@ class MovementSystem extends System {
             return putResult
         }
 
-        // const parentContainer = em.getComponent('Container', location.getParent())
-        // const destinationContainer = em.getComponent('Container', destination)
-
-        // const parentContents = parentContainer.getContents()
-        // const destinationContents = destinationContainer.getContents()
-
-        // location.setParent(destination)
-        // parentContents.delete(entity)
-        // parentContainer.setContents(parentContents)
-        // destinationContents.add(entity)
-        // destinationContainer.setContents(destinationContents)
-
         const area = em.getComponent('Area', destination)
         const visited = area.getVisited()
 
@@ -87,21 +69,12 @@ class MovementSystem extends System {
             action.procedure.push('look')
         }
 
-        // action.object.id = destination
         return {
             parent: destination,
             area: area,
             success: true,
         }
-        // action.info.parent = destination
-        // action.info.area = area
     }
-
-    // fail(action, info) {
-    //     info.success = false
-    //     action.steps.set('move', info)
-    //     action.live = false
-    // }
 }
 
 module.exports = MovementSystem

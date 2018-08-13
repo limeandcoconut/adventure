@@ -42,24 +42,6 @@ class GetterSystem extends System {
             return
         }
 
-        // let container = em.getComponent('Container', entity)
-        // let inventory = container.getContents()
-
-        // let objectLocation = em.getComponent('Location', object)
-        // let parentContainer = em.getComponent('Container', parent)
-        // let parentInventory = parentContainer.getContents()
-
-        // let hadObject = parentInventory.delete(object)
-        // // If the parent's inventory didn't match the record of the object throw.
-        // if (!hadObject) {
-        //     throw new Error(`Container "${parent}" didn't have object "${object}".`)
-        // }
-        // inventory.add(object)
-
-        // container.setContents(inventory)
-        // parentContainer.setContents(parentInventory)
-        // objectLocation.setParent(entity)
-
         action.steps.get = {
             success: true,
         }

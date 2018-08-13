@@ -9,8 +9,6 @@ const methods = {
         for (let i = 0; i < contents.length; i++) {
             const id = contents[i]
 
-            // }
-            // contents = contents.map((id) => {
             let properties = em.getComponent('ObjectProperties', id)
             if (id === entity || (!properties && properties.getVisible())) {
                 continue

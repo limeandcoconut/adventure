@@ -14,8 +14,6 @@ class InventorySystem extends System {
 
         contents = formatContents(contents, entity)
 
-        // action.info.inventory = contents
-
         action.steps.inventory = {
             success: true,
             inventory: contents,

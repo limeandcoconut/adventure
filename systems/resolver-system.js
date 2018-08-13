@@ -13,7 +13,6 @@ class ResolverSystem extends System {
             object = object.object
         }
 
-        // if (typeof objects[0].id === 'undefined') {
         for (let i = 0; i < objects.length; i++) {
             const object = objects[i]
             if (typeof object.id !== 'undefined') {
@@ -29,21 +28,11 @@ class ResolverSystem extends System {
                 return
             }
         }
-        // }
 
         action.steps.resolve = {
             success: true,
         }
     }
-
-    // extractObjects(action) {
-    //     if (action.object.type === 'infix') {
-    //         let {direct, indirect} = action.object
-    //         return [direct, indirect]
-    //     }
-
-    //     return [action.object]
-    // }
 
     resolve(object) {
         let descriptors = object.descriptors.slice()
