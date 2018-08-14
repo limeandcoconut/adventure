@@ -112,7 +112,9 @@ let dictionary = {
     except: 'preposition-phrase-infix',
 
     on: 'preposition-phrase-infix',
+    // TODO: contextual adverb post fix. e.g. Drop in = put
     in: 'preposition-phrase-infix',
+    badinfix: 'preposition-phrase-infix',
 
     and: 'conjunction',
 

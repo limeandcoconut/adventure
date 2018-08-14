@@ -1,6 +1,7 @@
 
-const {parser, lexer} = require('./parser.js')
-const {responses, missingParseParts} = require('./responses.js')
+const {parser, lexer} = require('./parser')
+const {interpreter} = require('./interpreter')
+const {responses, missingParseParts} = require('./responses')
 /* eslint-disable require-jsdoc, complexity */
 function formatResponse(output) {
     // Errors:
@@ -27,21 +28,15 @@ function formatResponse(output) {
             // } else if (output.isResolutionError) {
             //     return responses.errors.understandSentence()
         } else if (output.isInterpreterError) {
-            if (/multiple/i.test(output.message)) {
-                let context
-                if (/adjective/i.test(output.message)) {
-                    context = 'adjective'
-                } else if (/indirect/i.test(output.message)) {
-                    context = 'indirect'
+            const errorMeta = interpreter.errorMeta
+            const handler = responses.errors.interpreter[errorMeta.type]
+            if (handler) {
+                const response = handler(errorMeta)
+                if (response) {
+                    return response
                 }
-                return responses.errors.multipleNoun(context)
-            } else if (/pronoun/i.test(output.message)) {
-                let context
-                if (/adjective/i.test(output.message)) {
-                    context = 'adjective'
-                }
-                return responses.errors.pronoun(context)
             }
+
             return responses.errors.understandSentence()
         }
         return responses.errors.fatal(output)

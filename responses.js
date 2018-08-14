@@ -29,21 +29,6 @@ function describeContents({contents, opening = 'a ', closing = '', level = 0}) {
 let responses = {
     responses: {
         errors: {
-            multipleNoun(context) {
-                if (context === 'adjective') {
-                    return 'You can\'t use adjectives with multiple nouns.'
-                }
-                if (context === 'indirect') {
-                    return 'You can\'t use multiple nouns as indirect objects like that.'
-                }
-                return 'You can\'t use multiple nouns in that way.'
-            },
-            pronoun(context) {
-                if (context === 'adjective') {
-                    return 'You can\'t use adjectives with pronouns like that.'
-                }
-                return 'You can\'t use a pronoun in that way.'
-            },
             unknownWord(word) {
                 return `I'm sorry, I don't know the word "${word}".`
             },
@@ -62,6 +47,27 @@ let responses = {
             fatal() {
                 return `Well it looks like this one is on me. ` +
                     `Something terrible just happened and it doesn't look like we can fix it.`
+            },
+
+            interpreter: {
+                adjectiveNoMultiple({multiple}) {
+                    return `You can't use adjectives with the multiple noun '${multiple}'.`
+                },
+                adjectiveNoPronoun({pronoun}) {
+                    return `You can't use adjectives with the pronoun '${pronoun}' like that.`
+                },
+                verbObjectCount({verb, min, max, count}) {
+                    if (typeof min !== 'undefined') {
+                        return `I don't know how to '${verb}' with only ${count} object${count > 1 ? 's' : ''}.`
+                    }
+                    return `I don't know how to '${verb}' ${count - 1} indirect object${count > 2 ? 's' : ''}.`
+                },
+                verbNoInfix({verb, disallowed: [disallowed]}) {
+                    return `I don't know how to '${verb}' '${disallowed}' something`
+                },
+                indirectNoMultiple({infix, multiple}) {
+                    return `You can't use the multiple noun '${multiple}' as an indirect object like that.`
+                },
             },
         },
         success: {
