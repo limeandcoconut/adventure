@@ -111,7 +111,7 @@ const methods = {
         const sourceFreeVolume = sourceContainer.getFreeVolume()
         sourceContainer.setFreeVolume(sourceFreeVolume + objectSize)
 
-        this.logResults(object, source, destination)
+        // this.logResults(object, source, destination)
     },
 
     checkWeight(weight, target, targetContainer, sourceParents) {

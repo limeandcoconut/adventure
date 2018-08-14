@@ -1,13 +1,13 @@
-const {friendlyParse: parse, parser, lexer} = require('./parser.js')
+const {friendlyParse: parse} = require('./parser')
 const {friendlyInterpret: interpret} = require('./interpreter')
-const {preresolve} = require('./preresolve.js')
-const {responses, missingParseParts} = require('./responses.js')
+const bifurcate = require('./bifurcate')
+const formatResponse = require('./format-response')
 const {
     begin: Begin,
     // go: Go,
 } = require('./actions')
-/* eslint-disable require-jsdoc, max-depth, no-loop-func */
-const {systems, player, processes} = require('./setup.js')
+/* eslint-disable require-jsdoc */
+const {systems, player, processes} = require('./setup')
 const {logAction} = require('./helpers')
 
 let gameStarted = false
@@ -49,37 +49,7 @@ module.exports = function(line) {
     actions = filteredActions
 
     if (!gameStarted) {
-        gameStarted = true
-
-        if (!actions.length || actions[0].type !== 'begin') {
-            console.log(`It doesn't look like you've begun yet. Lets do that.`)
-
-            // let lookAction = Object.create(look)
-            // lookAction.word = 'look'
-            // lookAction.object = {
-            //     word: 'room',
-            //     descriptors: [],
-            // }
-            // actions.unshift(lookAction)
-
-            // let goAction = Object.create(go)
-            // goAction.word = 'go'
-            // goAction.object = {
-            //     id: 10,
-            //     // word: 'room',
-            //     descriptors: [],
-            // }
-            // actions.unshift(goAction)
-
-            // let beginningAction = Object.create(begin)
-            // beginningAction.word = 'begin'
-            // actions.unshift(beginningAction)
-            let beginningAction = new Begin('begin')
-            // beginningAction.word = 'begin'
-            actions.unshift(beginningAction)
-
-            console.log(actions)
-        }
+        beginGame(actions)
     }
 
     // Construct response from executing actions.
@@ -96,78 +66,15 @@ module.exports = function(line) {
         action.initiative = 2
 
         if (action.object) {
-
-            if (!action.bifurcated) {
-                //  If the action is a bifurcation get all variants of this objects action.
-                let variants = bifurcate(action.object, (object) => {
-                    const objects = []
-                    if (object.type === 'bifurcation') {
-                        let left = object
-                        do {
-                            objects.unshift(left.right)
-                            left = left.left
-                        } while (left.type === 'bifurcation')
-                        objects.unshift(left)
-                    } else {
-                        objects.push(object)
-                    }
-                    return objects
-                })
-
-                // If there are variations create a new action for each one.
-                if (variants.length) {
-                    variants = variants.map((object) => {
-                        // Create new action.
-                        let newAction = action.clone()
-                        // Add properties to action.
-                        newAction.object = object
-                        action.bifurcated = true
-                        return newAction
-                    })
-                    // Add the new variant actions to the list.
-                    actions = variants.concat(actions)
-
-                    // Set the current action to the first one
-                    action = actions.shift()
-                }
-            }
-
-            // If there are multiple nouns or pronouns preresolve them, recursively.
-            let variants = bifurcate(action.object, (object, context) => {
-                let objects
-                if (object.type === 'noun-multiple' || object.type === 'pronoun') {
-                    objects = preresolve(object, action.entity, context)
-                } else {
-                    objects = [object]
-                }
-                return objects
-            }, action)
-
-            // If there are variants create a new action for each one.
+            //  If the object is a bifurcation or need preresolution get all variants of this action.
+            let variants = bifurcate(action)
             if (variants.length) {
-                variants = variants.map((object) => {
-                    // Create new action.
-                    const newAction = action.clone()
-                    newAction.object = object
-                    // Add properties to action.
-                    // If the resolution failed at any point, fail this action.
-                    if (object.result) {
-                        newAction.steps.preresolve = object.result
-                        newAction.live = false
-                        newAction.fault = 'preresolve'
-                    } else {
-                        newAction.steps.preresolve = {success: true}
-                    }
-                    return newAction
-                })
-
-                // Add the new actions to the list.
+                // Add the new variant actions to the list.
                 actions = variants.concat(actions)
-                // Set the current action.
+                // Set the current action to the first one
                 action = actions.shift()
             }
         }
-        console.log(JSON.stringify(action, null, 4))
 
         output += execute(action)
     }
@@ -178,7 +85,7 @@ function execute(action) {
 
     // Format a simple response.
     let response = ''
-    // All simultaneous actions.
+    // All simultaneous actions by all actors.
     let actions = [action]
 
     // Run all processes
@@ -191,15 +98,7 @@ function execute(action) {
     }
 
     // Sort actions by initiative.
-    actions = actions.sort((a, b) => {
-        if (a.initiative < b.initiative) {
-            return -1
-        }
-        if (b.initiative < a.initiative) {
-            return 1
-        }
-        return 0
-    })
+    actions = actions.sort(byInitiative)
 
     for (let i = 0; i < actions.length; i++) {
         const action = actions[i]
@@ -218,10 +117,6 @@ function execute(action) {
         // TODO: Adjust this to account for the acting entity.
         let output = ` \n${formatResponse(action)}`
 
-        if (typeof action.info !== 'undefined') {
-            output += ` \ninfo: ${JSON.stringify(action.info, null, 4)}`
-        }
-
         if (!output) {
             output += console.log(JSON.stringify(action, null, 4))
         }
@@ -232,162 +127,38 @@ function execute(action) {
     return response
 }
 
-function bifurcate(object, method, context) {
-    // Flatten any the tree structure using the provided method.
-    const objects = method(object, context)
-    // If there was no infix involved, pass the direct objects along.
-    let indirect = object.object
-    if (!indirect) {
-        return objects
-    }
-    // Flatten any indirect objects recursively.
-    let indirectObjects = []
-    indirectObjects = indirectObjects.concat(bifurcate(indirect, method))
-    // Create a new variant of this object for each indirect object child it has.
-    let variants = []
-    for (let i = 0; i < indirectObjects.length; i++) {
-        for (let j = 0; j < objects.length; j++) {
-            let variant = Object.create(objects[j])
-            let indirect = indirectObjects[i]
-            // If the direct object resolved properly but the indirect didn't pass the message up.
-            if (!variant.result && indirect.result) {
-                variant.result = indirect.result
-            }
-            variant.object = indirect
-            variants.push(variant)
-        }
+function beginGame(actions) {
+    gameStarted = true
+
+    if (!actions.length || actions[0].type !== 'begin') {
+        console.log(`It doesn't look like you've begun yet. Lets do that.`)
+        // lookAction.object = {
+        //     word: 'room',
+        //     descriptors: [],
+        // }
+        // actions.unshift(lookAction)
+
+        // goAction.object = {
+        //     id: 10,
+        //     // word: 'room',
+        //     descriptors: [],
+        // }
+        // actions.unshift(goAction)
+
+        // actions.unshift(beginningAction)
+        let beginningAction = new Begin('begin')
+        actions.unshift(beginningAction)
     }
 
-    return variants
-}
-/* eslint-disable complexity */
-function formatResponse(output) {
-    // Errors:
-    if (output instanceof Error) {
-        if (output.isLexError) {
-            let word = lexer.errorMeta.word
-            let char = lexer.errorMeta.char
-            if (word) {
-                return responses.errors.unknownWord(word)
-            } else if (char) {
-                return responses.errors.unknownChar(char)
-            }
-        } else if (output.isParseError) {
-            let binder = parser.errorMeta.binder
-            let token = parser.errorMeta.token
-            let missing = missingParseParts[binder ? binder.type : token.type]
-            if (missing) {
-                return responses.errors.missingPart(missing)
-            }
-            if (token.type !== parser.endToken) {
-                return responses.errors.understandWord(token.word)
-            }
-            return responses.errors.understandSentence()
-        // } else if (output.isResolutionError) {
-        //     return responses.errors.understandSentence()
-        } else if (output.isInterpreterError) {
-            if (/multiple/i.test(output.message)) {
-                let context
-                if (/adjective/i.test(output.message)) {
-                    context = 'adjective'
-                } else if (/indirect/i.test(output.message)) {
-                    context = 'indirect'
-                }
-                return responses.errors.multipleNoun(context)
-            } else if (/pronoun/i.test(output.message)) {
-                let context
-                if (/adjective/i.test(output.message)) {
-                    context = 'adjective'
-                }
-                return responses.errors.pronoun(context)
-            }
-            return responses.errors.understandSentence()
-        }
-        return responses.errors.fatal(output)
-    }
-
-    // If there was no recognized input.
-    if ((typeof output === 'string' || Array.isArray(output)) && !output.length) {
-        return responses.noInput()
-    }
-
-    // If the action succeeded.
-    if (output.live) {
-        const handler = responses.success[output.reporter]
-        if (handler) {
-            const response = handler(output.steps)
-            if (response) {
-                return response
-            }
-        }
-        return responses.general(output)
-    // If the action failed.
-    } else if (output.live === false) {
-        const fault = output.fault
-        const handler = responses.failure[fault]
-        console.log(JSON.stringify(output.steps, null, 4))
-        if (handler) {
-            const response = handler(output.steps, fault)
-            if (response) {
-                return response
-            }
-        }
-        return responses.general(output)
-    }
 }
 
-/* eslint-disable require-jsdoc, no-unused-vars */
-function logVariants(actions) {
-    // console.log('---------- PRERESOLVE ---------')
-    // let n = 0
-    // actions.forEach((v) => {
-    //     n++
-    //     console.log(n)
-    //     let result = '{\n'
-    //     result += JSON.stringify(v.type, null, 4) + ', \n"object": {\n    "id": '
-    //     // result += JSON.stringify(v.type, null, 4) + ', \n"object": {\n    "type": '
-    //     if (!v.object) {
-    //         console.log(result)
-    //         return
-    //     }
-    //     result += JSON.stringify(v.object.id, null, 4) + ', \n    "result":'
-    //     result += JSON.stringify(v.object.result, null, 4) + ','
-    //     // result += JSON.stringify(v.object.word, null, 4) + ','
-    //     if (!v.object.object) {
-    //         console.log(result)
-    //         return
-    //     }
-    //     result += ' \n    "object":' + JSON.stringify(v.object.object, null, 8).slice(0, -2) + '\n    }, \n}'
-    //     console.log(result)
-    // })
-    // console.log(JSON.stringify(actions, null, 4))
-
-    let n = 0
-    actions.forEach((v) => {
-        n++
-        console.log(n)
-        let result = '{\n'
-        result += JSON.stringify(v.type, null, 4) + ', \n"object": {\n    '
-        if (!v.object) {
-            console.log(result)
-            return
-        }
-        if (v.object.id) {
-            result += '"id": '
-            result += JSON.stringify(v.object.id, null, 4) + ', \n    "result":'
-            result += JSON.stringify(v.object.result, null, 4) + ', \n    "word":'
-            result += JSON.stringify(v.object.word, null, 4) + ','
-        } else {
-            result += '"type": '
-            result += JSON.stringify(v.object.type, null, 4) + ', \n    "word":'
-            result += JSON.stringify(v.object.word, null, 4) + ','
-        }
-        if (!v.object.object) {
-            console.log(result)
-            return
-        }
-        result += ' \n    "object":' + JSON.stringify(v.object.object, null, 8).slice(0, -2) + '\n    }, \n}'
-        console.log(result)
-    })
+function byInitiative(a, b) {
+    if (a.initiative < b.initiative) {
+        return -1
+    }
+    if (b.initiative < a.initiative) {
+        return 1
+    }
+    return 0
 }
 

@@ -104,13 +104,14 @@ let dictionary = {
     u: 'noun-verb-conversion',
     up: 'preposition-adverb-postfix-noun-verb-conversion',
 
-    on: 'preposition-adverb-postfix',
+    // on: 'preposition-adverb-postfix',
 
     at: 'preposition-adverb-postfix',
 
     with: 'preposition-phrase-infix',
     except: 'preposition-phrase-infix',
 
+    on: 'preposition-phrase-infix',
     in: 'preposition-phrase-infix',
 
     and: 'conjunction',
