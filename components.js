@@ -201,7 +201,7 @@ class ObjectProperties {
 }
 
 class Container {
-    constructor({volume, maxLoad, freeVolume = volume, contents = [], fixtures = [], open = true}) {
+    constructor({volume, maxLoad, freeVolume = volume, contents = [], fixtures = [], open = true, surface = false}) {
         this.setVolume(volume)
         this.setFreeVolume(freeVolume)
         this.setMaxLoad(maxLoad)
@@ -209,6 +209,7 @@ class Container {
         this.setContents(contents)
         this.setFixtures(fixtures)
         this.setOpen(open)
+        this.setSurface(surface)
     }
 
     getMaxLoad() {
@@ -233,6 +234,10 @@ class Container {
 
     isOpen() {
         return this.open
+    }
+
+    isSurface() {
+        return this.surface
     }
 
     setVolume(volume) {
@@ -281,6 +286,13 @@ class Container {
             throw new TypeError('Argument \'open\' must be a boolean')
         }
         this.open = open
+    }
+
+    setSurface(surface) {
+        if (typeof surface !== 'boolean') {
+            throw new TypeError('Argument \'surface\' must be a boolean')
+        }
+        this.surface = surface
     }
 }
 

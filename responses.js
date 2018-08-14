@@ -169,7 +169,7 @@ let responses = {
                 if (/already/i.test(reason)) {
                     return 'It\'s already open.'
                 }
-                if (/not.*container/i.test(reason)) {
+                if (/not.*container/i.test(reason) || /surface/i.test(reason)) {
                     let name = em.getComponent('Descriptors', id).getName()
                     return `How do you open a ${name}?`
                 }
@@ -178,7 +178,7 @@ let responses = {
                 if (/already/i.test(reason)) {
                     return 'It\'s already closed.'
                 }
-                if (/not.*container/i.test(reason)) {
+                if (/not.*container/i.test(reason) || /surface/i.test(reason)) {
                     let name = em.getComponent('Descriptors', id).getName()
                     return `How do you close a ${name}?`
                 }

@@ -69,6 +69,7 @@ entityFactory.registerConstructor('room', (props = {}) => {
         contents,
         fixtures,
         open,
+        surface,
         appearance,
         size,
         baseWeight,
@@ -85,7 +86,7 @@ entityFactory.registerConstructor('room', (props = {}) => {
     entityManager.addComponent(new Appearance(appearance), room)
     entityManager.addComponent(new Location(parent), room)
     entityManager.addComponent(new Descriptors(['room']), room)
-    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, fixtures, open}), room)
+    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface}), room)
     entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}), room)
     entityManager.addComponent(new Area(title, visited, doors), room)
     return room
@@ -100,6 +101,7 @@ entityFactory.registerConstructor('container', (props = {}) => {
         contents,
         fixtures,
         open,
+        surface,
         labels,
         descriptors,
         appearance,
@@ -114,7 +116,7 @@ entityFactory.registerConstructor('container', (props = {}) => {
     entityManager.addComponent(new Appearance(appearance), container)
     entityManager.addComponent(new Location(parent), container)
     entityManager.addComponent(new Descriptors(labels, descriptors), container)
-    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, fixtures, open}), container)
+    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface}), container)
     entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}), container)
     return container
 })
@@ -153,6 +155,7 @@ entityFactory.registerConstructor('player', (props = {}) => {
         contents,
         fixtures,
         open,
+        surface,
         appearance,
         size,
         baseWeight,
@@ -165,7 +168,7 @@ entityFactory.registerConstructor('player', (props = {}) => {
     entityManager.addComponent(new Appearance(appearance), player)
     entityManager.addComponent(new Location(parent), player)
     entityManager.addComponent(new Descriptors(['you', 'self', 'me', 'myself'], []), player)
-    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, fixtures, open}), player)
+    entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface}), player)
     entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}), player)
 
     return player
@@ -186,7 +189,7 @@ if (entityManager.lowestFreeId === 10) {
 
     let anotherRoom = entityFactory.createRoom({
         title: 'Another Room',
-        appearance: 'This all looks unbearably banal.',
+        appearance: 'This all looks unbearably banal. There\'s a rather outdated looking desk in this room. It\'s worn and uninspiring.',
         doors: {
             s: testingChamber00178,
         },
@@ -308,19 +311,36 @@ if (entityManager.lowestFreeId === 10) {
         baseWeight: 1,
     })
 
-    let tray = entityFactory.createContainer({
+    let desk = entityFactory.createContainer({
         parent: anotherRoom,
+        labels: ['desk', 'table'],
+        descriptors: ['outdated', 'seafoam', 'chipped'],
+        appearance: 'A rather outdated looking desk, slightly worn around the edges. It\'s made of steel and pressboard laminated on top with chipped seafoam formica.',
+        volume: 10,
+        // freeVolume: 1,
+        maxLoad: 100,
+        size: 15,
+        baseWeight: 20,
+        // weight: 1,
+        open: true,
+        transparent: true,
+        surface: true,
+    })
+
+    let tray = entityFactory.createContainer({
+        parent: desk,
         labels: ['tray', 'basket'],
         descriptors: ['wire', 'mesh'],
-        appearance: 'A little wire mesh tray with a lid for filing papers in.',
+        appearance: 'A little wire mesh tray for filing papers in.',
         volume: 1,
         // freeVolume: 1,
         maxLoad: 2,
         size: 1,
         baseWeight: 4,
         // weight: 1,
-        open: false,
+        open: true,
         transparent: true,
+        surface: true,
     })
 
     let testingArea = entityManager.getComponent('Area', testingChamber00178)
@@ -334,7 +354,8 @@ if (entityManager.lowestFreeId === 10) {
     entityManager.getComponent('Container', box).setContents([wrench])
     entityManager.getComponent('Container', testingChamber00178).setContents([player, bolt, crate, screw, rock])
     entityManager.getComponent('Container', testingChamber00178).setFixtures([sign])
-    entityManager.getComponent('Container', anotherRoom).setContents([weight, tray])
+    entityManager.getComponent('Container', anotherRoom).setContents([weight, desk])
+    entityManager.getComponent('Container', desk).setContents([tray])
 
     console.log(JSON.stringify({
         testingChamber00178,

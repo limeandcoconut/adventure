@@ -35,6 +35,14 @@ class CloseSystem extends System {
             return
         }
 
+        if (container.isSurface()) {
+            this.fail(action, {
+                reason: 'Surface.',
+                id: action.object.id,
+            })
+            return
+        }
+
         if (!container.isOpen()) {
             this.fail(action, {
                 reason: 'Already Closed.',

@@ -29,9 +29,9 @@ let dictionary = {
     basket: 'noun',
 
     sign: 'noun',
-    paper: 'noun',
-    plastic: 'noun',
-    laminated: 'noun',
+
+    desk: 'noun',
+    table: 'noun',
 
     you: 'noun',
     self: 'noun',
@@ -48,6 +48,14 @@ let dictionary = {
     shiny: 'adjective',
     wire: 'adjective',
     mesh: 'adjective',
+
+    paper: 'adjective',
+    plastic: 'adjective',
+    laminated: 'adjective',
+
+    outdated: 'adjective',
+    seafoam: 'adjective',
+    chipped: 'adjective',
 
     all: 'noun-multiple',
     everything: 'noun-multiple',
