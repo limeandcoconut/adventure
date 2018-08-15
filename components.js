@@ -53,6 +53,21 @@ class Descriptors {
     }
 }
 
+class Option {
+    constructor(value = false) {
+        this.setValue(value)
+    }
+
+    getValue() {
+        return this.value
+    }
+
+    setValue(value) {
+        assertBoolean(value)
+        this.value = value
+    }
+}
+
 class Appearance {
     constructor(appearance) {
         this.setAppearance(appearance)
@@ -313,6 +328,23 @@ class Container {
 //     }
 // }
 
+class Tool {
+    constructor(type) {
+        this.setType(type)
+    }
+
+    getType() {
+        return this.type
+    }
+
+    setType(type) {
+        if (typeof type !== 'undefined' && typeof type !== 'string' && type !== null) {
+            throw new TypeError('Argument "type" must be a string or null')
+        }
+        this.type = type
+    }
+}
+
 class Location {
     constructor(parent = null) {
         this.parent = parent
@@ -343,4 +375,6 @@ module.exports = {
     Text,
     ObjectProperties,
     Area,
+    Option,
+    Tool,
 }

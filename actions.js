@@ -132,6 +132,27 @@ class Read extends Action {
     }
 }
 
+class Check extends Action {
+    constructor({word, object}) {
+        super({word, object})
+
+        this.type = 'check'
+        this.desired = word === 'check'
+        this.procedure = baseProcess.concat('check')
+        this.reporter = this.type
+    }
+}
+
+// class Uncheck extends Action {
+//     constructor({word, object}) {
+//         super({word, object})
+
+//         this.type = 'uncheck'
+//         this.procedure = baseProcess.concat('uncheck')
+//         this.reporter = this.type
+//     }
+// }
+
 Object.assign(actions, {
     begin: Begin,
     get: Get,
@@ -147,6 +168,8 @@ Object.assign(actions, {
     look: Look,
     l: Look,
     read: Read,
+    check: Check,
+    uncheck: Check,
 })
 
 module.exports = actions

@@ -25,6 +25,20 @@ const verbs = {
             'in',
         ],
     },
+    check: {
+        minObjects: 2,
+        maxObjects: 2,
+        infixes: [
+            'with',
+        ],
+    },
+    uncheck: {
+        minObjects: 2,
+        maxObjects: 2,
+        infixes: [
+            'with',
+        ],
+    },
     get: singularVerb,
     take: singularVerb,
     pick: singularVerb,
@@ -234,8 +248,8 @@ module.exports = {
             return interpreter.interpret(nodes)
         } catch (error) {
             console.log(error)
-            console.log(error.isInterpreterError)
-            if (error.isInterpreterError) {
+            console.log(error.isInterpretError)
+            if (error.isInterpretError) {
                 return [error]
             }
             throw error

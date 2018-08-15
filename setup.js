@@ -11,6 +11,7 @@ const BeginSystem = require('./systems/begin-system')
 const LookSystem = require('./systems/look-system')
 const PutSystem = require('./systems/put-system')
 const ReadSystem = require('./systems/read-system')
+const CheckSystem = require('./systems/check-system')
 
 const GeneralInputProcess = require('./processes/general-input-process')
 
@@ -22,6 +23,8 @@ const {
     Text,
     ObjectProperties,
     Area,
+    Option,
+    Tool,
 } = require('./components.js')
 
 let resolverSystem = new ResolverSystem()
@@ -36,6 +39,7 @@ let beginSystem = new BeginSystem()
 let lookSystem = new LookSystem()
 let putSystem = new PutSystem()
 let readSystem = new ReadSystem()
+let checkSystem = new CheckSystem()
 
 let systems = {
     resolve: resolverSystem,
@@ -50,6 +54,8 @@ let systems = {
     look: lookSystem,
     put: putSystem,
     read: readSystem,
+    check: checkSystem,
+    uncheck: checkSystem,
 }
 
 const generalActionQueue = []
@@ -111,6 +117,7 @@ entityFactory.registerConstructor('container', (props = {}) => {
         fixture,
         visible,
         transparent,
+        text,
     } = props
     let container = entityManager.createEntity()
     entityManager.addComponent(new Appearance(appearance), container)
@@ -118,6 +125,9 @@ entityFactory.registerConstructor('container', (props = {}) => {
     entityManager.addComponent(new Descriptors(labels, descriptors), container)
     entityManager.addComponent(new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface}), container)
     entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}), container)
+    if (text) {
+        entityManager.addComponent(new Text(text), container)
+    }
     return container
 })
 
@@ -144,6 +154,56 @@ entityFactory.registerConstructor('thing', (props = {}) => {
         entityManager.addComponent(new Text(text), thing)
     }
     return thing
+})
+
+entityFactory.registerConstructor('tool', (props = {}) => {
+    let {
+        parent,
+        labels,
+        descriptors,
+        appearance,
+        size,
+        baseWeight,
+        weight,
+        fixture,
+        visible,
+        transparent,
+        text,
+        toolType,
+    } = props
+    let thing = entityManager.createEntity()
+    entityManager.addComponent(new Tool(toolType), thing)
+    entityManager.addComponent(new Appearance(appearance), thing)
+    entityManager.addComponent(new Location(parent), thing)
+    entityManager.addComponent(new Descriptors(labels, descriptors), thing)
+    entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}), thing)
+    if (text) {
+        entityManager.addComponent(new Text(text), thing)
+    }
+    return thing
+})
+
+entityFactory.registerConstructor('option', (props = {}) => {
+    let {
+        parent,
+        labels,
+        descriptors,
+        appearance,
+        size = 0,
+        baseWeight = 0,
+        weight,
+        fixture,
+        visible,
+        transparent,
+        value,
+    } = props
+    let option = entityManager.createEntity()
+    entityManager.addComponent(new Appearance(appearance), option)
+    entityManager.addComponent(new Location(parent), option)
+    entityManager.addComponent(new Descriptors(labels, descriptors), option)
+    entityManager.addComponent(new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}), option)
+    entityManager.addComponent(new Option(value), option)
+    return option
 })
 
 entityFactory.registerConstructor('player', (props = {}) => {
@@ -222,8 +282,8 @@ if (entityManager.lowestFreeId === 10) {
     let sign = entityFactory.createThing({
         parent: testingChamber00178,
         labels: ['sign'],
-        descriptors: ['paper', 'plastic', 'laminated'],
-        appearance: 'A poorly laminated 8.5" x 11" sign. It has the look of something made by a cheerful person, it has however, not been treated very well in it\'s term of service since then. It hangs rather like something crucified: resolute, but not a happy thing.',
+        descriptors: ['plastic', 'laminated'],
+        appearance: 'A poorly laminated 8.5" x 11" sign. It has the look of something made by a cheerful person, it has however, not been treated very well in it\'s term of service since it\'s creation. It hangs rather like something crucified: resolute, but not a happy object.',
         size: 0,
         baseWeight: 0,
         fixture: true,
@@ -327,6 +387,53 @@ if (entityManager.lowestFreeId === 10) {
         surface: true,
     })
 
+    let paper = entityFactory.createContainer({
+        parent: desk,
+        labels: ['paper'],
+        descriptors: ['sheet'],
+        appearance: 'A sheet of 8.5"x11" paper.',
+        text: 'Please complete this form totally filling in the circles. \nHave you taken this test previously? \nYES: () NO: ()',
+        volume: 0,
+        maxLoad: 0,
+        size: 0,
+        baseWeight: 0,
+        open: true,
+        surface: true,
+    })
+
+    let yes = entityFactory.createOption({
+        parent: paper,
+        labels: ['yes'],
+        descriptors: ['option'],
+        appearance: 'A printed option reading "YES:" with a little circle beside it. The circle looks like one of those dots that is meant to be read by an automatic machine.',
+        size: 0,
+        baseWeight: 0,
+        fixture: true,
+        value: false,
+    })
+
+    let no = entityFactory.createOption({
+        parent: paper,
+        labels: ['no'],
+        descriptors: ['option'],
+        appearance: 'A printed option reading "NO:" with a little circle beside it. You should probably fill in the circle completely.',
+        size: 0,
+        baseWeight: 0,
+        fixture: true,
+        value: false,
+    })
+
+    let pencil = entityFactory.createTool({
+        parent: desk,
+        labels: ['pencil'],
+        descriptors: ['yellow', 'ticonderoga'],
+        appearance: 'A standard No. 2 HP Pencil. What did you expect?',
+        text: 'HB 2 TICONDEROGA',
+        size: 0,
+        baseWeight: 0,
+        toolType: 'write',
+    })
+
     let tray = entityFactory.createContainer({
         parent: desk,
         labels: ['tray', 'basket'],
@@ -355,7 +462,8 @@ if (entityManager.lowestFreeId === 10) {
     entityManager.getComponent('Container', testingChamber00178).setContents([player, bolt, crate, screw, rock])
     entityManager.getComponent('Container', testingChamber00178).setFixtures([sign])
     entityManager.getComponent('Container', anotherRoom).setContents([weight, desk])
-    entityManager.getComponent('Container', desk).setContents([tray])
+    entityManager.getComponent('Container', desk).setContents([tray, paper, pencil])
+    entityManager.getComponent('Container', paper).setFixtures([no, yes])
 
     console.log(JSON.stringify({
         testingChamber00178,

@@ -32,6 +32,7 @@ function bifurcate(action) {
             })
             // Add the new variant actions to the list.
             actions = variants
+            action = variants.shift()
         } else {
             action.bifurcated = true
         }

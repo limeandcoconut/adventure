@@ -29,6 +29,10 @@ class LookSystem extends System {
         if (container && (container.isOpen() || isTransparent)) {
             info.contents = formatContents(container.getContents(), entity)
         }
+        const text = em.getComponent('Text', object)
+        if (text) {
+            action.procedure.push('read')
+        }
 
         info.success = true
         action.steps.look = info

@@ -29,12 +29,18 @@ let dictionary = {
     basket: 'noun',
 
     sign: 'noun',
+    paper: 'noun',
+
+    yes: 'noun',
+    no: 'noun',
 
     desk: 'noun',
     table: 'noun',
 
     you: 'noun',
     self: 'noun',
+
+    pencil: 'noun',
 
     room: 'pronoun',
 
@@ -49,13 +55,17 @@ let dictionary = {
     wire: 'adjective',
     mesh: 'adjective',
 
-    paper: 'adjective',
     plastic: 'adjective',
     laminated: 'adjective',
 
     outdated: 'adjective',
     seafoam: 'adjective',
     chipped: 'adjective',
+
+    option: 'adjective',
+
+    yellow: 'adjective',
+    ticonderoga: 'adjective',
 
     all: 'noun-multiple',
     everything: 'noun-multiple',
@@ -93,6 +103,8 @@ let dictionary = {
     close: 'verb',
     put: 'verb',
     read: 'verb',
+    check: 'verb',
+    uncheck: 'verb',
     look: 'verb-noun-conversion',
     l: 'verb-noun-conversion',
     begin: 'verb-intransitive',
@@ -404,12 +416,16 @@ parser.symbol('preposition-adverb-postfix', null, 3, function(left, tok) {
     }
 })
 
+// TODO: Why does this backtrack instead of binding more powerfully?
 parser.symbol('preposition-phrase-infix', null, 4, function(left, tok) {
     let parent
     let top = left
     while (!isObject(left, true) && left.type !== 'conjunction') {
         parent = left
         left = left.object
+        if (!left) {
+            left = parent.indirect
+        }
     }
 
     let self = {
@@ -423,7 +439,11 @@ parser.symbol('preposition-phrase-infix', null, 4, function(left, tok) {
         return self
     }
 
-    parent.object = self
+    if (parent.type === 'preposition-phrase-infix') {
+        parent.indirect = self
+    } else {
+        parent.object = self
+    }
     return top
 
 })

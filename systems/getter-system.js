@@ -18,7 +18,6 @@ class GetterSystem extends System {
                 reason: 'Inaccessible.',
                 container: action.object.container,
             })
-            console.log(action.object)
             return
         }
 
