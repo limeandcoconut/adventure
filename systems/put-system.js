@@ -44,7 +44,7 @@ class PutSystem extends System {
         if (!indirect.apparent) {
             this.fail(action, {
                 reason: 'Inapparent.',
-                object: indirect,
+                object: indirect.id,
                 container: indirect.container,
             })
             return
@@ -53,7 +53,7 @@ class PutSystem extends System {
         if (!indirect.accessible) {
             this.fail(action, {
                 reason: 'Inaccessible.',
-                object: indirect,
+                object: indirect.id,
                 container: indirect.container,
             })
             return
@@ -85,7 +85,7 @@ class PutSystem extends System {
 
     fail(action, info) {
         info.success = false
-        info.id = action.object.id
+        info.id = info.object
         action.steps.put = info
         action.live = false
         action.fault = 'put'

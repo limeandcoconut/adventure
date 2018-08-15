@@ -1,6 +1,8 @@
 let {entityManager: em} = require('./managers.js')
+const {parser, lexer} = require('./parser')
+const {interpreter} = require('./interpreter')
+/* eslint-disable require-jsdoc, complexity */
 
-/* eslint-disable require-jsdoc */
 function describeContents({contents, opening = 'a ', closing = '', level = 0}) {
     let tab = '    '
     let indent = tab.repeat(level)
@@ -26,21 +28,62 @@ function describeContents({contents, opening = 'a ', closing = '', level = 0}) {
     return output
 }
 
-let responses = {
-    responses: {
-        errors: {
-            unknownWord(word) {
+const missingParseParts = {
+    'conjunction': 'noun',
+    'verb': 'noun',
+    'adverb': 'verb',
+    'preposition-adverb-postfix': 'verb',
+    'preposition-phrase-infix': 'noun',
+}
+
+const responses = {
+    errors: {
+        lexer: {
+            unknownWord({word}) {
                 return `I'm sorry, I don't know the word "${word}".`
             },
-            unknownChar(char) {
+            unknownChar({char}) {
                 return `I'm sorry, I don't know what "${char}" means.`
             },
-            missingPart(missing) {
-                return `There seems to be an ${missing} missing from that sentence.`
+        },
+        parser: {
+            unexpectedToken({token, binder}) {
+                const type = binder ? binder.type : token.type
+                const missing = missingParseParts[type]
+                if (missing) {
+                    return `There seems to be an ${missing} missing from that sentence.`
+                }
+                if (token.type !== parser.endToken) {
+                    return `I don't understand how you used the word "${token.word}".`
+                }
             },
-            understandWord(word) {
-                return `I don't understand how you used the word "${word}".`
+            // unknownToken({token}) {
+            //     if (token.type !== parser.endToken) {
+            //         return `I don't understand how you used the word "${word}".`
+            //     }
+            // },
+        },
+        interpreter: {
+            adjectiveNoMultiple({multiple}) {
+                return `You can't use adjectives with the multiple noun '${multiple}'.`
             },
+            adjectiveNoPronoun({pronoun}) {
+                return `You can't use adjectives with the pronoun '${pronoun}' like that.`
+            },
+            verbObjectCount({verb, min, max, count}) {
+                if (typeof min !== 'undefined') {
+                    return `I don't know how to '${verb}' with only ${count} object${count > 1 ? 's' : ''}.`
+                }
+                return `I don't know how to '${verb}' ${count - 1} indirect object${count > 2 ? 's' : ''}.`
+            },
+            verbNoInfix({verb, disallowed: [disallowed]}) {
+                return `I don't know how to '${verb}' '${disallowed}' something`
+            },
+            indirectNoMultiple({infix, multiple}) {
+                return `You can't use the multiple noun '${multiple}' as an indirect object like that.`
+            },
+        },
+        general: {
             understandSentence() {
                 return `That sentence isn't one I recognize`
             },
@@ -48,148 +91,92 @@ let responses = {
                 return `Well it looks like this one is on me. ` +
                     `Something terrible just happened and it doesn't look like we can fix it.`
             },
-
-            interpreter: {
-                adjectiveNoMultiple({multiple}) {
-                    return `You can't use adjectives with the multiple noun '${multiple}'.`
-                },
-                adjectiveNoPronoun({pronoun}) {
-                    return `You can't use adjectives with the pronoun '${pronoun}' like that.`
-                },
-                verbObjectCount({verb, min, max, count}) {
-                    if (typeof min !== 'undefined') {
-                        return `I don't know how to '${verb}' with only ${count} object${count > 1 ? 's' : ''}.`
-                    }
-                    return `I don't know how to '${verb}' ${count - 1} indirect object${count > 2 ? 's' : ''}.`
-                },
-                verbNoInfix({verb, disallowed: [disallowed]}) {
-                    return `I don't know how to '${verb}' '${disallowed}' something`
-                },
-                indirectNoMultiple({infix, multiple}) {
-                    return `You can't use the multiple noun '${multiple}' as an indirect object like that.`
-                },
-            },
         },
-        success: {
-            get() {
+    },
+    steps: {
+        resolve({live, steps: {resolve: {reason, object, objects}}}) {
+            if (live) {
+                return
+            }
+            if (/cannot/i.test(reason)) {
+                return `I don't see any ${object}.`
+            }
+            if (/multiple/i.test(reason)) {
+                let names = objects.map((object) => em.getComponent('Descriptors', object).getName())
+                let last = names.pop()
+                names = names.join(', ')
+                names += ', or the ' + last
+                return `Do you mean the ${names}?`
+            }
+        },
+        preresolve({live, steps: {preresolve: {reason}}}) {
+            // return 'I don\'t see anything.'
+            if (live) {
+                return
+            }
+            return reason
+        },
+        get({live, steps: {get: {reason}}}) {
+            if (live) {
                 return 'Taken.'
-            },
-            drop() {
-                return 'Dropped.'
-            },
-            inventory({inventory: {inventory}}) {
-                if (!inventory.length) {
-                    return `You don't have anything.`
-                }
-
-                let output = `You are carrying:\n`
-                output += describeContents({contents: inventory})
-                return output
-            },
-            open() {
-                return 'Opened.'
-            },
-            close() {
-                return 'Closed.'
-            },
-            move(steps) {
-                if (steps.look) {
-                    return responses.responses.success.look(steps)
-                }
-                return `- ${steps.move.area.getTitle()} -\n`
-            },
-            begin(steps) {
-                return '\n \nYou\'re in a room, utterly boring with just a hint of institutionalized over optimism. ' +
-                    'It\'s a small kindness not to describe the nearly blank nearly white walls and other environs in any detail. ' +
-                    'A cloying sense of insincerity pervades this place. Florescent lights hum overhead... \n' +
-                    'You notice a sign on the wall that has been laminated so that the paper is ever so slightly askew within the plastic coating - ' +
-                    'it would seem that such things are never perfect. It reads:' +
-                    '\n \n######################################\n \n' +
-                    'WELCOME TO THE TESTING AREA:\n' +
-                    'Congratulations on your new position!\n' +
-                    'This environment promotes fun and cooperation.\n \n' +
-                    '######################################\n \n' +
-                    'You can feel the ennui setting in already.\n \n' +
-                    responses.responses.success.look(steps)
-            },
-            look({look: {object, area, contents}}) {
-                let output = ''
-                const context = {contents}
-                if (area) {
-                    output += `\n- ${area.getTitle()} -\n `
-                    context.opening = 'There is a '
-                    context.closing = ' here.'
-                }
-                output += `\n${em.getComponent('Appearance', object).getAppearance()}\n`
-
-                if (contents && contents.length) {
-                    if (!area) {
-                        output += `It contains:\n`
-                    }
-                    output += describeContents(context)
-                }
-                return output
-            },
-            put(steps) {
-                let output = ''
-                if (steps.get) {
-                    output += responses.responses.success.get(steps)
-                    output += ' \n'
-                }
-                return output + 'Done.'
-            },
-            read({read: {text}}) {
-                return `"${text}"`
-            },
+            }
+            if (/have/i.test(reason)) {
+                return 'You already have that.'
+            }
         },
-        failure: {
-            get({get: {reason}}) {
-                if (/have/i.test(reason)) {
-                    return 'You already have that.'
+        drop({live, steps: {drop: {reason}}}) {
+            if (live) {
+                return 'Dropped.'
+            }
+            if (/don.?t/i.test(reason)) {
+                return `You don't have that`
+            }
+        },
+        inventory({live, steps: {inventory: {inventory}}}) {
+            if (!live) {
+                return
+            }
+            if (!inventory.length) {
+                return `You don't have anything.`
+            }
+
+            let output = `You are carrying:\n`
+            output += describeContents({contents: inventory})
+            return output
+        },
+        open({live, steps: {open: {reason, id}}}) {
+            if (live) {
+                return 'Opened.'
+            }
+            if (/already/i.test(reason)) {
+                return 'It\'s already open.'
+            }
+            if (/not.*container/i.test(reason) || /surface/i.test(reason)) {
+                let name = em.getComponent('Descriptors', id).getName()
+                return `How do you open a ${name}?`
+            }
+        },
+        close({live, steps: {close: {reason, id}}}) {
+            if (live) {
+                return 'Opened.'
+            }
+            if (/already/i.test(reason)) {
+                return 'It\'s already closed.'
+            }
+            if (/not.*container/i.test(reason) || /surface/i.test(reason)) {
+                let name = em.getComponent('Descriptors', id).getName()
+                return `How do you close a ${name}?`
+            }
+        },
+        move(action) {
+            const {live, steps: {move: {reason, direction, area}, look}} = action
+            if (live) {
+                if (look) {
+                    return responses.steps.look(action)
                 }
-            },
-            drop({drop: {reason}}) {
-                if (/don.?t/i.test(reason)) {
-                    return `You don't have that`
-                }
-            },
-            resolve({resolve: {reason, object, objects}}) {
-                console.log(object)
-                if (/cannot/i.test(reason)) {
-                    return `I don't see any ${object}.`
-                }
-                console.log(objects)
-                if (/multiple/i.test(reason)) {
-                    let names = objects.map((object) => em.getComponent('Descriptors', object).getName())
-                    let last = names.pop()
-                    names = names.join(', ')
-                    names += ', or the ' + last
-                    return `Do you mean the ${names}?`
-                }
-            },
-            preresolve({preresolve: {reason}}) {
-                // return 'I don\'t see anything.'
-                return reason
-            },
-            open({open: {reason, id}}) {
-                if (/already/i.test(reason)) {
-                    return 'It\'s already open.'
-                }
-                if (/not.*container/i.test(reason) || /surface/i.test(reason)) {
-                    let name = em.getComponent('Descriptors', id).getName()
-                    return `How do you open a ${name}?`
-                }
-            },
-            close({close: {reason, id}}) {
-                if (/already/i.test(reason)) {
-                    return 'It\'s already closed.'
-                }
-                if (/not.*container/i.test(reason) || /surface/i.test(reason)) {
-                    let name = em.getComponent('Descriptors', id).getName()
-                    return `How do you close a ${name}?`
-                }
-            },
-            move({move: {reason, direction}}) {
+                return `- ${area.getTitle()} -\n`
+            }
+            if (/no.*door/i.test(reason)) {
                 let directions = {
                     n: 'north',
                     s: 'south',
@@ -202,116 +189,287 @@ let responses = {
                     se: 'southeast',
                     sw: 'southwest',
                 }
-                if (/no.*door/i.test(reason)) {
-                    return `There's no way to go ${directions[direction]}.`
-                }
-            },
-            put(steps) {
-                let {put: {reason, object, container, destination}, get} = steps
-                let output = ''
-                if (get) {
-                    output += responses.responses.success.get(steps)
-                    output += ' \n'
-                }
-                let name = em.getComponent('Descriptors', object).getName()
-                if (/inceptive/i.test(reason)) {
-                    return output + `You can't put a ${name} inside itself!`
-                }
-                object = em.getComponent('Descriptors', object).getName()
-                if (destination) {
-                    destination = em.getComponent('Descriptors', destination).getName()
-                }
-                if (/big/i.test(reason)) {
-                    return output + `The ${object} is too big for the ${destination}.`
-                }
-                if (/heavy/i.test(reason)) {
-                    container = em.getComponent('Descriptors', container).getName()
-                    return output + `The ${object} is just too heavy for the ${container}.`
-                }
-                if (/closed/i.test(reason)) {
-                    // destination = em.getComponent('Descriptors', destination).getName()
-                    return `The ${destination} is closed.`
-                }
-                if (output.length) {
-                    return output + reason
-                }
-            },
-            read({read: {reason}}) {
-                if (/read/i.test(reason)) {
-                    return `It doesn't say anything.`
-                }
-            },
-        },
-        general(action) {
-            let {steps, fault} = action
-            if (fault) {
-                let {reason, id, object, container, destination} = steps[fault]
-                if (/inapparent/i.test(reason)) {
-                    let name = em.getComponent('Descriptors', id).getName()
-                    return `You don't see any ${name} here.`
-                }
-                let objectName
-                if (typeof object !== 'undefined') {
-                    objectName = em.getComponent('Descriptors', object).getName()
-                }
-                if (/inceptive/i.test(reason)) {
-                    let word = 'It'
-                    if (objectName) {
-                        word = 'The ' + objectName
-                    }
-                    return `The ${word} can't do that to itself!`
-                }
-
-                if (/big/i.test(reason)) {
-                    let objectWord = 'It\'s'
-                    if (objectName) {
-                        objectWord = `The ${objectName} is`
-                    }
-                    let destinationWord = ''
-                    if (typeof destination !== 'undefined') {
-                        destinationWord = ' in the ' + em.getComponent('Descriptors', destination).getName()
-                    }
-                    return `${objectWord} too big to fit${destinationWord}.`
-                }
-                if (/heavy/i.test(reason)) {
-                    let objectWord = 'It\'s'
-                    if (objectName) {
-                        objectWord = `The ${objectName} is`
-                    }
-                    let containerWord = ''
-                    if (typeof container !== 'undefined') {
-                        containerWord = ' for the ' + em.getComponent('Descriptors', container).getName()
-                    }
-                    return `${objectWord} too heavy${containerWord}.`
-                }
-
-                if (/inaccessible/i.test(reason)) {
-                    let name = em.getComponent('Descriptors', container).getName()
-                    return `The ${name} is closed.`
-                }
-
-                if (/fixture/i.test(reason)) {
-                    return `You can't move the ${objectName}.`
-                }
-
-                const word = fault.replace(/^\w/, c => c.toUpperCase())
-                return `${word} Nope.`
+                return `There's no way to go ${directions[direction]}.`
             }
-            const word = action.type.replace(/^\w/, c => c.toUpperCase())
-            return `${word}, done.`
         },
-        noInput() {
-            return 'Beg your pardon?'
+        begin(action) {
+            if (!action.live) {
+                return
+            }
+            return '\n \nYou\'re in a room, utterly boring with just a hint of institutionalized over optimism. ' +
+                'It\'s a small kindness not to describe the nearly blank nearly white walls and other environs ' +
+                'in any detail. ' +
+                'A cloying sense of insincerity pervades this place. Florescent lights hum overhead... \n' +
+                'You notice a sign on the wall that has been laminated so that the paper is ever so slightly ' +
+                'askew within the plastic coating - ' +
+                'it would seem that such things are never perfect. It reads:' +
+                '\n \n######################################\n \n' +
+                'WELCOME TO THE TESTING AREA:\n' +
+                'Congratulations on your new position!\n' +
+                'This environment promotes fun and cooperation.\n \n' +
+                '######################################\n \n' +
+                'You can feel the ennui setting in already.\n \n' +
+                responses.steps.look(action)
+        },
+        look(action) {
+            const {live, steps: {look: {object, area, contents}, read}} = action
+            if (!live) {
+                return
+            }
+            // const  = steps
+            let output = ''
+            const context = {contents}
+            if (area) {
+                output += `\n- ${area.getTitle()} -\n `
+                context.opening = 'There is a '
+                context.closing = ' here.'
+            }
+            output += `\n${em.getComponent('Appearance', object).getAppearance()}\n`
+            if (read) {
+                output += 'It reads:\n \n'
+                output += responses.steps.read(action)
+            }
+
+            if (contents && contents.length) {
+                if (!area) {
+                    output += `It contains:\n`
+                }
+                output += describeContents(context)
+            }
+            return output
+        },
+        put(action) {
+            let {live, steps: {put: {reason, object, container, destination}, get}} = action
+            let output = ''
+            if (get) {
+                output += responses.steps.get(action)
+                output += ' \n'
+            }
+            if (live) {
+                return output + 'Done.'
+            }
+            console.log(JSON.stringify(action.steps, null, 4))
+            console.log(JSON.stringify(action.steps.put, null, 4))
+            container = container || destination
+            object = em.getComponent('Descriptors', object).getName()
+            if (/inceptive/i.test(reason)) {
+                return output + `You can't put a ${object} inside itself!`
+            }
+            // object = em.getComponent('Descriptors', object).getName()
+            if (container) {
+                container = em.getComponent('Descriptors', container).getName()
+            }
+            if (/big/i.test(reason)) {
+                return output + `The ${object} is too big for the ${container}.`
+            }
+            if (/closed/i.test(reason)) {
+                return `The ${container} is closed.`
+            }
+            if (/heavy/i.test(reason)) {
+                return output + `The ${object} is just too heavy for the ${container}.`
+            }
+            if (output.length) {
+                return output + reason
+            }
+        },
+        read({live, steps: {read: {text, reason}}}) {
+            if (live) {
+                return `"${text}"`
+            }
+            if (/read/i.test(reason)) {
+                return `It doesn't say anything.`
+            }
+        },
+        check({live, steps: {check: {reason, object, value}}}) {
+            if (live) {
+                return value ? 'Checked.' : 'Unchecked.'
+            }
+            if (/don.*t.*have/i.test(reason)) {
+                const name = em.getComponent('Descriptors', object).getName()
+                return `You don't have the ${name}.`
+            }
+            if (/tool/i.test(reason)) {
+                const name = em.getComponent('Descriptors', object).getName()
+                return `I don't know how you do that with a ${name}.`
+            }
+            if (/already/i.test(reason)) {
+                return `It's already ${value ? 'checked' : 'unchecked'}.`
+            }
         },
     },
-    // Shouldn't this be in the parser or --> interpreter?
-    missingParseParts: {
-        'conjunction': 'noun',
-        'verb': 'noun',
-        'adverb': 'verb',
-        'preposition-adverb-postfix': 'verb',
-        'preposition-phrase-infix': 'noun',
+    general(action) {
+        let {steps, fault} = action
+        if (fault) {
+            let {reason, id, object, container, destination} = steps[fault]
+            if (/inapparent/i.test(reason)) {
+                let name = em.getComponent('Descriptors', id).getName()
+                return `You don't see any ${name} here.`
+            }
+            let objectName
+            if (typeof object !== 'undefined') {
+                objectName = em.getComponent('Descriptors', object).getName()
+            }
+            if (/inceptive/i.test(reason)) {
+                let word = 'It'
+                if (objectName) {
+                    word = 'The ' + objectName
+                }
+                return `The ${word} can't do that to itself!`
+            }
+
+            if (/big/i.test(reason)) {
+                let objectWord = 'It\'s'
+                if (objectName) {
+                    objectWord = `The ${objectName} is`
+                }
+                let destinationWord = ''
+                if (typeof destination !== 'undefined') {
+                    destinationWord = ' in the ' + em.getComponent('Descriptors', destination).getName()
+                }
+                return `${objectWord} too big to fit${destinationWord}.`
+            }
+            if (/heavy/i.test(reason)) {
+                let objectWord = 'It\'s'
+                if (objectName) {
+                    objectWord = `The ${objectName} is`
+                }
+                let containerWord = ''
+                if (typeof container !== 'undefined') {
+                    containerWord = ' for the ' + em.getComponent('Descriptors', container).getName()
+                }
+                return `${objectWord} too heavy${containerWord}.`
+            }
+
+            if (/inaccessible/i.test(reason)) {
+                let name = em.getComponent('Descriptors', container).getName()
+                return `The ${name} is closed.`
+            }
+
+            if (/fixture/i.test(reason)) {
+                return `You can't move the ${objectName}.`
+            }
+
+            const word = fault.replace(/^\w/, c => c.toUpperCase())
+            return `${word} Nope.`
+        }
+        const word = action.type.replace(/^\w/, c => c.toUpperCase())
+        return `${word}, done.`
+    },
+    noInput() {
+        return 'Beg your pardon?'
     },
 }
 
-module.exports = responses
+const machines = {
+    lexer,
+    parser,
+    interpreter,
+}
+
+function formatResponse(output) {
+    // Errors:
+    if (output instanceof Error) {
+        let errorClass = Object.keys(output).reduce((str, key) => (key.match(/is(.*?)e?Error/i) || [])[1], '')
+        errorClass += 'er'
+        errorClass = errorClass.toLowerCase()
+        if (!errorClass) {
+            return responses.errors.general.fatal()
+        }
+        console.log(errorClass)
+        const errorMeta = machines[errorClass].errorMeta
+        // let errorMeta
+        // if (output.isLexError) {
+        //     errorClass = 'lexer'
+        //     // errorMeta = lexer.errorMeta
+        // } else if (output.isParseError) {
+        //     errorClass = 'parser'
+        //     // errorMeta = parser.errorMeta
+        // } else if (output.isInterpretError) {
+        //     errorClass = 'interpreter'
+        // }
+        // errorMeta = interpreter.errorMeta
+        console.log(errorClass)
+        console.log(errorMeta)
+        console.log(responses.errors[errorClass][errorMeta.type])
+        const handler = responses.errors[errorClass][errorMeta.type]
+        const response = handler(errorMeta)
+        if (response) {
+            return response
+        }
+
+        return responses.errors.general.understandSentence()
+    }
+
+    //     if (output.isLexError) {
+    //         const {word, char} = lexer.errorMeta
+    //         if (word) {
+    //             return responses.errors.unknownWord(word)
+    //         } else if (char) {
+    //             return responses.errors.unknownChar(char)
+    //         }
+    //     } else if (output.isParseError) {
+    //         const {binder, token} = parser.errorMeta
+    //         const type = binder ? binder.type : token.type
+    //         const missing = missingParseParts[type]
+    //         if (missing) {
+    //             return responses.errors.missingPart(missing)
+    //         }
+    //         if (token.type !== parser.endToken) {
+    //             return responses.errors.understandWord(token.word)
+    //         }
+    //         return responses.errors.understandSentence()
+    //         // } else if (output.isResolutionError) {
+    //         //     return responses.errors.understandSentence()
+    //     } else if (output.isInterpretError) {
+    //         const errorMeta = interpreter.errorMeta
+    //         const handler = responses.errors.interpreter[errorMeta.type]
+    //         if (handler) {
+    //             const response = handler(errorMeta)
+    //             if (response) {
+    //                 return response
+    //             }
+    //         }
+
+    //         return responses.errors.understandSentence()
+    //     }
+    //     return responses.errors.fatal(output)
+    // }
+
+    // If there was no recognized input.
+    if ((typeof output === 'string' || Array.isArray(output)) && !output.length) {
+        return responses.noInput()
+    }
+
+    // If the action succeeded.
+    // if (output.live) {
+    let handler = output.live ? output.reporter : output.fault
+    handler = responses.steps[handler]
+    if (handler) {
+        const response = handler(output)
+        if (response) {
+            return response
+        }
+    }
+    return responses.general(output)
+    // If the action failed.
+    // } else if (output.live === false) {
+    //     const fault = output.fault
+    //     const handler = responses.failure[fault]
+    //     console.log(JSON.stringify(output.steps, null, 4))
+    //     if (handler) {
+    //         const response = handler(output.steps, fault)
+    //         if (response) {
+    //             return response
+    //         }
+    //     }
+    //     return responses.general(output)
+    // }
+}
+
+module.exports = formatResponse
+
+// module.exports = {
+//     // responses,
+//     // Shouldn't this be in the parser or --> interpreter?
+
+// }

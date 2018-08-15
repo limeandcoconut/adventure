@@ -1,7 +1,7 @@
 const {friendlyParse: parse} = require('./parser')
 const {friendlyInterpret: interpret} = require('./interpreter')
 const bifurcate = require('./bifurcate')
-const formatResponse = require('./format-response')
+const formatResponse = require('./responses')
 const {
     begin: Begin,
     // go: Go,
@@ -68,6 +68,7 @@ module.exports = function(line) {
         if (action.object) {
             //  If the object is a bifurcation or need preresolution get all variants of this action.
             let variants = bifurcate(action)
+
             if (variants.length) {
                 // Add the new variant actions to the list.
                 actions = variants.concat(actions)
