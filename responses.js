@@ -57,11 +57,6 @@ const responses = {
                     return `I don't understand how you used the word "${token.word}".`
                 }
             },
-            // unknownToken({token}) {
-            //     if (token.type !== parser.endToken) {
-            //         return `I don't understand how you used the word "${word}".`
-            //     }
-            // },
         },
         interpreter: {
             adjectiveNoMultiple({multiple}) {
@@ -375,22 +370,7 @@ function formatResponse(output) {
         if (!errorClass) {
             return responses.errors.general.fatal()
         }
-        console.log(errorClass)
         const errorMeta = machines[errorClass].errorMeta
-        // let errorMeta
-        // if (output.isLexError) {
-        //     errorClass = 'lexer'
-        //     // errorMeta = lexer.errorMeta
-        // } else if (output.isParseError) {
-        //     errorClass = 'parser'
-        //     // errorMeta = parser.errorMeta
-        // } else if (output.isInterpretError) {
-        //     errorClass = 'interpreter'
-        // }
-        // errorMeta = interpreter.errorMeta
-        console.log(errorClass)
-        console.log(errorMeta)
-        console.log(responses.errors[errorClass][errorMeta.type])
         const handler = responses.errors[errorClass][errorMeta.type]
         const response = handler(errorMeta)
         if (response) {
@@ -400,48 +380,11 @@ function formatResponse(output) {
         return responses.errors.general.understandSentence()
     }
 
-    //     if (output.isLexError) {
-    //         const {word, char} = lexer.errorMeta
-    //         if (word) {
-    //             return responses.errors.unknownWord(word)
-    //         } else if (char) {
-    //             return responses.errors.unknownChar(char)
-    //         }
-    //     } else if (output.isParseError) {
-    //         const {binder, token} = parser.errorMeta
-    //         const type = binder ? binder.type : token.type
-    //         const missing = missingParseParts[type]
-    //         if (missing) {
-    //             return responses.errors.missingPart(missing)
-    //         }
-    //         if (token.type !== parser.endToken) {
-    //             return responses.errors.understandWord(token.word)
-    //         }
-    //         return responses.errors.understandSentence()
-    //         // } else if (output.isResolutionError) {
-    //         //     return responses.errors.understandSentence()
-    //     } else if (output.isInterpretError) {
-    //         const errorMeta = interpreter.errorMeta
-    //         const handler = responses.errors.interpreter[errorMeta.type]
-    //         if (handler) {
-    //             const response = handler(errorMeta)
-    //             if (response) {
-    //                 return response
-    //             }
-    //         }
-
-    //         return responses.errors.understandSentence()
-    //     }
-    //     return responses.errors.fatal(output)
-    // }
-
     // If there was no recognized input.
     if ((typeof output === 'string' || Array.isArray(output)) && !output.length) {
         return responses.noInput()
     }
 
-    // If the action succeeded.
-    // if (output.live) {
     let handler = output.live ? output.reporter : output.fault
     handler = responses.steps[handler]
     if (handler) {
@@ -450,26 +393,8 @@ function formatResponse(output) {
             return response
         }
     }
+
     return responses.general(output)
-    // If the action failed.
-    // } else if (output.live === false) {
-    //     const fault = output.fault
-    //     const handler = responses.failure[fault]
-    //     console.log(JSON.stringify(output.steps, null, 4))
-    //     if (handler) {
-    //         const response = handler(output.steps, fault)
-    //         if (response) {
-    //             return response
-    //         }
-    //     }
-    //     return responses.general(output)
-    // }
 }
 
 module.exports = formatResponse
-
-// module.exports = {
-//     // responses,
-//     // Shouldn't this be in the parser or --> interpreter?
-
-// }

@@ -2,67 +2,67 @@ const {Interpreter, InterpreterError} = require('./interpreter-class')
 const actions = require('./actions')
 const Action = require('./action')
 
-const singularVerb = {
-    minObjects: 1,
-    maxObjects: 1,
-    infixes: [],
-}
+// const singularVerb = {
+//     minObjects: 1,
+//     maxObjects: 1,
+//     infixes: [],
+// }
 
-const loneVerb = {
-    minObjects: 0,
-    maxObjects: 0,
-    infixes: [],
-}
+// const loneVerb = {
+//     minObjects: 0,
+//     maxObjects: 0,
+//     infixes: [],
+// }
 
 // TODO: Contexutal actions. e.g. drop x in y  = put x in y
 
-const verbs = {
-    put: {
-        minObjects: 2,
-        maxObjects: 2,
-        infixes: [
-            'on',
-            'in',
-        ],
-    },
-    check: {
-        minObjects: 2,
-        maxObjects: 2,
-        infixes: [
-            'with',
-        ],
-    },
-    uncheck: {
-        minObjects: 2,
-        maxObjects: 2,
-        infixes: [
-            'with',
-        ],
-    },
-    get: singularVerb,
-    take: singularVerb,
-    pick: singularVerb,
-    drop: singularVerb,
-    go: singularVerb,
-    open: singularVerb,
-    close: singularVerb,
-    read: singularVerb,
-    look: singularVerb,
-    l: singularVerb,
-    begin: loneVerb,
-    inventory: loneVerb,
-    i: loneVerb,
-}
+// const verbs = {
+//     put: {
+//         minObjects: 2,
+//         maxObjects: 2,
+//         infixes: [
+//             'on',
+//             'in',
+//         ],
+//     },
+//     check: {
+//         minObjects: 2,
+//         maxObjects: 2,
+//         infixes: [
+//             'with',
+//         ],
+//     },
+//     uncheck: {
+//         minObjects: 2,
+//         maxObjects: 2,
+//         infixes: [
+//             'with',
+//         ],
+//     },
+//     get: singularVerb,
+//     take: singularVerb,
+//     pick: singularVerb,
+//     drop: singularVerb,
+//     go: singularVerb,
+//     open: singularVerb,
+//     close: singularVerb,
+//     read: singularVerb,
+//     look: singularVerb,
+//     l: singularVerb,
+//     begin: loneVerb,
+//     inventory: loneVerb,
+//     i: loneVerb,
+// }
 
-/* eslint-disable require-jsdoc */
-let climbObjects = function climbObjects(object, count = 0, infixes = []) {
-    count++
-    if (!object.object) {
-        return [count, infixes]
-    }
-    infixes.push(object.infix)
-    return climbObjects(object.object, count, infixes)
-}
+// /* eslint-disable require-jsdoc */
+// let climbObjects = function climbObjects(object, count = 0, infixes = []) {
+//     count++
+//     if (!object.object) {
+//         return [count, infixes]
+//     }
+//     infixes.push(object.infix)
+//     return climbObjects(object.object, count, infixes)
+// }
 
 const interpreter = new Interpreter()
 
@@ -125,39 +125,39 @@ interpreter.handler('verb', (node) => {
         throw new Error(`Unknown, verb: ${node.word}`)
     }
 
-    const [objectCount, infixes] = climbObjects(object)
-    if (objectCount < standards.minObjects) {
-        interpreter.errorMeta = {
-            type: 'verbObjectCount',
-            verb: node.word,
-            min: standards.minObjects,
-            count: objectCount,
-        }
-        throw new InterpreterError(`Verb: '${node.word}' requires at least: '${standards.minObjects}' objects. ` +
-            `Given: '${objectCount}'`)
-    }
-    if (objectCount > standards.maxObjects) {
-        interpreter.errorMeta = {
-            type: 'verbObjectCount',
-            verb: node.word,
-            max: standards.maxObjects,
-            count: objectCount,
-        }
-        throw new InterpreterError(`Verb: '${node.word}' will accept up to: '${standards.maxObjects}' objects. ` +
-            `Given: '${objectCount}'`)
-    }
-    if (objectCount > 1) {
-        const disallowed = infixes.filter((infix) => !standards.infixes.includes(infix))
-        if (disallowed.length) {
-            interpreter.errorMeta = {
-                type: 'verbNoInfix',
-                verb: node.word,
-                allowed: standards.infixes,
-                disallowed,
-            }
-            throw new InterpreterError(`Verb: '${node.word}' will not accept infix: '${disallowed[0]}'`)
-        }
-    }
+    // const [objectCount, infixes] = climbObjects(object)
+    // if (objectCount < standards.minObjects) {
+    //     interpreter.errorMeta = {
+    //         type: 'verbObjectCount',
+    //         verb: node.word,
+    //         min: standards.minObjects,
+    //         count: objectCount,
+    //     }
+    //     throw new InterpreterError(`Verb: '${node.word}' requires at least: '${standards.minObjects}' objects. ` +
+    //         `Given: '${objectCount}'`)
+    // }
+    // if (objectCount > standards.maxObjects) {
+    //     interpreter.errorMeta = {
+    //         type: 'verbObjectCount',
+    //         verb: node.word,
+    //         max: standards.maxObjects,
+    //         count: objectCount,
+    //     }
+    //     throw new InterpreterError(`Verb: '${node.word}' will accept up to: '${standards.maxObjects}' objects. ` +
+    //         `Given: '${objectCount}'`)
+    // }
+    // if (objectCount > 1) {
+    //     const disallowed = infixes.filter((infix) => !standards.infixes.includes(infix))
+    //     if (disallowed.length) {
+    //         interpreter.errorMeta = {
+    //             type: 'verbNoInfix',
+    //             verb: node.word,
+    //             allowed: standards.infixes,
+    //             disallowed,
+    //         }
+    //         throw new InterpreterError(`Verb: '${node.word}' will not accept infix: '${disallowed[0]}'`)
+    //     }
+    // }
 
     const constructor = actions[node.word]
     if (!constructor) {
@@ -205,20 +205,20 @@ interpreter.handler('preposition-adverb-postfix', (node) => {
 
 interpreter.handler('preposition-phrase-infix', (node) => {
     let object = interpreter.parseNode(node.direct)
-    if (!object) {
-        // interpreter.errorMeta = {
-        //     infixDirect: infix,
-        // }
-        throw new Error('preposition-phrase-infix expected a direct object')
-    }
+    // if (!object) {
+    //     // interpreter.errorMeta = {
+    //     //     infixDirect: infix,
+    //     // }
+    //     throw new Error('preposition-phrase-infix expected a direct object')
+    // }
     object.object = interpreter.parseNode(node.indirect)
     object.infix = node.word
-    if (!object.object) {
-        // interpreter.errorMeta = {
-        //     infixIndirect: object,
-        // }
-        throw new Error('preposition-phrase-infix expected an indirect object')
-    }
+    // if (!object.object) {
+    //     // interpreter.errorMeta = {
+    //     //     infixIndirect: object,
+    //     // }
+    //     throw new Error('preposition-phrase-infix expected an indirect object')
+    // }
     if (object.object.type === 'noun-multiple') {
         interpreter.errorMeta = {
             type: 'indirectNoMultiple',

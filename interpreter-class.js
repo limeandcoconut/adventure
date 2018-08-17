@@ -23,7 +23,7 @@ class Interpreter {
         }
         let handler = this.handlers.get(node.type)
         if (!handler) {
-            throw new InterpreterError(`Unknown node type: ${node.type}.`)
+            throw new Error(`Unknown node type: ${node.type}.`)
         }
         return handler(node)
     }
@@ -32,12 +32,7 @@ class Interpreter {
         if (!Array.isArray(nodes)) {
             throw new TypeError('Argument "nodes" must be an Array.')
         }
-        return nodes.map((node) => {
-            let action = this.parseNode(node)
-            // console.log('*********** ACTION **********')
-            // console.log(JSON.stringify(action, null, 4))
-            return action
-        })
+        return nodes.map(this.parseNode.bind(this))
     }
 
 }
