@@ -1,4 +1,4 @@
-const {Parser, Lexer} = require('parser')
+const {Parser, Lexer, ParseError} = require('parser')
 /* eslint-disable require-jsdoc */
 
 let dictionary = {
@@ -128,6 +128,8 @@ let dictionary = {
     in: 'preposition-phrase-infix',
     badinfix: 'preposition-phrase-infix',
 
+    using: 'infix',
+
     and: 'conjunction',
 
     parsethrow: 'parse-throw',
@@ -228,25 +230,43 @@ let parser = new Parser(lexer.endToken)
 //     parser.symbol(id, null, lbp, led)
 // }
 
-function multifix(id, rbp, lbp, led) {
-    led = led || function(left, tok) {
-        return {
-            type: id,
-            word: tok.word,
-            object: left,
-        }
-    }
-    let nud = function(tok) {
-        return {
-            type: id,
-            word: tok.word,
-            object: parser.expression(rbp, tok),
-        }
-    }
-    parser.symbol(id, nud, lbp, led)
-}
+// function multifix(id, rbp, lbp, led) {
+//     led = led || function(left, tok) {
+//         return {
+//             type: id,
+//             word: tok.word,
+//             object: left,
+//         }
+//     }
+//     let nud = function(tok) {
+//         return {
+//             type: id,
+//             word: tok.word,
+//             object: parser.expression(rbp, tok),
+//         }
+//     }
+//     parser.symbol(id, nud, lbp, led)
+// }
 
-multifix('adverb', 7, 3)
+// multifix('adverb', 7, 3)
+parser.symbol('adverb', function(tok) {
+    return {
+        type: 'adverb',
+        word: tok.word,
+        object: parser.expression(7, tok),
+    }
+},
+3,
+function(left, tok) {
+    if (!left.modifiers) {
+        throw new ParseError('Adverb expected a verb.')
+    }
+    left.modifiers.push({
+        type: 'adverb',
+        word: tok.word,
+    })
+    return left
+})
 
 // TODO: Clean up symbol functions
 // TODO: Generalize adverb-conversions
@@ -256,18 +276,21 @@ multifix('adverb', 7, 3)
 // Adjusts for prepositions, is a prefix.
 parser.symbol('verb', function(tok) {
     let token = parser.token()
-    if (isPrepositionAdverb(token)) {
+    if (!token.prebound && isPrepositionAdverb(token)) {
         let nextToken = parser.advance()
         // If the next token couldn't be an object use it as an adverb.
         // Or, if the token after that is an object use it as an adverb.
         if (!isObject(token, true) || isObject(nextToken, true)) {
             // parser.advance()
             // Needs to advance before getting the expression. Dry code.
-            return token.led({
-                type: 'verb',
-                word: tok.word,
-                object: parser.expression(3, tok),
-            }, token)
+            tok.prebound = true
+            // tok.modifiers = []
+            return token.led(tok.nud(tok), token)
+            // return token.led({
+            //     type: 'verb',
+            //     word: tok.word,
+            //     object: parser.expression(3, tok),
+            // }, token)
         }
         // Rewind since the token is not being used as an adverb.
         parser.rewind(false)
@@ -276,10 +299,24 @@ parser.symbol('verb', function(tok) {
 
     let object = parser.expression(3, tok)
 
+    let indirect
+    token = parser.token()
+    if (/infix/i.test(token.type)) {
+        indirect = parser.expression(3, tok)
+    }
+    let tool
+    token = parser.token()
+    if (/infix/i.test(token.type)) {
+        tool = parser.expression(3, tok)
+    }
+
     return {
         type: 'verb',
         word: tok.word,
         object,
+        indirect,
+        tool,
+        modifiers: [],
     }
 })
 
@@ -376,11 +413,15 @@ parser.symbol('preposition-adverb-postfix-noun-verb-conversion',
     },
     3,
     function(left, tok) {
-        return {
-            type: 'preposition-adverb-postfix',
-            word: tok.word,
-            object: left,
+        console.log(JSON.stringify(left, null, 4))
+        if (!left.modifiers) {
+            throw new ParseError('Adverb expected a verb.')
         }
+        left.modifiers.push({
+            type: 'adverb',
+            word: tok.word,
+        })
+        return left
     }
 )
 
@@ -389,6 +430,14 @@ parser.symbol('noun', noun => noun)
 parser.symbol('pronoun', noun => noun)
 
 parser.symbol('noun-multiple', noun => noun)
+
+parser.symbol('infix', function(tok) {
+    return {
+        type: 'infix',
+        word: tok.word,
+        object: parser.expression(3, tok),
+    }
+})
 
 // Implies its' own noun if one is missing; prefix.
 parser.symbol('adjective', function(tok) {
@@ -417,36 +466,37 @@ parser.symbol('preposition-adverb-postfix', null, 3, function(left, tok) {
 })
 
 // TODO: Why does this backtrack instead of binding more powerfully?
-parser.symbol('preposition-phrase-infix', null, 4, function(left, tok) {
-    let parent
-    let top = left
-    while (!isObject(left, true) && left.type !== 'conjunction') {
-        parent = left
-        left = left.object
-        if (!left) {
-            left = parent.indirect
-        }
-    }
+// parser.symbol('preposition-phrase-infix', null, 5, function(left, tok) {
+//     let parent
+//     let top = left
+//     console.log(left)
+//     while (!isObject(left, true) && left.type !== 'conjunction') {
+//         parent = left
+//         left = left.object
+//         if (!left) {
+//             left = parent.indirect
+//         }
+//     }
 
-    let self = {
-        type: 'preposition-phrase-infix',
-        word: tok.word,
-        direct: left,
-        indirect: parser.expression(5, tok),
-    }
+//     let self = {
+//         type: 'preposition-phrase-infix',
+//         word: tok.word,
+//         direct: left,
+//         indirect: parser.expression(4, tok),
+//     }
+//     console.log(JSON.stringify(self, null, 4))
+//     if (!parent) {
+//         return self
+//     }
 
-    if (!parent) {
-        return self
-    }
+//     if (parent.type === 'preposition-phrase-infix') {
+//         parent.indirect = self
+//     } else {
+//         parent.object = self
+//     }
+//     return top
 
-    if (parent.type === 'preposition-phrase-infix') {
-        parent.indirect = self
-    } else {
-        parent.object = self
-    }
-    return top
-
-})
+// })
 
 parser.symbol('.', (tok) => {
     if (parser.token().type !== parser.endToken) {

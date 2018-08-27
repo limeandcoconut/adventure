@@ -1,5 +1,37 @@
 # adventure
 
+## Words
+
+### Verbs
+- [ ] pick up subaction of get. handles pick up players and the like.
+- [ ] kick, chop, poke etc. handle differently than kill
+- [ ] get stick (plural or not?) as opposed to get a stick or get 1 stick
+- [ ] throw/toss, at / to
+- [ ] except
+
+### Parts of speech
+- [ ] verbs
+- [ ] nouns
+- [ ] adjectives
+- [ ] adverbs
+- [ ] prepositions - (and prepositional adverbs)
+- [ ] definite/indefinite objects
+- [ ] pronouns
+- [ ] superlatives
+- [ ] numbers - determiners (special class)
+- [ ] conjunctions
+- [ ] punctuation
+- [ ] multi-word nouns - perhaps as lexer modificaion (specific words to construct a noun)
+
+## Relationships
+- [ ] under and behind are different
+- [ ] jump vs jump off contextuallly
+
+
+
+## Goal sentences 
+- [ ] DROP THE BIGGEST OF THE LIT STICKS IN THE BOAT THEN DROP IT AND THE LEAST BEST WEAPON IN THE RIVER
+
 ## TODO:
 
 - [ ] Add flag for containers that can't be opened or closed

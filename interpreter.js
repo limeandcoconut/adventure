@@ -117,13 +117,28 @@ interpreter.handler('verb', (node) => {
         throw new Error('verb expected an object')
     }
 
-    const standards = verbs[node.word]
-    if (!standards) {
+    const constructor = actions[node.word]
+    if (!constructor) {
         // interpreter.errorMeta = {
-        //     unknownVerb: node.word,
+        //     actionType: node.word,
         // }
-        throw new Error(`Unknown, verb: ${node.word}`)
+        throw new Error(`Unknown action type: ${node.word}`)
     }
+    let action = new constructor({word: node.word, object})
+
+    if (object.object) {
+        action.object = object.object
+        action.destination = object.destination
+        action.tool = object.tool
+    // } else if (Array.isArray(object)) {
+    }
+    // const standards = verbs[node.word]
+    // if (!standards) {
+    //     // interpreter.errorMeta = {
+    //     //     unknownVerb: node.word,
+    //     // }
+    //     throw new Error(`Unknown, verb: ${node.word}`)
+    // }
 
     // const [objectCount, infixes] = climbObjects(object)
     // if (objectCount < standards.minObjects) {
@@ -159,14 +174,7 @@ interpreter.handler('verb', (node) => {
     //     }
     // }
 
-    const constructor = actions[node.word]
-    if (!constructor) {
-        // interpreter.errorMeta = {
-        //     actionType: node.word,
-        // }
-        throw new Error(`Unknown action type: ${node.word}`)
-    }
-    return new constructor({ word: node.word, object})
+    return action
 })
 
 interpreter.handler('verb-intransitive', (node) => {
