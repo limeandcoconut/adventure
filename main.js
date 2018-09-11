@@ -1,85 +1,147 @@
-const {friendlyParse: parse} = require('./parser')
-const {friendlyInterpret: interpret} = require('./interpreter')
-const bifurcate = require('./bifurcate')
-const formatResponse = require('./responses')
-const {
-    begin: Begin,
-    // go: Go,
-} = require('./actions')
+// const {friendlyParse: parse} = require('./parser')
+// const {friendlyInterpret: interpret} = require('./interpreter')
+// const bifurcate = require('./bifurcate')
+const nearley = require('nearley')
+let grammar = require('./knights-of')
+grammar = nearley.Grammar.fromCompiled(grammar)
+const resolve = require('./resolve')
+const {ResolveError} = require('./resolve-helpers')
+
+// const formatResponse = require('./responses')
+// const {
+//     begin: Begin,
+//     // go: Go,
+// } = require('./actions')
+const actionTypes = require('./actions')
 /* eslint-disable require-jsdoc */
 const {systems, player, processes} = require('./setup')
-const {logAction} = require('./helpers')
+let debugMode = null
+const debugTest = /^\s*debug:\s*(.*)/i
+// const {logAction} = require('./helpers')
 
-let gameStarted = false
+// let gameStarted = false
 
 module.exports = function(line) {
     console.log('')
     console.log('################################')
     console.log('########### NEW INPUT ##########')
+
+    if (debugMode === null) {
+        debugMode = debugTest.test(line)
+        if (debugMode) {
+            line = line.match(debugTest)[1]
+        }
+    }
+    // Create a Parser object from our grammar
+    const parser = new nearley.Parser(grammar)
     // Lex and parse.
-    let parseTree = parse(line)
-    // Parser errors.
-    if (parseTree instanceof Error) {
-        return formatResponse(parseTree)
+    try {
+        parser.feed(line)
+    } catch (error) {
+        // console.log(JSON.stringify(error, null, 4))
+        // console.log(error.offset)
+        // if (error.token) {
+        console.log(error.code)
+        throw error
+        return formatResponse(error)
+        // }
     }
+
+    if (parser.results.length > 1) {
+        throw new Error('Can\'t parse reliably')
+    }
+
+    let actions = parser.results[0].map((verb) => {
+        // console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&')
+        // console.log(verb)
+        // console.log(JSON.stringify(verb, null, 4))
+        if (verb.type !== 'verb') {
+            return new ResolveError('Noun only.', 'acn1')
+        }
+
+        const constructor = actionTypes[verb.value]
+        if (!constructor) {
+            throw new ResolveError('No such action', 'act1')
+        }
+        const action = !verb.modifiers.length ? new constructor(verb) : constructor.delegate(verb)
+        action.entity = player
+        return action
+    })
+
+    resolve(actions)
+    // console.log(actions)
+    if (debugMode) {
+        // console.log('*')
+        // console.log('*')
+        // console.log('*')
+        return actions[0].object
+    }
+    // console.log(JSON.stringify(actions, null, 4))
+    return
+
+    // // Parser errors.
+    // if (parseTree instanceof Error) {
+    //     return formatResponse(parseTree)
+    // }
     // Remove empty nodes
-    parseTree = parseTree.filter((node) => node)
-    console.log('*********** PARSE TREE **********')
-    console.log(JSON.stringify(parseTree, null, 1))
+    // parseTree = parseTree.filter((node) => node)
+    // console.log('*********** PARSE TREE **********')
+    // console.log(JSON.stringify(parseTree, null, 1))
 
-    if (!parseTree.length && gameStarted) {
-        return formatResponse(parseTree)
-    }
+    // if (!parseTree.length && gameStarted) {
+    //     return formatResponse(parseTree)
+    // }
 
+    // ###########
     // Interpret actions
-    let actions = interpret(parseTree)
-    // Filter null actions/nodes.
-    let filteredActions = []
-    for (let i = 0; i < actions.length; i++) {
-        let action = actions[i]
-        console.log('*********** ACTION **********')
-        logAction(action)
-        console.log('')
-        if (action instanceof Error) {
-            return formatResponse(action)
-        }
-        filteredActions.push(action)
-    }
+    // let actions = interpret(parseTree)
+    // // Filter null actions/nodes.
+    // let filteredActions = []
+    // for (let i = 0; i < actions.length; i++) {
+    //     let action = actions[i]
+    //     console.log('*********** ACTION **********')
+    //     logAction(action)
+    //     console.log('')
+    //     if (action instanceof Error) {
+    //         return formatResponse(action)
+    //     }
+    //     filteredActions.push(action)
+    // }
 
-    actions = filteredActions
+    // actions = filteredActions
 
-    if (!gameStarted) {
-        beginGame(actions)
-    }
+    // if (!gameStarted) {
+    //     beginGame(actions)
+    // }
 
-    // Construct response from executing actions.
-    let output = ''
+    // // Construct response from executing actions.
+    // let output = ''
 
-    while (actions.length) {
-        let action = actions.shift()
-        console.log('*********** EXECUTE MAIN **********')
+    // while (actions.length) {
+    //     let action = actions.shift()
+    //     console.log('*********** EXECUTE MAIN **********')
 
-        // Add properties to action.
-        action.entity = {
-            id: player,
-        }
-        action.initiative = 2
+    //     // Add properties to action.
+    //     action.entity = {
+    //         id: player,
+    //     }
+    //     action.initiative = 2
 
-        if (action.object) {
-            //  If the object is a bifurcation or need preresolution get all variants of this action.
-            let variants = bifurcate(action)
+    //     if (action.object) {
+    //         //  If the object is a bifurcation or need preresolution get all variants of this action.
+    //         let variants = bifurcate(action)
 
-            if (variants.length) {
-                // Add the new variant actions to the list.
-                actions = variants.concat(actions)
-                // Set the current action to the first one
-                action = actions.shift()
-            }
-        }
+    //         if (variants.length) {
+    //             // Add the new variant actions to the list.
+    //             actions = variants.concat(actions)
+    //             // Set the current action to the first one
+    //             action = actions.shift()
+    //         }
+    //     }
 
-        output += execute(action)
-    }
-    return output + '\n'
+    //     output += execute(action)
+    // }
+    // return output + '\n'
 }
 
 function execute(action) {
