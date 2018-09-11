@@ -1,23 +1,61 @@
 class Action {
-    constructor({word, object}) {
+    constructor(verb) {
+        let {text, object} = verb
         this.steps = {}
         this.live = true
         this.object = object
-        this.word = word
-        this.variants = {}
+        this.word = text
+        this.verb = verb
+        // this.variants = {}
     }
 
-    modify(modifier) {
-        let constructor = this.variants[modifier]
+    // validateObjects() {
+    //     for (let i = 0; i < this.objectTypes.length; i++) {
+    //         const type = this.objectTypes[i]
+    //         const context = this.context[type]
+    //         if (context) {
+    //             if (!this[type]) {
+    //                 if (!context.resolve) {
+    //                     throw new Error(`av1: Action can't auto resolve: ${type}`)
+    //                 }
+    //                 const targets = context.resolve(this)
+    //                 if (!targets.length) {
+    //                     throw new Error(`av2: Action failed to resolve type: ${type}`)
+    //                 }
+    //                 if (targets.length > 1) {
+    //                     throw new Error(`av3: Action has multiple plausible targets: ${type}`)
+    //                 }
+    //                 this[type] = targets[0]
+    //                 return
+    //             }
+    //         } else if (this[type]) {
+    //             throw new Error(`av4: Action can't accept object type: ${type}`)
+    //         }
+    //     }
+    // }
+
+    static delegate(verb) {
+        const key = verb.modifiers.sort().join()
+        const constructor = this.prototype.variants && this.prototype.variants[key]
+
         if (!constructor) {
-            throw new Error('No variation of action')
+            throw new Error('adg1: No variation of action')
         }
 
-        return new constructor({
-            word: `${this.word} ${modifier}`,
-            object: this.object,
-        })
+        return new constructor(verb)
     }
+
+    // modify(modifier) {
+    //     // let constructor = this.variants[modifier]
+    //     // if (!constructor) {
+    //     //     throw new Error('No variation of action')
+    //     // }
+
+    //     // return new constructor({
+    //     //     word: `${this.word} ${modifier}`,
+    //     //     object: this.object,
+    //     // })
+    // }
 
     clone() {
         const clone = new this.constructor({
@@ -66,5 +104,18 @@ class Action {
         return clone
     }
 }
+
+Action.prototype.variants = {}
+Action.prototype.context = new Map([
+    ['object', false],
+    ['indirect', false],
+    ['tool', false],
+])
+// Action.prototype.objectTypes = Object.freeze([
+//     'object',
+//     'indirect',
+//     'tool',
+//     'from',
+// ])
 
 module.exports = Action
