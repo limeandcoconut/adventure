@@ -1,4 +1,5 @@
 # adventure
+FPS counter
 
 ## Words
 
@@ -28,11 +29,16 @@
 - [ ] jump vs jump off contextuallly
 
 
+## Nouns 
+- [ ] Fix determiners and adjectives on multiple nouns
+
 
 ## Goal sentences 
 - [ ] DROP THE BIGGEST OF THE LIT STICKS IN THE BOAT THEN DROP IT AND THE LEAST BEST WEAPON IN THE RIVER
 - [ ] ONE OF THE GOLD COINS
 - [ ] THE THING YOUR AUNT GAVE YOU WHICH YOU DONT KNOW WHAT IT IS
+- [ ] OPEN LOCK WITH *HAMMER AND CHISEL* (as multiple indirect objects)
+- [ ] TAKE SOME RED STICKS | TAKE ALL RED STICKS
 
 ## TODO:
 
@@ -53,3 +59,10 @@
 - [x] generalize put operation to work for any source and target
 - [x] fix bifurcation
 - [x] info and responses for multiple steps
+
+## TODO For Resolution and interpretation
+- [ ] multiple nouns
+- [ ] implicit objects and scope
+- [ ] history
+- [ ] disambiguation
+- [ ] pronouns (here)
