@@ -1,4 +1,4 @@
-const {System} = require('rubricjs')
+const System = require('./system')
 const {entityManager: em} = require('../managers.js')
 
 class ResolverSystem extends System {
@@ -69,7 +69,7 @@ class ResolverSystem extends System {
             // If we have descriptors to match score this entity.
             if (descriptors.length) {
                 let entityDescriptors = descriptorComponent.getDescriptors()
-                let score = descriptors.filter(descriptor => entityDescriptors.includes(descriptor))
+                let score = descriptors.filter((descriptor) => entityDescriptors.includes(descriptor))
                 score = score.length
                 if (score > best.score) {
                     // New best.

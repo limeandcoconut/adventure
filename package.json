@@ -4,12 +4,13 @@
   "description": "",
   "main": "main.js",
   "dependencies": {
-    "abstract-class-error": "^1.0.1",
-    "parser": "^0.0.1"
+    "nearley": "^2.15.1",
+    "searchjs": "^0.15.0"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "nc": "nearleyc knights-of.ne -o knights-of.js"
   },
   "author": "Jacob A Smith",
   "license": "ISC"

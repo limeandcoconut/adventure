@@ -1,4 +1,4 @@
-const {System} = require('rubricjs')
+const System = require('./system')
 const {put} = require('./methods')
 
 class PutSystem extends System {

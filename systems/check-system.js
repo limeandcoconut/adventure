@@ -1,4 +1,4 @@
-const {System} = require('rubricjs')
+const System = require('./system')
 const {entityManager: em} = require('../managers.js')
 
 class CheckSystem extends System {
