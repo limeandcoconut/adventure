@@ -1,4 +1,4 @@
- class Descriptors {
+class Descriptors {
     constructor(labels, descriptors = [], name) {
         if (!Array.isArray(descriptors)) {
             throw new TypeError('Descriptors must be an Array')
