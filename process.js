@@ -3,7 +3,7 @@
  * @module Process
  */
 
-const AbstractConstructError = require('abstract-class-error').default
+// const AbstractConstructError = require('abstract-class-error').default
 
 /**
  * Class for creating a logical process that updates on each tick.
@@ -20,11 +20,11 @@ module.exports = class Process {
      */
     constructor() {
         if (new.target === Process) {
-            throw new AbstractConstructError('Cannot construct class Process instances directly')
+            // throw new AbstractConstructError('Cannot construct class Process instances directly')
         }
 
         if (this.update === Process.prototype.update) {
-            throw new AbstractConstructError('Method "update" must be overridden in class "Process"')
+            // throw new AbstractConstructError('Method "update" must be overridden in class "Process"')
         }
     }
 
