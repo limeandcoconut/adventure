@@ -1,9 +1,11 @@
 class Action {
     constructor(verb) {
-        let {text, object} = verb
+        let {text, object, indirect, tool} = verb
         this.steps = {}
         this.live = true
         this.object = object
+        this.indirect = indirect
+        this.tool = tool
         this.word = text
         this.verb = verb
         // this.variants = {}
