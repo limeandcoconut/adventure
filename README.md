@@ -8,7 +8,10 @@ FPS counter
 - [ ] kick, chop, poke etc. handle differently than kill
 - [ ] get stick (plural or not?) as opposed to get a stick or get 1 stick
 - [ ] throw/toss, at / to
-- [ ] except
+- [ ] Reset command that resets score, debug, setup etc.
+
+### Prepositions
+- [ ] excep
 
 ### Parts of speech
 - [ ] verbs
