@@ -144,11 +144,12 @@ function deep(getSet) {
 
 function siblingsOf(getEntity, accessibleRequired = true, apparentRequired = true) {
     return (action) => {
-        const siblings = childrenOf(parentOf(getEntity), accessibleRequired, apparentRequired)(action)
+        let siblings = childrenOf(parentOf(getEntity), accessibleRequired, apparentRequired)(action)
         if (siblings.length <= 1) {
             return []
         }
-        return siblings.splice(siblings.indexOf(entity), 1)
+        siblings.splice(siblings.indexOf(getEntity(action)), 1)
+        return siblings
     }
 }
 
@@ -158,7 +159,7 @@ function deepSiblingsOf(getEntity, accessibleRequired = true, apparentRequired =
         if (siblings.length <= 1) {
             return []
         }
-        siblings.splice(siblings.indexOf(entity), 1)
+        siblings.splice(siblings.indexOf(getEntity(action)), 1)
         siblings = [...siblings, ...deep(childrenOf(siblings), accessibleRequired, apparentRequired)]
 
     }
@@ -223,9 +224,10 @@ function visible(getSet) {
     }
 }
 
-function exclude(exclusions, getSet) {
+function exclude(getExclusions, getSet) {
     return (action) => {
         let set = getSet(action)
+        let exclusions = getExclusions(action)
         if (!Array.isArray(exclusions)) {
             exclusions = [exclusions]
         }
