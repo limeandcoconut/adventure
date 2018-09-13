@@ -1,5 +1,4 @@
 const System = require('./system')
-const {entityManager: em} = require('../managers.js')
 
 class CloseSystem extends System {
 

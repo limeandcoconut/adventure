@@ -1,4 +1,3 @@
-// const {entityFactory, entityManager} = require('./managers.js')
 const entities = require('./entities')
 const ResolverSystem = require('./systems/resolver-system')
 const LocatorSystem = require('./systems/locator-system')

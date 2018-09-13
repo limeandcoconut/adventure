@@ -1,4 +1,3 @@
-let {entityManager: em} = require('./managers.js')
 const {parser, lexer} = require('./parser')
 const {interpreter} = require('./interpreter')
 /* eslint-disable require-jsdoc, complexity */
@@ -344,10 +343,10 @@ const responses = {
                 return `You can't move the ${objectName}.`
             }
 
-            const word = fault.replace(/^\w/, c => c.toUpperCase())
+            const word = fault.replace(/^\w/, (c) => c.toUpperCase())
             return `${word} Nope.`
         }
-        const word = action.type.replace(/^\w/, c => c.toUpperCase())
+        const word = action.type.replace(/^\w/, (c) => c.toUpperCase())
         return `${word}, done.`
     },
     noInput() {

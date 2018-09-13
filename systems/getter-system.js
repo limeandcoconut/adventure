@@ -1,5 +1,5 @@
 const System = require('./system')
-const {entityManager: em} = require('../managers.js')
+
 const {put} = require('./methods')
 
 class GetterSystem extends System {

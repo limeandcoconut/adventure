@@ -1,4 +1,3 @@
-const {entityManager: em} = require('./managers.js')
 
 const helpers = {
     // formatContents(contents, entity) {

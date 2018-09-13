@@ -1,4 +1,4 @@
-const {entityManager: em} = require('../managers.js')
+
 
 const methods = {
     formatContents(contents, entity) {

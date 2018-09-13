@@ -1,5 +1,5 @@
 const System = require('./system')
-const {entityManager: em} = require('../managers.js')
+
 
 class OpenSystem extends System {
 

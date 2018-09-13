@@ -1,5 +1,4 @@
 const Process = require('../process')
-const {entityManager: em} = require('../managers.js')
 
 class GeneralInputProcess extends Process {
     constructor(generalActionQueue) {
