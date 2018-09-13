@@ -3,14 +3,18 @@
   "version": "0.0.0",
   "description": "",
   "main": "main.js",
+  "scripts": {
+    "test": "ava test/tests.js --tap | tap-nyan",
+    "nc": "nearleyc knights-of.ne -o knights-of.js",
+    "railroad": "nearley-railroad knights-of.ne -o railroad.html"
+  },
   "dependencies": {
     "nearley": "^2.15.1",
-    "searchjs": "^0.15.0"
+    "searchjs": "^0.15.0",
+    "tap-nyan": "^1.1.0"
   },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "nc": "nearleyc knights-of.ne -o knights-of.js"
+  "devDependencies": {
+    "ava": "^1.0.0-beta.8"
   },
   "author": "Jacob A Smith",
   "license": "ISC"
