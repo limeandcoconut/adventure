@@ -10,6 +10,8 @@ const {
     exclude,
 } = require('./resolve-helpers')
 
+/* eslint-disable require-jsdoc, no-loop-func */
+
 // Check for required and surplus objects
 // Auto resolve if required
 
@@ -59,7 +61,7 @@ module.exports = function(actions) {
         // console.log(action.entity)
         // console.log(JSON.stringify(action.entity, null, 4))
         action.context.forEach((context, type) => {
-            const object = action[type]
+            let object = action[type]
             // If there isn't an object.
             if (!object) {
                 // If one isn't required, return.
@@ -88,11 +90,11 @@ module.exports = function(actions) {
             let from
             if (object.from) {
                 // Search from the parent, your context must be visible and accessible.
-                let fromObject = findObject({
+                let fromObject = findObjects({
                     object: object.from,
                     type: `from ${type}`,
                     from: context.from,
-                    context: {},
+                    // context: {},
                     action,
                 })
                 from = () => fromObject
@@ -102,48 +104,81 @@ module.exports = function(actions) {
             let except
             if (object.except) {
                 // Search except the parent, your context must be visible and accessible.
-                let exceptObject = findObject({
+                // console.log(object.except)
+                let exceptObjects = findObjects({
                     object: object.except,
                     type: `except ${type}`,
                     from: context.from,
-                    context: {},
+                    // context: {},
                     action,
                 })
-                except = () => exceptObject
+                except = () => exceptObjects
             }
             except = except || context.except
-            let resolved
-            if (object.objects) {
-                resolved = []
-                while (object.objects.length) {
-                    // This will throw or resolve.
-                    // If it returns an error object then that will be handled when the action is split.
-                    resolved.push(findObject({
-                        object: object.objects.shift(),
-                        type,
-                        from,
-                        except,
-                        context,
-                        action,
-                    }))
-                }
-                // action[type] = resolved
-            } else {
-                resolved = findObject({
-                    object,
-                    type,
-                    from,
-                    context,
-                    action,
-                })
-            }
-            action[type] = resolved
+            // let resolved
+
+            //     resolved = []
+            //     while (object.objects.length) {
+            //         // This will throw or resolve.
+            //         // If it returns an error object then that will be handled when the action is split.
+            //         resolved.push(findObjects({
+            //             object: object.objects.shift(),
+            //             type,
+            //             from,
+            //             except,
+            //             context,
+            //             action,
+            //         }))
+            //     }
+            //     // action[type] = resolved
+            // } else {
+            //     resolved = findObjects({
+            //         object,
+            //         type,
+            //         from,
+            //         except,
+            //         context,
+            //         action,
+            //     })
+            // }
+            console.log(object)
+            action[type] = findObjects({
+                object,
+                type,
+                from,
+                except,
+                context,
+                action,
+            })
+            // console.log(action[type])
         })
     }
 }
 
+function findObjects(args) {
+    // console.log(args.object)
+    if (args.object.objects) {
+        let resolved = []
+        const {type, from, except, context, action} = args
+        while (args.object.objects.length) {
+            resolved.push(findObject({
+                object: args.object.objects.shift(),
+                type,
+                from,
+                except,
+                context,
+                action,
+            }))
+        }
+        return resolved
+    }
+
+    return findObject(args)
+
+}
+
 /* eslint-disable require-jsdoc, max-params */
-function findObject({object, type, from, except, context, action}) {
+function findObject({object, type, from, except, context = {}, action}) {
     // Set the multiple flag.
     // console.log(object)
     object.multiple = multipleNoun.test(object.value)
@@ -158,7 +193,26 @@ function findObject({object, type, from, except, context, action}) {
     // console.log(typeof from)
     // console.log(typeof (from(action))(action))
     // console.log(from(action)(action))
-    let candidates = deep(childrenOf(from, !context.inaccessible, !context.inapparent))
+    const descriptors = object.descriptors.slice()
+    // If it's a multiple noun and there's no descriptors return everything.
+    // console.log('yo')
+    // console.log('yo')
+    let candidates
+    if (object.multiple || object.general) {
+        if (!context.all) {
+            throw new ResolveError(`Cannot use ${object.multiple || object.general ? 'multiple' : 'general'} noun with the verb "${action.verb.value}"`, 'aor7')
+        }
+        candidates = context.all
+        console.log('yo')
+        console.log('yo')
+        // red all except the stick
+        // anything red but the apple
+    } else {
+        candidates = deep(childrenOf(from, !context.inaccessible, !context.inapparent))
+        // a coin not the silver coin
+        // some red rocks not the big one
+    }
+
     if (except) {
         candidates = exclude(except, candidates)
     }
@@ -169,15 +223,19 @@ function findObject({object, type, from, except, context, action}) {
     // console.log(parentOf(entity())(action).container.contents)
 
     // console.log(candidates)
+    console.log('candidates')
+    console.log('candidates')
+    console.log(candidates)
+    if (!descriptors.length) {
+        // If it's a multiple noun and there's no descriptors return everything.
+        if (object.multiple) {
+            return candidates
+        }
+        // If it's a general noun and there's no descriptors return a random thing. 🎉
+        if (object.general) {
+            return candidates[Math.floor(candidates.length * Math.random())]
+        }
 
-    const descriptors = object.descriptors.slice()
-    // If it's a multiple noun and there's no descriptors return everything.
-    if (object.multiple && !descriptors.length) {
-        return candidates
-    }
-    // If it's a general noun and there's no descriptors return a random thing. 🎉
-    if (object.general && !descriptors.length) {
-        return candidates[Math.floor(candidates.length * Math.random())]
     }
 
     // console.log(descriptors)
@@ -194,6 +252,7 @@ function findObject({object, type, from, except, context, action}) {
         if (!object.general && !object.multiple && !entity.descriptors.labels.includes(object.value)) {
             return
         }
+        // console.log(object.value)
         // If we have descriptors to match, score this entity.
         if (descriptors.length) {
             let entityDescriptors = entity.descriptor.descriptors
@@ -223,6 +282,7 @@ function findObject({object, type, from, except, context, action}) {
     }
 
     if (entities.length === 1) {
+        // console.log('yay')
         return entities[0]
     }
 
@@ -230,6 +290,7 @@ function findObject({object, type, from, except, context, action}) {
     const determiner = object.determiner
 
     // If the noun was multiple return all.
+    // TODO: Should this be an || ?
     if (object.multiple && (determiner && multipleDeterminer.test(determiner.value))) {
         return entities
     }

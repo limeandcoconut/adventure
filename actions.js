@@ -7,7 +7,7 @@ const {
     visible,
     tool,
     deep,
-    // deepSiblingsOf,
+    siblingsOf,
     firstOne,
     onlyOne,
     // either,
@@ -28,6 +28,7 @@ class Get extends Action {
 Get.prototype.context = new Map(Action.prototype.context)
 Get.prototype.context.set('object', {
     from: parentOf(entity()),
+    all: siblingsOf(entity()),
 })
 // Get.prototype.variants = {foo: 'foo'}
 // Get.prototype.context.set('indirect', {
@@ -79,6 +80,7 @@ class Drop extends Action {
 Drop.prototype.context = new Map(Action.prototype.context)
 Drop.prototype.context.set('object', {
     from: entity(),
+    all: childrenOf(entity()),
 })
 // Drop.prototype.context.set('indirect', {
 //     resolve: entity(),
@@ -112,6 +114,7 @@ Look.prototype.context = new Map(Action.prototype.context)
 Look.prototype.context.set('object', {
     resolve: firstOne(visible(parentOf(entity()))),
     from: parentOf(entity()),
+    all: siblingsOf(entity()),
     inaccessible: true,
 })
 
@@ -187,6 +190,7 @@ class Put extends Action {
 Put.prototype.context = new Map(Action.prototype.context)
 Put.prototype.context.set('object', {
     from: parentOf(entity()),
+    all: childrenOf(entity()),
 })
 Put.prototype.context.set('indirect', {
     from: parentOf(entity()),
@@ -238,6 +242,18 @@ Check.prototype.context.set('object', {
         return result
     })),
     from: parentOf(entity()),
+    all: visible((action) => {
+        const set = deep(childrenOf(parentOf(entity())))(action)
+
+        const result = []
+        while (set.length) {
+            let entity = set.shift()
+            if (entity.option) {
+                set.push(entity)
+            }
+        }
+        return result
+    }),
 })
 Check.prototype.context.set('tool', {
     resolve: onlyOne(visible(tool('write', deep(childrenOf(entity()))))),
