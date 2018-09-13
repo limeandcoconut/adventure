@@ -13,4 +13,7 @@ module.exports = {
         }
         return search(this[list], query)
     },
+    clear() {
+        this[list] = []
+    },
 }
