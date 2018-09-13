@@ -1,66 +1,36 @@
 'use strict'
+/* eslint-disable require-jsdoc */
 
-const actions = require('./actions')
 const {
     deep,
     childrenOf,
-    parentOf,
-    entity,
     ResolveError,
     exclude,
 } = require('./resolve-helpers')
 
-/* eslint-disable require-jsdoc, no-loop-func */
-
+// Steps:
 // Check for required and surplus objects
-// Auto resolve if required
-
-// Disambiguate pronouns
-// Fail on indirect objects
-
-// Disambiguate historical pronouns
-
-// Filter pronouns using except and adjecives
-
-// exceptions
-// historicals
+//      Auto resolve if required
+// Resolve labeled objects
+//      exceptions
+//      Disambiguate pronouns
+//          Fail on indirect objects
+//          Disambiguate historical pronouns **
+//          Filter pronouns using except and adjecives
 // determiners e.g. some
 
-// Resolve labeled objects
-// Split actions
-/* eslint-disable require-jsdoc, complexity */
 const multipleNoun = /^all|everything$/i
 const generalNoun = /^anything|something|somethign$/i
 const generalDeterminer = /^a|an$/i
 const multipleDeterminer = /^some$/i
 
-// function resolve(verb) {
-
-// }
 module.exports = function(actions) {
     for (let i = 0; i < actions.length; i++) {
         const action = actions[i]
-        // console.log(action)
-        // console.log(typeof action)
-        // console.log(JSON.stringify(Object.keys(action), null, 4))
-        // function explore(parent) {
-        //     return (key) => {
-        //         // console.log(key)
-        //         // console.log(typeof parent[key])
-        //         if (typeof parent[key] === 'object') {
-        //             if (parent[key] === action.entity) {
-        //                 console.log('found', key)
-        //             }
-        //             Object.keys(parent[key]).forEach(explore(parent[key]))
-        //         }
-        //     }
-        // }
-        // Object.keys(action.entity).forEach(explore(action.entity))
-
-        // console.log(JSON.stringify(action, null, 4))
-        // console.log(action.entity)
-        // console.log(JSON.stringify(action.entity, null, 4))
-        action.context.forEach((context, type) => {
+        const contexts = action.context
+        // Evidently the fastest map loop: https://jsperf.com/array-object-set-map-iterate
+        for (let type of contexts.keys()) {
+            const context = contexts.get(type)
             let object = action[type]
             // If there isn't an object.
             if (!object) {
@@ -88,60 +58,42 @@ module.exports = function(actions) {
             }
             // Get the search context for manual object resolution.
             let from
+            // If there is a specified search context resolve it.
             if (object.from) {
-                // Search from the parent, your context must be visible and accessible.
+                // Search for specified context within the default context.
                 let fromObject = findObjects({
                     object: object.from,
                     type: `from ${type}`,
                     from: context.from,
+                    // The context must be visible and accessible.
                     // context: {},
                     action,
                 })
+                // Create function to return the set of possible candidates.
                 from = () => fromObject
+            } else {
+                from = context.from
             }
-            from = from || context.from
             // Get exceptions for manual object resolution.
+            // If there is a specified set of exceptions resolve them.
             let except
             if (object.except) {
-                // Search except the parent, your context must be visible and accessible.
-                // console.log(object.except)
+                // Search for exceptions within the default context.
                 let exceptObjects = findObjects({
                     object: object.except,
                     type: `except ${type}`,
                     from: context.from,
+                    // The context must be visible and accessible.
                     // context: {},
                     action,
                 })
+                // Create function to return the set of resolved exceptions.
                 except = () => exceptObjects
+            } else {
+                except = context.except
             }
-            except = except || context.except
-            // let resolved
 
-            //     resolved = []
-            //     while (object.objects.length) {
-            //         // This will throw or resolve.
-            //         // If it returns an error object then that will be handled when the action is split.
-            //         resolved.push(findObjects({
-            //             object: object.objects.shift(),
-            //             type,
-            //             from,
-            //             except,
-            //             context,
-            //             action,
-            //         }))
-            //     }
-            //     // action[type] = resolved
-            // } else {
-            //     resolved = findObjects({
-            //         object,
-            //         type,
-            //         from,
-            //         except,
-            //         context,
-            //         action,
-            //     })
-            // }
-            console.log(object)
+            // Resolve the object using search context, exceptions, etc.
             action[type] = findObjects({
                 object,
                 type,
@@ -150,13 +102,12 @@ module.exports = function(actions) {
                 context,
                 action,
             })
-            // console.log(action[type])
-        })
+        }
     }
 }
 
 function findObjects(args) {
-    // console.log(args.object)
+    // If this is a list of objects return a list.
     if (args.object.objects) {
         let resolved = []
         const {type, from, except, context, action} = args
@@ -173,16 +124,15 @@ function findObjects(args) {
         return resolved
     }
 
+    // Otherwise return a single object.
     return findObject(args)
 
 }
 
-/* eslint-disable require-jsdoc, max-params */
-function findObject({object, type, from, except, context = {}, action}) {
+function findObject(args) {
+    let {object, type} = args
     // Set the multiple flag.
-    // console.log(object)
     object.multiple = multipleNoun.test(object.value)
-    // console.log(object)
     // If it's a multiple indirect, throw.
     if (type !== 'object' && object.multiple) {
         throw new ResolveError('Cannot use multiple nouns as indirect objects', 'aor2')
@@ -190,42 +140,10 @@ function findObject({object, type, from, except, context = {}, action}) {
     // Set general flag.
     object.general = generalNoun.test(object.value)
     // Get candidates.
-    // console.log(typeof from)
-    // console.log(typeof (from(action))(action))
-    // console.log(from(action)(action))
     const descriptors = object.descriptors.slice()
-    // If it's a multiple noun and there's no descriptors return everything.
-    // console.log('yo')
-    // console.log('yo')
-    let candidates
-    if (object.multiple || object.general) {
-        if (!context.all) {
-            throw new ResolveError(`Cannot use ${object.multiple || object.general ? 'multiple' : 'general'} noun with the verb "${action.verb.value}"`, 'aor7')
-        }
-        candidates = context.all
-        console.log('yo')
-        console.log('yo')
-        // red all except the stick
-        // anything red but the apple
-    } else {
-        candidates = deep(childrenOf(from, !context.inaccessible, !context.inapparent))
-        // a coin not the silver coin
-        // some red rocks not the big one
-    }
 
-    if (except) {
-        candidates = exclude(except, candidates)
-    }
-    candidates = candidates(action)
-    // console.log()
-    // console.log('here')
-    // console.log(candidates)
-    // console.log(parentOf(entity())(action).container.contents)
+    let candidates = resolveCandidates(args)
 
-    // console.log(candidates)
-    console.log('candidates')
-    console.log('candidates')
-    console.log(candidates)
     if (!descriptors.length) {
         // If it's a multiple noun and there's no descriptors return everything.
         if (object.multiple) {
@@ -235,45 +153,13 @@ function findObject({object, type, from, except, context = {}, action}) {
         if (object.general) {
             return candidates[Math.floor(candidates.length * Math.random())]
         }
-
     }
 
-    // console.log(descriptors)
+    // Refine candidates using descriptors and labels.
+    candidates = scoreCandidates(candidates, descriptors, object)
 
-    const best = {
-        entities: [],
-        // Make 0 not count
-        score: 1,
-    }
-    /* eslint-disable require-jsdoc, no-loop-func */
-    // Check to see how well each candidate matches our search.
-    candidates.forEach((entity) => {
-        // If this is not the item we're looking for skip it.
-        if (!object.general && !object.multiple && !entity.descriptors.labels.includes(object.value)) {
-            return
-        }
-        // console.log(object.value)
-        // If we have descriptors to match, score this entity.
-        if (descriptors.length) {
-            let entityDescriptors = entity.descriptor.descriptors
-            let score = descriptors.filter((descriptor) => entityDescriptors.includes(descriptor))
-            score = score.length
-            if (score > best.score) {
-                // New best.
-                best.score = score
-                best.entities = [entity]
-            } else if (score === best.score) {
-                // Add a tie.
-                best.entities.push(entity)
-            }
-            // If there are no descriptors this entity is a label match.
-        } else {
-            best.entities.push(entity)
-        }
-    })
-
-    let entities = best.entities
-    if (entities.length === 0) {
+    // If there are no matches this is an error.
+    if (candidates.length === 0) {
         const error = new ResolveError(`Cannot resolve "${type}" object`, 'aor5')
         if (!type !== 'object') {
             throw error
@@ -281,27 +167,78 @@ function findObject({object, type, from, except, context = {}, action}) {
         return error
     }
 
-    if (entities.length === 1) {
-        // console.log('yay')
-        return entities[0]
+    // If there is a single exact match return it.
+    if (candidates.length === 1) {
+        return candidates[0]
     }
 
     // Multiple entites found:
     const determiner = object.determiner
-
     // If the noun was multiple return all.
     // TODO: Should this be an || ?
     if (object.multiple && (determiner && multipleDeterminer.test(determiner.value))) {
-        return entities
+        return candidates
     }
     // If the noun was general return a random one. 🎉
     if (determiner && generalDeterminer.test(determiner.value)) {
-        return entities[Math.floor(entities.length * Math.random())]
+        return candidates[Math.floor(candidates.length * Math.random())]
     }
-    // If the noun was specific:
+    // If the noun was specific it will have to be disambiguated.
     const error = new ResolveError(`Resolved multiple "${type}" objects`, 'aor6')
     if (!type !== 'object') {
         throw error
     }
     return error
+}
+
+function resolveCandidates({object, from, except, context = {}, action}) {
+    // If it's a multiple noun and there's no descriptors return everything.
+    let candidates
+    if (object.multiple || object.general) {
+        if (!context.all) {
+            throw new ResolveError(`Cannot use ${object.multiple || object.general ? 'multiple' : 'general'} noun with the verb "${action.verb.value}"`, 'aor7')
+        }
+        candidates = context.all
+    } else {
+        candidates = deep(childrenOf(from, !context.inaccessible, !context.inapparent))
+    }
+
+    if (except) {
+        candidates = exclude(except, candidates)
+    }
+    return candidates(action)
+}
+
+function scoreCandidates(candidates, descriptors, object) {
+    let entities = []
+    // Make 0 not count
+    let score = 1
+
+    // Check to see how well each candidate matches our search.
+    while (candidates.length) {
+        let entity = candidates.shift()
+        // If this is not the item we're looking for skip it.
+        if (!object.general && !object.multiple && !entity.descriptors.labels.includes(object.value)) {
+            continue
+        }
+        // If there are no descriptors this entity is a label match.
+        if (!descriptors.length) {
+            entities.push(entity)
+            continue
+        }
+        // If we have descriptors to match, score this entity.
+        const entityDescriptors = entity.descriptor.descriptors
+        let entityScore = descriptors.filter((descriptor) => entityDescriptors.includes(descriptor))
+        entityScore = entityScore.length
+        if (entityScore > score) {
+            // New best.
+            score = entityScore
+            entities = [entity]
+        } else if (entityScore === score) {
+            // Add a tie.
+            entities.push(entity)
+        }
+    }
+
+    return entities
 }
