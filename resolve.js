@@ -19,10 +19,13 @@ const {
 //          Filter pronouns using except and adjecives
 // determiners e.g. some
 
+// TODO: Visibility/accessibility tagging
+
 const multipleNoun = /^all|everything$/i
 const generalNoun = /^anything|something|somethign$/i
 const generalDeterminer = /^a|an$/i
 const multipleDeterminer = /^some$/i
+const passthrough = /^n|s|e|w|ne|se|sw|nw|u|d|north|south|east|west|northeast|southeast|southwest|northwest|up|down$/i
 
 module.exports = function(actions) {
     for (let i = 0; i < actions.length; i++) {
@@ -54,14 +57,25 @@ module.exports = function(actions) {
             }
             // If there are multiple objects used in an indirect way, throw.
             if (type !== 'object' && object.objects) {
-                throw new ResolveError('Cannot use more than one object as an indirect objects', 'aor4')
+                throw new ResolveError('Cannot use more than one object as an indirect object', 'aor4')
             }
+
+            // If the object should not be resolved return early.
+            if (context.acceptsPassthrough && passthrough.test(object.value)) {
+                action[type] = object
+                return
+            }
+            if (context.acceptsWordLiteral && object.type === 'string') {
+                action[type] = object
+                return
+            }
+
             // Get the search context for manual object resolution.
             let from
             // If there is a specified search context resolve it.
             if (object.from) {
                 // Search for specified context within the default context.
-                let fromObject = findObjects({
+                object.from = findObjects({
                     object: object.from,
                     type: `from ${type}`,
                     from: context.from,
@@ -70,7 +84,7 @@ module.exports = function(actions) {
                     action,
                 })
                 // Create function to return the set of possible candidates.
-                from = () => fromObject
+                from = () => object.from
             } else {
                 from = context.from
             }
@@ -79,7 +93,7 @@ module.exports = function(actions) {
             let except
             if (object.except) {
                 // Search for exceptions within the default context.
-                let exceptObjects = findObjects({
+                object.except = findObjects({
                     object: object.except,
                     type: `except ${type}`,
                     from: context.from,
@@ -88,7 +102,7 @@ module.exports = function(actions) {
                     action,
                 })
                 // Create function to return the set of resolved exceptions.
-                except = () => exceptObjects
+                except = () => object.except
             } else {
                 except = context.except
             }
@@ -142,7 +156,7 @@ function findObject(args) {
     // Get candidates.
     const descriptors = object.descriptors.slice()
 
-    let candidates = resolveCandidates(args)
+    let candidates = resolveCandidates(args, descriptors.length)
 
     if (!descriptors.length) {
         // If it's a multiple noun and there's no descriptors return everything.
@@ -154,14 +168,13 @@ function findObject(args) {
             return candidates[Math.floor(candidates.length * Math.random())]
         }
     }
-
     // Refine candidates using descriptors and labels.
     candidates = scoreCandidates(candidates, descriptors, object)
 
     // If there are no matches this is an error.
     if (candidates.length === 0) {
         const error = new ResolveError(`Cannot resolve "${type}" object`, 'aor5')
-        if (!type !== 'object') {
+        if (type !== 'object') {
             throw error
         }
         return error
@@ -175,8 +188,8 @@ function findObject(args) {
     // Multiple entites found:
     const determiner = object.determiner
     // If the noun was multiple return all.
-    // TODO: Should this be an || ?
-    if (object.multiple && (determiner && multipleDeterminer.test(determiner.value))) {
+    // TODO: Should this be an && ?
+    if (object.multiple || (determiner && multipleDeterminer.test(determiner.value))) {
         return candidates
     }
     // If the noun was general return a random one. 🎉
@@ -185,18 +198,20 @@ function findObject(args) {
     }
     // If the noun was specific it will have to be disambiguated.
     const error = new ResolveError(`Resolved multiple "${type}" objects`, 'aor6')
-    if (!type !== 'object') {
+    if (type !== 'object') {
         throw error
     }
     return error
 }
 
-function resolveCandidates({object, from, except, context = {}, action}) {
+function resolveCandidates({object, from, except, context = {}, action}, described) {
     // If it's a multiple noun and there's no descriptors return everything.
     let candidates
-    if (object.multiple || object.general) {
+    // TODO: There might not be a default 'from' context.
+    if (!described && (object.multiple || object.general)) {
         if (!context.all) {
-            throw new ResolveError(`Cannot use ${object.multiple || object.general ? 'multiple' : 'general'} noun with the verb "${action.verb.value}"`, 'aor7')
+            let type = object.multiple ? 'multiple' : 'general'
+            throw new ResolveError(`Cannot use ${type} noun with the verb "${action.verb.value}"`, 'aor7')
         }
         candidates = context.all
     } else {
@@ -227,8 +242,8 @@ function scoreCandidates(candidates, descriptors, object) {
             continue
         }
         // If we have descriptors to match, score this entity.
-        const entityDescriptors = entity.descriptor.descriptors
-        let entityScore = descriptors.filter((descriptor) => entityDescriptors.includes(descriptor))
+        const entityDescriptors = entity.descriptors.descriptors
+        let entityScore = descriptors.filter(({value}) => entityDescriptors.includes(value))
         entityScore = entityScore.length
         if (entityScore > score) {
             // New best.

@@ -4,18 +4,29 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "test": "ava test/tests.js --tap | tap-nyan",
+    "testt": "nyc --reporter=lcov --reporter=text ava test/tests.js",
+    "test": "nyc --reporter=lcov ava test/tests.js",
+    "testn": "npm run nc && nyc --reporter=lcov ava test/tests.js",
+    "tap": "nyc --reporter=lcov ava test/tests.js --tap | tap-nyan",
+    "tapn": "npm run nc && nyc --reporter=lcov ava test/tests.js --tap | tap-nyan",
     "nc": "nearleyc knights-of.ne -o knights-of.js",
     "railroad": "nearley-railroad knights-of.ne -o railroad.html"
   },
   "dependencies": {
     "nearley": "^2.15.1",
-    "searchjs": "^0.15.0",
-    "tap-nyan": "^1.1.0"
+    "searchjs": "^0.15.0"
   },
   "devDependencies": {
-    "ava": "^1.0.0-beta.8"
+    "nyc": "^13.0.1",
+    "ava": "^1.0.0-beta.8",
+    "chai": "^4.1.2",
+    "chai-interface": "^2.0.3",
+    "chai-things": "^0.2.0",
+    "tap-nyan": "^1.1.0"
   },
   "author": "Jacob A Smith",
-  "license": "ISC"
+  "license": "ISC",
+  "ava": {
+    "failWithoutAssertions": false
+  }
 }

@@ -34,12 +34,12 @@ function either(getSet1, getSet2) {
 function onlyOne(getSet) {
     return (action) => {
         const set = getSet(action)
-        if (!set.length) {
-            throw new ResolveError(`Action failed to resolve`, 'oar1')
+        if (!set || set.length === 0) {
+            throw new ResolveError('Action failed to resolve', 'oar1')
         }
         // If there are multiple choices.
         if (set.length > 1) {
-            throw new ResolveError(`Action has multiple plausible targets`, 'oar2')
+            throw new ResolveError('Action has multiple plausible targets', 'oar2')
         }
 
         return set[0]
@@ -49,11 +49,13 @@ function onlyOne(getSet) {
 function firstOne(getSet) {
     return (action) => {
         const set = getSet(action)
-        if (!set.length) {
-            throw new ResolveError(`Action failed to resolve type: ${type}`, 'oar1')
+        if (!set || set.length === 0) {
+            throw new ResolveError('Action failed to resolve', 'oar1')
         }
-
-        return set[0]
+        if (set.length) {
+            return set[0]
+        }
+        return set
     }
 }
 
@@ -210,7 +212,7 @@ function visible(getSet) {
         const set = getSet(action)
 
         if (!Array.isArray(set)) {
-            return set.properties && set.properties.visible ? set : undefined
+            return (set.properties && set.properties.visible) ? set : undefined
         }
 
         const result = []
