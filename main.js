@@ -15,23 +15,25 @@ const {ResolveError} = require('./resolve-helpers')
 const actionTypes = require('./actions')
 /* eslint-disable require-jsdoc */
 const {systems, player, processes} = require('./setup')
-let debugMode = null
-const debugTest = /^\s*debug:\s*(.*)/i
+// let debugMode = null
+// const debugTest = /^\s*debug:\s*(.*)/i
 // const {logAction} = require('./helpers')
 
 // let gameStarted = false
 
-module.exports = function(line) {
+module.exports = adventure
+function adventure(line) {
     console.log('')
     console.log('################################')
     console.log('########### NEW INPUT ##########')
 
-    if (debugMode === null) {
-        debugMode = debugTest.test(line)
-        if (debugMode) {
-            line = line.match(debugTest)[1]
-        }
-    }
+    // if (debugMode === null) {
+    //     console.log(adventure.debug)
+    //     debugMode = debugTest.test(line)
+    //     if (debugMode) {
+    //         line = line.match(debugTest)[1]
+    //     }
+    // }
     // Create a Parser object from our grammar
     const parser = new nearley.Parser(grammar)
     // Lex and parse.
@@ -70,11 +72,11 @@ module.exports = function(line) {
 
     resolve(actions)
     // console.log(actions)
-    if (debugMode) {
+    if (adventure.debugMode === 'resolve') {
+        // console.log(actions)
         // console.log('*')
         // console.log('*')
-        // console.log('*')
-        return actions[0].object
+        return actions
     }
     // console.log(JSON.stringify(actions, null, 4))
     return
