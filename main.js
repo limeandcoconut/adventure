@@ -23,9 +23,11 @@ const {systems, player, processes} = require('./setup')
 
 module.exports = adventure
 function adventure(line) {
-    console.log('')
-    console.log('################################')
-    console.log('########### NEW INPUT ##########')
+    if (!adventure.silent) {
+        console.log('')
+        console.log('################################')
+        console.log('########### NEW INPUT ##########')
+    }
 
     // if (debugMode === null) {
     //     console.log(adventure.debug)

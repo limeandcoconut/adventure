@@ -4,11 +4,11 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "testt": "nyc --reporter=lcov --reporter=text ava test/tests.js",
-    "test": "nyc --reporter=lcov ava test/tests.js",
-    "testn": "npm run nc && nyc --reporter=lcov ava test/tests.js",
-    "tap": "nyc --reporter=lcov ava test/tests.js --tap | tap-nyan",
-    "tapn": "npm run nc && nyc --reporter=lcov ava test/tests.js --tap | tap-nyan",
+    "testt": "nyc --reporter=lcov --reporter=text ava test/test.js",
+    "test": "nyc --reporter=lcov ava test/test.js",
+    "testn": "npm run nc && nyc --reporter=lcov ava test/test.js",
+    "tap": "nyc --reporter=lcov ava test/test.js --tap | tap-nyan",
+    "tapn": "npm run nc && nyc --reporter=lcov ava test/test.js --tap | tap-nyan",
     "nc": "nearleyc knights-of.ne -o knights-of.js",
     "railroad": "nearley-railroad knights-of.ne -o railroad.html"
   },

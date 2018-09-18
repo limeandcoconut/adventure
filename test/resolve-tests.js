@@ -6,24 +6,33 @@ chai.use(require('chai-interface'))
 chai.use(require('chai-things'))
 
 adventure.debugMode = 'resolve'
+adventure.silent = true
 
 const globalObjectSchema = {
     id: Number,
 }
 
-const globalObjectsListSchema = [
-    {id: Number},
-]
+const globalObjectsListSchema = [{
+    id: Number,
+}]
 
 const globalNounFromSchema = {
-    from: {id: Number},
+    from: {
+        id: Number,
+    },
 }
 const globalNounExceptSchema = {
-    except: {id: Number},
+    except: {
+        id: Number,
+    },
 }
 const globalNounComplexSchema = {
-    from: {id: Number},
-    except: {id: Number},
+    from: {
+        id: Number,
+    },
+    except: {
+        id: Number,
+    },
 }
 
 const globalVerbSchema = {
@@ -37,7 +46,9 @@ const globalActionSchema = {
     word: String,
     live: Boolean,
     steps: {},
-    entity: {id: Number},
+    entity: {
+        id: Number,
+    },
     // verb: globalVerbSchema,
 }
 
@@ -53,7 +64,10 @@ test.beforeEach((t) => {
 })
 
 test('Find on single, accessible, apparent, labeled, top sibling should succeed.', (t) => {
-    const {actionSchema, objectSchema} = t.context
+    const {
+        actionSchema,
+        objectSchema,
+    } = t.context
     actionSchema.object = objectSchema
 
     const result = adventure('find bolt')
@@ -65,7 +79,11 @@ test('Find on single, accessible, apparent, labeled, top sibling should succeed.
 })
 
 test('Find on single, scoped, accessible, apparent, labeled, nested sibling should succeed.', (t) => {
-    const {actionSchema, nounFromSchema, objectSchema} = t.context
+    const {
+        actionSchema,
+        nounFromSchema,
+        objectSchema,
+    } = t.context
     actionSchema.object = objectSchema
     actionSchema.verb.object = nounFromSchema
 
@@ -142,8 +160,13 @@ test('Put with non existant indirect object should fail.', (t) => {
 })
 
 test('Find with non existant object should return an error for the object.', (t) => {
-    const {actionSchema} = t.context
-    actionSchema.object = {message: String, code: String}
+    const {
+        actionSchema,
+    } = t.context
+    actionSchema.object = {
+        message: String,
+        code: String,
+    }
 
     const result = adventure('find fish')
     result.should.be.length(1)
@@ -153,8 +176,13 @@ test('Find with non existant object should return an error for the object.', (t)
 })
 
 test('Find on single ambiguous, accessible, apparent, labeled, top sibling should return an error as the object.', (t) => {
-    const {actionSchema} = t.context
-    actionSchema.object = {message: String, code: String}
+    const {
+        actionSchema,
+    } = t.context
+    actionSchema.object = {
+        message: String,
+        code: String,
+    }
 
     const result = adventure('find fixture')
     result.should.be.length(1)
@@ -173,7 +201,11 @@ test('Put with single ambiguous, accessible, apparent, labeled, indirect object 
 })
 
 test('Find on single from-scoped, accessible, apparent, labeled, nested sibling should succeed.', (t) => {
-    const {actionSchema, nounFromSchema, objectSchema} = t.context
+    const {
+        actionSchema,
+        nounFromSchema,
+        objectSchema,
+    } = t.context
     actionSchema.object = objectSchema
     actionSchema.verb.object = nounFromSchema
 
@@ -188,7 +220,10 @@ test('Find on single from-scoped, accessible, apparent, labeled, nested sibling 
 })
 
 test('Look should autoresolve to parent.', (t) => {
-    const {actionSchema, objectSchema} = t.context
+    const {
+        actionSchema,
+        objectSchema,
+    } = t.context
     actionSchema.object = objectSchema
 
     const result = adventure('look')
@@ -201,7 +236,10 @@ test('Look should autoresolve to parent.', (t) => {
 })
 
 test('Find on all siblings should succeed.', (t) => {
-    const {actionSchema, objectsListSchema} = t.context
+    const {
+        actionSchema,
+        objectsListSchema,
+    } = t.context
     actionSchema.object = objectsListSchema
 
     const result = adventure('find all')
@@ -209,11 +247,16 @@ test('Find on all siblings should succeed.', (t) => {
     const action = result[0]
     action.should.have.interface(actionSchema)
     action.object.length.should.equal(3)
-    action.object.forEach(({location}) => location.parent.id.should.equal(10))
+    action.object.forEach(({
+        location,
+    }) => location.parent.id.should.equal(10))
 })
 
 test('Find on all siblings except, one should succeed.', (t) => {
-    const {actionSchema, objectsListSchema} = t.context
+    const {
+        actionSchema,
+        objectsListSchema,
+    } = t.context
     actionSchema.object = objectsListSchema
 
     const result = adventure('find all except screw')
@@ -225,7 +268,10 @@ test('Find on all siblings except, one should succeed.', (t) => {
 })
 
 test('Find on general determined, ambiguous, apparent, accessible, sibling should succeed.', (t) => {
-    const {actionSchema, objectSchema} = t.context
+    const {
+        actionSchema,
+        objectSchema,
+    } = t.context
     actionSchema.object = objectSchema
 
     const result = adventure('find a fixture')
@@ -236,7 +282,10 @@ test('Find on general determined, ambiguous, apparent, accessible, sibling shoul
 })
 
 test('Find on general, ambiguous, apparent, accessible, sibling should succeed.', (t) => {
-    const {actionSchema, objectSchema} = t.context
+    const {
+        actionSchema,
+        objectSchema,
+    } = t.context
     actionSchema.object = objectSchema
 
     const result = adventure('find anything')
@@ -246,7 +295,10 @@ test('Find on general, ambiguous, apparent, accessible, sibling should succeed.'
 })
 
 test('Find on all described siblings should succeed.', (t) => {
-    const {actionSchema, objectsListSchema} = t.context
+    const {
+        actionSchema,
+        objectsListSchema,
+    } = t.context
     actionSchema.object = objectsListSchema
 
     const result = adventure('find red all')
@@ -275,8 +327,12 @@ test('Go on general object should fail.', (t) => {
 })
 
 test('Go using direction should succeed but not resolve.', (t) => {
-    const {actionSchema} = t.context
-    actionSchema.object = {value: String}
+    const {
+        actionSchema,
+    } = t.context
+    actionSchema.object = {
+        value: String,
+    }
 
     const result = adventure('go n')
     result.should.be.length(1)
@@ -287,8 +343,13 @@ test('Go using direction should succeed but not resolve.', (t) => {
 })
 
 test('Say using a word literal should succeed but not resolve.', (t) => {
-    const {actionSchema} = t.context
-    actionSchema.object = {type: String, value: String}
+    const {
+        actionSchema,
+    } = t.context
+    actionSchema.object = {
+        type: String,
+        value: String,
+    }
 
     const result = adventure('say "asd"')
     result.should.be.length(1)
@@ -300,7 +361,10 @@ test('Say using a word literal should succeed but not resolve.', (t) => {
 })
 
 test('Find with two multiple descriptors should refine results and succeed.', (t) => {
-    const {actionSchema, objectSchema} = t.context
+    const {
+        actionSchema,
+        objectSchema,
+    } = t.context
     actionSchema.object = objectSchema
 
     const result = adventure('find red rusty fixture')
