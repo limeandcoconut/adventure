@@ -16,6 +16,21 @@ const {
 
 let baseProcess = ['locate']
 
+class Find extends Action {
+    constructor(verb) {
+        super(verb)
+
+        this.type = 'find'
+        this.procedure = baseProcess.concat('find')
+        this.reporter = this.type
+    }
+}
+Find.prototype.context = new Map(Action.prototype.context)
+Find.prototype.context.set('object', {
+    from: parentOf(entity()),
+    all: siblingsOf(entity()),
+})
+
 class Get extends Action {
     constructor(verb) {
         super(verb)
@@ -96,7 +111,9 @@ class Go extends Action {
     }
 }
 Go.prototype.context = new Map(Action.prototype.context)
-Go.prototype.context.set('object', {})
+Go.prototype.context.set('object', {
+    acceptsPassthrough: true,
+})
 
 class Look extends Action {
     constructor(verb) {
@@ -260,18 +277,23 @@ Check.prototype.context.set('tool', {
     from: entity(),
 })
 
-// class Uncheck extends Action {
-//     constructor(verb) {
-//         super(verb)
+class Say extends Action {
+    constructor(verb) {
+        super(verb)
 
-//         this.type = 'uncheck'
-//         this.procedure = baseProcess.concat('uncheck')
-//         this.reporter = this.type
-//     }
-// }
+        this.type = 'say'
+        this.procedure = baseProcess.concat('say')
+        this.reporter = this.type
+    }
+}
+Say.prototype.context = new Map(Action.prototype.context)
+Say.prototype.context.set('object', {
+    acceptsWordLiteral: true,
+})
 
 const actions = {
     begin: Begin,
+    find: Find,
     get: Get,
     put: Put,
     take: Get,
@@ -287,6 +309,7 @@ const actions = {
     read: Read,
     check: Check,
     uncheck: Check,
+    say: Say,
 }
 
 module.exports = actions
