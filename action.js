@@ -8,6 +8,8 @@ class Action {
         this.tool = tool
         this.word = text
         this.verb = verb
+        this.accessibleRequired = true
+        this.apparentRequired = true
         // this.variants = {}
     }
 

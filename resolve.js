@@ -215,7 +215,7 @@ function resolveCandidates({object, from, except, context = {}, action}, describ
         }
         candidates = context.all
     } else {
-        candidates = deep(childrenOf(from, !context.inaccessible, !context.inapparent))
+        candidates = deep(childrenOf(from))
     }
 
     if (except) {

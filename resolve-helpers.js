@@ -67,6 +67,7 @@ function parentOf(getSet) {
 }
 
 function childrenOf(getEntity, accessibleRequired = true, apparentRequired = true) {
+    const internalContext = {}
     return (action) => {
         let set
         let result
@@ -74,6 +75,8 @@ function childrenOf(getEntity, accessibleRequired = true, apparentRequired = tru
             set = action
             // result = set.slice()
         } else {
+            internalContext.accessibleRequired = action.accessibleRequired
+            internalContext.apparentRequired = action.apparentRequired
             set = getEntity(action)
             // console.log(set)
             if (!Array.isArray(set)) {
@@ -90,6 +93,7 @@ function childrenOf(getEntity, accessibleRequired = true, apparentRequired = tru
         // console.log()
         // if (entity && entity.container) {
         // console.log(set)
+        let {accessibleRequired, apparentRequired} = internalContext
         for (let i = 0; i < set.length; i++) {
             let entity = set[i]
             // console.log(entity)

@@ -13,9 +13,10 @@ const {
     // either,
     legible,
 } = require('./resolve-helpers')
-
+/* eslint-disable require-jsdoc */
 let baseProcess = ['locate']
 
+// TODO: Allow for different accessiblity for different objects.
 class Find extends Action {
     constructor(verb) {
         super(verb)
@@ -58,9 +59,6 @@ class Pick extends Action {
         this.type = 'pick'
         this.procedure = []
         this.reporter = ''
-        // this.variants = {
-        //     up: Get,
-        // }
     }
 }
 Pick.prototype.context = new Map(Action.prototype.context)
@@ -80,8 +78,6 @@ class Inventory extends Action {
         this.reporter = this.type
     }
 }
-// .Check.prototype.context = new Map(Action.prototype.context)
-// Inventory.set(
 
 class Drop extends Action {
     constructor(verb) {
@@ -97,9 +93,6 @@ Drop.prototype.context.set('object', {
     from: entity(),
     all: childrenOf(entity()),
 })
-// Drop.prototype.context.set('indirect', {
-//     resolve: entity(),
-// })
 
 class Go extends Action {
     constructor(verb) {
@@ -122,9 +115,7 @@ class Look extends Action {
         this.type = 'look'
         this.procedure = baseProcess.concat('look')
         this.reporter = this.type
-        // this.variants = {
-        //     at: Look,
-        // }
+        this.accessibleRequired = false
     }
 }
 Look.prototype.context = new Map(Action.prototype.context)
@@ -132,7 +123,6 @@ Look.prototype.context.set('object', {
     resolve: firstOne(visible(parentOf(entity()))),
     from: parentOf(entity()),
     all: siblingsOf(entity()),
-    inaccessible: true,
 })
 
 Look.prototype.variants = {
@@ -160,9 +150,6 @@ class Open extends Action {
         this.type = 'open'
         this.procedure = baseProcess.concat('open')
         this.reporter = this.type
-        // this.variants = {
-        //     up: Open,
-        // }
     }
 }
 Open.prototype.context = new Map(Action.prototype.context)
@@ -181,9 +168,6 @@ class Close extends Action {
         this.type = 'close'
         this.procedure = baseProcess.concat('close')
         this.reporter = this.type
-        // this.variants = {
-        //     up: Close,
-        // }
     }
 }
 Close.prototype.context = new Map(Action.prototype.context)
@@ -220,6 +204,7 @@ class Read extends Action {
         this.type = 'read'
         this.procedure = baseProcess.concat('read')
         this.reporter = this.type
+        this.accessibleRequired = false
     }
 }
 Read.prototype.context = new Map(Action.prototype.context)
@@ -228,10 +213,18 @@ Read.prototype.context.set('object', {
     //     deep(childrenOf(entity(), false)),
     //     deepSiblingsOf(entity(), false),
     // )))),
-
-    resolve: onlyOne(visible(legible(deep(childrenOf(parentOf(entity()), false))))),
+    // _beginResolution: chilre
+    // _completeResolution,
+    // _standinResolver() {
+    //     return this.resolutionSet
+    // },
+    // resolve(action, accessibleRequired = true, apparentRequired = true) {
+    //     this.resolutionSet = childrenOf(parentOf(entity()), accessibleRequired, apparentRequired)(action)
+    //     return this._completeResolution(this._standinResolver)
+    // },
+    resolve: onlyOne(visible(legible(deep(childrenOf(parentOf(entity())))))),
     from: parentOf(entity()),
-    inaccessible: true,
+    // inaccessible: true,
 })
 
 class Check extends Action {
@@ -246,36 +239,41 @@ class Check extends Action {
 }
 Check.prototype.context = new Map(Action.prototype.context)
 Check.prototype.context.set('object', {
-    resolve: onlyOne(visible((action) => {
-        const set = deep(childrenOf(parentOf(entity())))(action)
+    // resolve: onlyOne(visible((action) => {
+    //     const set = deep(childrenOf(parentOf(entity())))(action)
 
-        const result = []
-        while (set.length) {
-            let entity = set.shift()
-            if (entity.option) {
-                set.push(entity)
-            }
-        }
-        return result
-    })),
+    //     const result = []
+    //     while (set.length) {
+    //         let entity = set.shift()
+    //         if (entity.option) {
+    //             set.push(entity)
+    //         }
+    //     }
+    //     return result
+    // })),
+    resolve: onlyOne(visible(option(deep(childrenOf(parentOf(entity())))))),
     from: parentOf(entity()),
-    all: visible((action) => {
-        const set = deep(childrenOf(parentOf(entity())))(action)
-
-        const result = []
-        while (set.length) {
-            let entity = set.shift()
-            if (entity.option) {
-                set.push(entity)
-            }
-        }
-        return result
-    }),
+    all: visible(option(deep(childrenOf(parentOf(entity()))))),
 })
 Check.prototype.context.set('tool', {
     resolve: onlyOne(visible(tool('write', deep(childrenOf(entity()))))),
     from: entity(),
 })
+
+function option(getSet) {
+    return (action) => {
+        const set = getSet(action)
+
+        const result = []
+        while (set.length) {
+            let entity = set.shift()
+            if (entity.option) {
+                set.push(entity)
+            }
+        }
+        return result
+    }
+}
 
 class Say extends Action {
     constructor(verb) {
