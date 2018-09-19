@@ -63,14 +63,45 @@ test.beforeEach((t) => {
     t.context.nounComplexSchema = Object.assign({}, globalNounComplexSchema)
 })
 
-test('Find action respects contextual flags.', (t) => {
+test('Dowse action respects contextual flags.', (t) => {
     const {actionSchema, objectSchema} = t.context
     actionSchema.object = objectSchema
 
-    const result = adventure('find wrench')
+    const result = adventure('dowse wrench')
     result.should.be.length(1)
     const action = result[0]
     action.should.have.interface(actionSchema)
-    action.type.should.equal('find')
+    action.type.should.equal('dowse')
     action.object.id.should.equal(21)
+})
+
+test('Visibility is filterd appropriately: dowsing works with invisible objects.', (t) => {
+    const {actionSchema, objectSchema} = t.context
+    actionSchema.object = objectSchema
+
+    const result = adventure('dowse coin')
+    result.should.be.length(1)
+    const action = result[0]
+    action.should.have.interface(actionSchema)
+    action.type.should.equal('dowse')
+    action.object.id.should.equal(15)
+})
+
+test('Visibility is filterd appropriately: find only accepts visible objects.', (t) => {
+    const {actionSchema, objectSchema} = t.context
+    actionSchema.object = {code: String, message: String}
+
+    let result = adventure('find coin')
+    result.should.be.length(1)
+    let action = result[0]
+    action.should.have.interface(actionSchema)
+    action.object.code.should.equal('aor5')
+
+    actionSchema.object = objectSchema
+
+    result = adventure('find rock')
+    result.should.be.length(1)
+    action = result[0]
+    action.should.have.interface(actionSchema)
+    action.object.id.should.equal(17)
 })

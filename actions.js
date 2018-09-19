@@ -12,6 +12,7 @@ const {
     onlyOne,
     // either,
     legible,
+    appropriate,
 } = require('./resolve-helpers')
 /* eslint-disable require-jsdoc */
 let baseProcess = ['locate']
@@ -29,7 +30,24 @@ class Find extends Action {
 Find.prototype.context = new Map(Action.prototype.context)
 Find.prototype.context.set('object', {
     from: parentOf(entity()),
-    all: siblingsOf(entity()),
+    all: appropriate(siblingsOf(entity())),
+})
+
+class Dowse extends Action {
+    constructor(verb) {
+        super(verb)
+
+        this.type = 'dowse'
+        this.procedure = baseProcess.concat('dowse')
+        this.reporter = this.type
+        this.accessibleRequired = false
+        this.apparentRequired = false
+    }
+}
+Dowse.prototype.context = new Map(Action.prototype.context)
+Dowse.prototype.context.set('object', {
+    from: parentOf(entity()),
+    all: appropriate(siblingsOf(entity())),
 })
 
 class Get extends Action {
@@ -44,7 +62,7 @@ class Get extends Action {
 Get.prototype.context = new Map(Action.prototype.context)
 Get.prototype.context.set('object', {
     from: parentOf(entity()),
-    all: siblingsOf(entity()),
+    all: appropriate(siblingsOf(entity())),
 })
 // Get.prototype.variants = {foo: 'foo'}
 // Get.prototype.context.set('indirect', {
@@ -91,7 +109,7 @@ class Drop extends Action {
 Drop.prototype.context = new Map(Action.prototype.context)
 Drop.prototype.context.set('object', {
     from: entity(),
-    all: childrenOf(entity()),
+    all: appropriate(childrenOf(entity())),
 })
 
 class Go extends Action {
@@ -122,7 +140,7 @@ Look.prototype.context = new Map(Action.prototype.context)
 Look.prototype.context.set('object', {
     resolve: firstOne(visible(parentOf(entity()))),
     from: parentOf(entity()),
-    all: siblingsOf(entity()),
+    all: appropriate(siblingsOf(entity())),
 })
 
 Look.prototype.variants = {
@@ -191,7 +209,7 @@ class Put extends Action {
 Put.prototype.context = new Map(Action.prototype.context)
 Put.prototype.context.set('object', {
     from: parentOf(entity()),
-    all: childrenOf(entity()),
+    all: appropriate(childrenOf(entity())),
 })
 Put.prototype.context.set('indirect', {
     from: parentOf(entity()),
@@ -222,7 +240,7 @@ Read.prototype.context.set('object', {
     //     this.resolutionSet = childrenOf(parentOf(entity()), accessibleRequired, apparentRequired)(action)
     //     return this._completeResolution(this._standinResolver)
     // },
-    resolve: onlyOne(visible(legible(deep(childrenOf(parentOf(entity())))))),
+    resolve: onlyOne(appropriate(legible(deep(childrenOf(parentOf(entity())))))),
     from: parentOf(entity()),
     // inaccessible: true,
 })
@@ -239,24 +257,12 @@ class Check extends Action {
 }
 Check.prototype.context = new Map(Action.prototype.context)
 Check.prototype.context.set('object', {
-    // resolve: onlyOne(visible((action) => {
-    //     const set = deep(childrenOf(parentOf(entity())))(action)
-
-    //     const result = []
-    //     while (set.length) {
-    //         let entity = set.shift()
-    //         if (entity.option) {
-    //             set.push(entity)
-    //         }
-    //     }
-    //     return result
-    // })),
-    resolve: onlyOne(visible(option(deep(childrenOf(parentOf(entity())))))),
+    resolve: onlyOne(appropriate(option(deep(childrenOf(parentOf(entity())))))),
     from: parentOf(entity()),
-    all: visible(option(deep(childrenOf(parentOf(entity()))))),
+    all: appropriate(option(deep(childrenOf(parentOf(entity()))))),
 })
 Check.prototype.context.set('tool', {
-    resolve: onlyOne(visible(tool('write', deep(childrenOf(entity()))))),
+    resolve: onlyOne(appropriate(tool('write', deep(childrenOf(entity()))))),
     from: entity(),
 })
 
@@ -292,6 +298,7 @@ Say.prototype.context.set('object', {
 const actions = {
     begin: Begin,
     find: Find,
+    dowse: Dowse,
     get: Get,
     put: Put,
     take: Get,

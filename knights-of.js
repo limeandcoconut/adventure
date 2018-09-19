@@ -80,6 +80,7 @@ let lexer = moo.compile({
     ],
     verb: [
         'find',
+        'dowse',
         'put',
         'get',
         'take',

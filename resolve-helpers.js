@@ -230,6 +230,26 @@ function visible(getSet) {
     }
 }
 
+function appropriate(getSet) {
+    return (action) => {
+        const set = getSet(action)
+        const {apparentRequired} = action
+
+        if (!Array.isArray(set)) {
+            return !apparentRequired || (set.properties && set.properties.visible) ? set : undefined
+        }
+
+        const result = []
+        while (set.length) {
+            let entity = set.shift()
+            if (!apparentRequired || (entity.properties && entity.properties.visible)) {
+                result.push(entity)
+            }
+        }
+        return result
+    }
+}
+
 function exclude(getExclusions, getSet) {
     return (action) => {
         let set = getSet(action)
@@ -285,4 +305,5 @@ module.exports = {
     either,
     ResolveError,
     exclude,
+    appropriate,
 }

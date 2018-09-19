@@ -6,6 +6,7 @@ const {
     childrenOf,
     ResolveError,
     exclude,
+    appropriate,
 } = require('./resolve-helpers')
 
 // Steps:
@@ -157,7 +158,6 @@ function findObject(args) {
     const descriptors = object.descriptors.slice()
 
     let candidates = resolveCandidates(args, descriptors.length)
-
     if (!descriptors.length) {
         // If it's a multiple noun and there's no descriptors return everything.
         if (object.multiple) {
@@ -215,7 +215,7 @@ function resolveCandidates({object, from, except, context = {}, action}, describ
         }
         candidates = context.all
     } else {
-        candidates = deep(childrenOf(from))
+        candidates = appropriate(deep(childrenOf(from)))
     }
 
     if (except) {
