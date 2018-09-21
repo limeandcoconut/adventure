@@ -144,7 +144,7 @@ test('Put with multiple indirect objects should fail.', (t) => {
 
 test('Put with multiple objects should succceed.', (t) => {
 
-    const error = t.notThrows(() => {
+    t.notThrows(() => {
         adventure('put rock and thing in crate')
     })
 
@@ -372,4 +372,33 @@ test('Find with two multiple descriptors should refine results and succeed.', (t
     const action = result[0]
     action.should.have.interface(actionSchema)
     action.object.id.should.equal(18)
+})
+
+test('Read should autoresolve to a fixture if necessary.', (t) => {
+    const {
+        actionSchema,
+        objectSchema,
+    } = t.context
+    actionSchema.object = objectSchema
+
+    const result = adventure('read')
+    result.should.be.length(1)
+    const action = result[0]
+    action.should.have.interface(actionSchema)
+    action.object.id.should.equal(14)
+})
+
+test('Look at all should not include fixtures.', (t) => {
+    const {
+        actionSchema,
+        objectsListSchema,
+    } = t.context
+    actionSchema.object = objectsListSchema
+
+    const result = adventure('look all')
+    result.should.be.length(1)
+    const action = result[0]
+    action.should.have.interface(actionSchema)
+    action.object.length.should.equal(3)
+    action.object.should.not.include.one.with.property('id', 14)
 })

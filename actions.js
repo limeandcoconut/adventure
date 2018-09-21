@@ -3,10 +3,13 @@ const {
     // list,
     parentOf,
     entity,
-    childrenOf,
+    // childrenOf,
+    contentsOf,
+    deepChildrenOf,
+    // deepContentsOf,
     visible,
     tool,
-    deep,
+    // deep,
     siblingsOf,
     firstOne,
     onlyOne,
@@ -109,7 +112,7 @@ class Drop extends Action {
 Drop.prototype.context = new Map(Action.prototype.context)
 Drop.prototype.context.set('object', {
     from: entity(),
-    all: appropriate(childrenOf(entity())),
+    all: appropriate(contentsOf(entity())),
 })
 
 class Go extends Action {
@@ -209,7 +212,7 @@ class Put extends Action {
 Put.prototype.context = new Map(Action.prototype.context)
 Put.prototype.context.set('object', {
     from: parentOf(entity()),
-    all: appropriate(childrenOf(entity())),
+    all: appropriate(contentsOf(entity())),
 })
 Put.prototype.context.set('indirect', {
     from: parentOf(entity()),
@@ -240,7 +243,7 @@ Read.prototype.context.set('object', {
     //     this.resolutionSet = childrenOf(parentOf(entity()), accessibleRequired, apparentRequired)(action)
     //     return this._completeResolution(this._standinResolver)
     // },
-    resolve: onlyOne(appropriate(legible(deep(childrenOf(parentOf(entity())))))),
+    resolve: onlyOne(appropriate(legible(deepChildrenOf(parentOf(entity()))))),
     from: parentOf(entity()),
     // inaccessible: true,
 })
@@ -257,12 +260,12 @@ class Check extends Action {
 }
 Check.prototype.context = new Map(Action.prototype.context)
 Check.prototype.context.set('object', {
-    resolve: onlyOne(appropriate(option(deep(childrenOf(parentOf(entity())))))),
+    resolve: onlyOne(appropriate(option(deepChildrenOf(parentOf(entity()))))),
     from: parentOf(entity()),
-    all: appropriate(option(deep(childrenOf(parentOf(entity()))))),
+    all: appropriate(option(deepChildrenOf(parentOf(entity())))),
 })
 Check.prototype.context.set('tool', {
-    resolve: onlyOne(appropriate(tool('write', deep(childrenOf(entity()))))),
+    resolve: onlyOne(appropriate(tool('write', deepChildrenOf(entity())))),
     from: entity(),
 })
 

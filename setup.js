@@ -507,10 +507,10 @@ if (newId.lowestFreeId === 10) {
     crate.container.contents = [box, bolt]
     box.container.contents = [wrench]
     testingChamber00178.container.contents = [player, crate, screw, rock]
-    testingChamber00178.fixtures = [sign]
+    testingChamber00178.container.fixtures = [sign]
     anotherRoom.container.contents = [weight, desk]
     desk.container.contents = [tray, paper, pencil]
-    paper.fixtures = [no, yes]
+    paper.container.fixtures = [no, yes]
 
     console.log(JSON.stringify({
         testingChamber00178: testingChamber00178.id,

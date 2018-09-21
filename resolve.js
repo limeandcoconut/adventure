@@ -2,8 +2,8 @@
 /* eslint-disable require-jsdoc */
 
 const {
-    deep,
-    childrenOf,
+    // deep,
+    deepChildrenOf,
     ResolveError,
     exclude,
     appropriate,
@@ -215,7 +215,7 @@ function resolveCandidates({object, from, except, context = {}, action}, describ
         }
         candidates = context.all
     } else {
-        candidates = appropriate(deep(childrenOf(from)))
+        candidates = appropriate(deepChildrenOf(from))
     }
 
     if (except) {
