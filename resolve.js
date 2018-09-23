@@ -54,11 +54,14 @@ module.exports = function(actions) {
             // There's an object:
             // If there is an unaccepted object, throw.
             if (!context) {
-                throw new ResolveError(`Action can't accept object type: ${type}`, 'aor1')
+                throw new ResolveError(`Action can't accept object type: ${type}`, 'aor1', {
+                    verb: action.word,
+                    type,
+                })
             }
             // If there are multiple objects used in an indirect way, throw.
             if (type !== 'object' && object.objects) {
-                throw new ResolveError('Cannot use more than one object as an indirect object', 'aor4')
+                throw new ResolveError('Cannot use more than one object as an indirect object', 'aor4', {verb: action.word})
             }
 
             // If the object should not be resolved return early.
@@ -150,7 +153,7 @@ function findObject(args) {
     object.multiple = multipleNoun.test(object.value)
     // If it's a multiple indirect, throw.
     if (type !== 'object' && object.multiple) {
-        throw new ResolveError('Cannot use multiple nouns as indirect objects', 'aor2')
+        throw new ResolveError('Cannot use multiple nouns as indirect objects', 'aor2', {noun: object})
     }
     // Set general flag.
     object.general = generalNoun.test(object.value)
@@ -173,7 +176,7 @@ function findObject(args) {
 
     // If there are no matches this is an error.
     if (candidates.length === 0) {
-        const error = new ResolveError(`Cannot resolve "${type}" object`, 'aor5')
+        const error = new ResolveError(`Cannot resolve "${type}" object`, 'aor5', {noun: object})
         if (type !== 'object') {
             throw error
         }
@@ -197,7 +200,7 @@ function findObject(args) {
         return candidates[Math.floor(candidates.length * Math.random())]
     }
     // If the noun was specific it will have to be disambiguated.
-    const error = new ResolveError(`Resolved multiple "${type}" objects`, 'aor6')
+    const error = new ResolveError(`Resolved multiple "${type}" objects`, 'aor6', {candidates})
     if (type !== 'object') {
         throw error
     }
@@ -211,7 +214,7 @@ function resolveCandidates({object, from, except, context = {}, action}, describ
     if (!described && (object.multiple || object.general)) {
         if (!context.all) {
             let type = object.multiple ? 'multiple' : 'general'
-            throw new ResolveError(`Cannot use ${type} noun with the verb "${action.word}"`, 'aor7')
+            throw new ResolveError(`Cannot use a ${type} noun with the verb "${action.word}"`, 'aor7', {type, verb: action.word})
         }
         candidates = context.all
     } else {

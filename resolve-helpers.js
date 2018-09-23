@@ -1,9 +1,10 @@
 const entities = require('./entities')
 
 class ResolveError extends Error {
-    constructor(message, code) {
+    constructor(message, code, meta) {
         super(message)
         this.code = code
+        this.meta = meta
     }
 }
 
@@ -35,11 +36,12 @@ function onlyOne(getSet) {
     return (action) => {
         const set = getSet(action)
         if (!set || set.length === 0) {
+            // Twin to aor5 without necessarily having a noun.
             throw new ResolveError('Action failed to resolve', 'oar1')
         }
         // If there are multiple choices.
         if (set.length > 1) {
-            throw new ResolveError('Action has multiple plausible targets', 'oar2')
+            throw new ResolveError(`Resolved multiple unspecified objects`, 'aor6', {candidates: set})
         }
 
         return set[0]

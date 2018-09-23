@@ -24,9 +24,9 @@ function log() {
     console.log(...arguments)
 }
 
-function debug() {
-    console.log(...arguments)
-}
+// function debug() {
+//     console.log(...arguments)
+// }
 
 module.exports = adventure
 function adventure(line) {
@@ -40,7 +40,8 @@ function adventure(line) {
     try {
         parser.feed(line)
     } catch (error) {
-        log(error.code)
+        error.code = codify(error)
+        // log(error.code)
         // throw error
         return respond(error)
     }
@@ -60,20 +61,15 @@ function adventure(line) {
         return respond(error)
     }
 
-    if (!gameStarted) {
+    if (!gameStarted && !adventure.debugMode.begun) {
         beginGame(actions)
     }
 
     if (adventure.debugMode.resolve) {
-        // let debugActions = [action, ...actions]
-        // debug(debugActions)
-        // debug('*')
         return actions
     }
 
-    // ###########
-
-    // // Construct response from executing actions.
+    // Construct response from executing actions.
     let output = ''
 
     while (actions.length) {
@@ -154,6 +150,23 @@ function execute(action) {
     }
     log('\n \n')
     return response
+}
+
+// These are ordered, most to least specific.
+const codeTests = [
+    [/unexpected\sword\stoken/i, 'lis2'],
+    [/unexpected.*?token/i, 'lis3'],
+    [/invalid\ssyntax/i, 'lis1'],
+    // [/invalid\s+syntax.*(?!unexpected\s+token)/i, 'lis1'],
+]
+function codify({message}) {
+    for (let i = 0; i < codeTests.length; i++) {
+        const [test, code] = codeTests[i]
+        if (test.test(message)) {
+            console.log(message)
+            return code
+        }
+    }
 }
 
 function beginGame(actions) {

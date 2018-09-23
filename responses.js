@@ -37,13 +37,67 @@ const missingParseParts = {
 
 const responses = {
     errors: {
+        aor1({meta: {verb, type}}) {
+            return `I don't know how to '${verb}' using a '${type === 'object' ? 'direct' : 'indirect'}' object in that way`
+        },
+        oar1() {
+            return 'I\'m not sure what you\'re looking for.'
+        },
+        aro2({meta: {noun}}) {
+            return `You can't use the multiple noun '${noun.value}' as an indirect object like that.`
+        },
+        aor3() {
+            return 'With what?'
+        },
+        aor4({meta: {verb}}) {
+            return `I don't know how to '${verb}' multiple indirect objects.`
+        },
+        aor5({meta: {noun}}) {
+            return `I don't see any ${noun.value}.`
+        },
+        aor6({meta: {candidates}}) {
+            let names = candidates.map((object) => object.descriptors.name)
+            const last = names.pop()
+            names = names.join(', ')
+            names += ', or the ' + last
+            return `Do you mean the ${names}?`
+        },
+        aor7({meta: {verb, type}}) {
+            return `I don't know how to use a ${type} noun with the verb "${verb}".`
+        },
+        lis1({message, offset}) {
+            console.log(offset)
+            const col = message.match(/line\s\d+\scol\s(\d+)/i)[1]
+            let capture = new RegExp(`\\n\\n\\s+.{${col - 1}}(.)`)
+            capture = message.match(capture)
+            if (!capture) {
+                return
+            }
+            const char = capture[1]
+            if (!char) {
+                return
+            }
+            return `I'm sorry, I don't know what "${char}" means.`
+        },
+        lis2({message}) {
+            const word = message.match(/unexpected\sword\stoken:\s+"(.*?)"/i)[1]
+            return `I'm sorry, I don't know the word "${word}".`
+        },
+        lis3({message}) {
+            const match = message.match(/Unexpected\s(\w*?)\stoken:\s+"(.*?)"/)
+            const word = match[2]
+            let type = match[1]
+            type = /^[a-z]$/.test(type) ? type : 'word'
+            return `I don't understand how you used the ${type} "${word}".`
+        },
+
         lexer: {
-            unknownWord({word}) {
-                return `I'm sorry, I don't know the word "${word}".`
-            },
-            unknownChar({char}) {
-                return `I'm sorry, I don't know what "${char}" means.`
-            },
+            // unknownWord({word}) {
+            //     return `I'm sorry, I don't know the word "${word}".`
+            // },
+            // unknownChar({char}) {
+            //     return `I'm sorry, I don't know what "${char}" means.`
+            // },
         },
         parser: {
             unexpectedToken({token, binder}) {
@@ -70,12 +124,12 @@ const responses = {
                 }
                 return `I don't know how to '${verb}' ${count - 1} indirect object${count > 2 ? 's' : ''}.`
             },
-            verbNoInfix({verb, disallowed: [disallowed]}) {
-                return `I don't know how to '${verb}' '${disallowed}' something`
-            },
-            indirectNoMultiple({infix, multiple}) {
-                return `You can't use the multiple noun '${multiple}' as an indirect object like that.`
-            },
+            // verbNoInfix({verb, disallowed: [disallowed]}) {
+            //     return `I don't know how to '${verb}' '${disallowed}' something`
+            // },
+            // indirectNoMultiple({infix, multiple}) {
+            //     return `You can't use the multiple noun '${multiple}' as an indirect object like that.`
+            // },
         },
         general: {
             understandSentence() {
@@ -88,21 +142,21 @@ const responses = {
         },
     },
     steps: {
-        resolve({live, steps: {resolve: {reason, object, objects}}}) {
-            if (live) {
-                return
-            }
-            if (/cannot/i.test(reason)) {
-                return `I don't see any ${object}.`
-            }
-            if (/multiple/i.test(reason)) {
-                let names = objects.map((object) => em.getComponent('Descriptors', object).getName())
-                let last = names.pop()
-                names = names.join(', ')
-                names += ', or the ' + last
-                return `Do you mean the ${names}?`
-            }
-        },
+        // resolve({live, steps: {resolve: {reason, object, objects}}}) {
+        //     if (live) {
+        //         return
+        //     }
+        //     if (/cannot/i.test(reason)) {
+        //         return `I don't see any ${object}.`
+        //     }
+        //     if (/multiple/i.test(reason)) {
+        //         let names = objects.map((object) => em.getComponent('Descriptors', object).getName())
+        //         let last = names.pop()
+        //         names = names.join(', ')
+        //         names += ', or the ' + last
+        //         return `Do you mean the ${names}?`
+        //     }
+        // },
         preresolve({live, steps: {preresolve: {reason}}}) {
             // return 'I don\'t see anything.'
             if (live) {

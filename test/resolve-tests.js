@@ -8,6 +8,8 @@ chai.use(require('chai-things'))
 adventure.debugMode = {
     resolve: true,
     verbs: true,
+    codes: true,
+    begun: true,
 }
 adventure.silent = true
 
@@ -100,47 +102,35 @@ test('Find on single, scoped, accessible, apparent, labeled, nested sibling shou
     action.verb.object.from.id.should.equal(action.object.location.parent.id)
 })
 
-test('Inventory on object should fail.', (t) => {
+test('Inventory on object should fail.', () => {
 
-    const error = t.throws(() => {
-        adventure('i fixture')
-    })
-
+    const error = adventure('i fixture')
     error.code.should.equal('aor1')
 })
 
-test('Put with indirect multiple object should fail.', (t) => {
+test('Put with indirect multiple object should fail.', () => {
 
-    const error = t.throws(() => {
-        adventure('put rock in all')
-    })
-
+    const error = adventure('put rock in all')
     error.code.should.equal('aor2')
 })
 
-test('Put with no object should fail.', (t) => {
+test('Put with no object should fail.', () => {
 
-    const error = t.throws(() => {
-        adventure('put')
-    })
+    const error = adventure('put')
 
     error.code.should.equal('aor3')
 })
 
-test('Put with no indirect object should fail.', (t) => {
+test('Put with no indirect object should fail.', () => {
 
-    const error = t.throws(() => {
-        adventure('put rock')
-    })
+    const error = adventure('put rock')
 
     error.code.should.equal('aor3')
 })
 
-test('Put with multiple indirect objects should fail.', (t) => {
+test('Put with multiple indirect objects should fail.', () => {
 
-    const error = t.throws(() => {
-        adventure('put rock in crate and box')
-    })
+    const error = adventure('put rock in crate and box')
 
     error.code.should.equal('aor4')
 })
@@ -153,11 +143,9 @@ test('Put with multiple objects should succceed.', (t) => {
 
 })
 
-test('Put with non existant indirect object should fail.', (t) => {
+test('Put with non existant indirect object should fail.', () => {
 
-    const error = t.throws(() => {
-        adventure('put rock in fish')
-    })
+    const error = adventure('put rock in fish')
 
     error.code.should.equal('aor5')
 })
@@ -178,7 +166,7 @@ test('Find with non existant object should return an error for the object.', (t)
     action.object.code.should.equal('aor5')
 })
 
-test('Find on single ambiguous, accessible, apparent, labeled, top sibling should return an error as the object.', (t) => {
+test('Find on single ambiguous, top sibling should return an error as the object.', (t) => {
     const {
         actionSchema,
     } = t.context
@@ -194,11 +182,9 @@ test('Find on single ambiguous, accessible, apparent, labeled, top sibling shoul
     action.object.code.should.equal('aor6')
 })
 
-test('Put with single ambiguous, accessible, apparent, labeled, indirect object should fail.', (t) => {
+test('Put with single ambiguous, accessible, apparent, labeled, indirect object should fail.', () => {
 
-    const error = t.throws(() => {
-        adventure('put rock in fixture')
-    })
+    const error = adventure('put rock in fixture')
 
     error.code.should.equal('aor6')
 })
@@ -241,33 +227,31 @@ test('Look should autoresolve to parent.', (t) => {
 test('Find on all siblings should succeed.', (t) => {
     const {
         actionSchema,
-        objectSchema,
+        objectsListSchema,
     } = t.context
-    actionSchema.object = objectSchema
+    actionSchema.object = objectsListSchema
 
     const result = adventure('find all')
-    result.should.be.length(3)
-
-    result.forEach((action) => {
-        action.should.have.interface(actionSchema)
-    })
-    result.should.all.have.nested.property('object.location.parent.id', 10)
+    result.should.be.length(1)
+    const action = result[0]
+    action.should.have.interface(actionSchema)
+    action.object.should.be.length(3)
+    action.object.should.all.have.nested.property('location.parent.id', 10)
 })
 
 test('Find on all siblings except, one should succeed.', (t) => {
     const {
         actionSchema,
-        objectSchema,
+        objectsListSchema,
     } = t.context
-    actionSchema.object = objectSchema
+    actionSchema.object = objectsListSchema
 
     const result = adventure('find all except screw')
-    result.should.be.length(2)
-
-    result.forEach((action) => {
-        action.should.have.interface(actionSchema)
-    })
-    result.should.all.not.have.nested.property('object.id', 18)
+    result.should.be.length(1)
+    const action = result[0]
+    action.should.have.interface(actionSchema)
+    action.object.should.be.length(2)
+    action.object.should.all.not.have.property('id', 18)
 })
 
 test('Find on general determined, ambiguous, apparent, accessible, sibling should succeed.', (t) => {
@@ -300,32 +284,28 @@ test('Find on general, ambiguous, apparent, accessible, sibling should succeed.'
 test('Find on all described siblings should succeed.', (t) => {
     const {
         actionSchema,
-        objectSchema,
+        objectsListSchema,
     } = t.context
-    actionSchema.object = objectSchema
+    actionSchema.object = objectsListSchema
 
     const result = adventure('find red all')
-    result.should.be.length(2)
+    result.should.be.length(1)
 
-    result.forEach((action) => {
-        action.should.have.interface(actionSchema)
-    })
-    result.should.contain.one.with.nested.property('object.id', 18)
-    result.should.contain.one.with.nested.property('object.id', 19)
+    const action = result[0]
+    action.should.have.interface(actionSchema)
+    action.object.should.be.length(2)
+    action.object.should.contain.one.with.property('id', 18)
+    action.object.should.contain.one.with.property('id', 19)
 })
 
-test('Go on multiple object should fail.', (t) => {
-    const error = t.throws(() => {
-        adventure('go all')
-    })
+test('Go on multiple object should fail.', () => {
+    const error = adventure('go all')
 
     error.code.should.equal('aor7')
 })
 
-test('Go on general object should fail.', (t) => {
-    const error = t.throws(() => {
-        console.log(adventure('go anything'))
-    })
+test('Go on general object should fail.', () => {
+    const error = adventure('go anything')
 
     error.code.should.equal('aor7')
 })
@@ -395,15 +375,13 @@ test('Read should autoresolve to a fixture if necessary.', (t) => {
 test('Look at all should not include fixtures.', (t) => {
     const {
         actionSchema,
-        objectSchema,
+        objectsListSchema,
     } = t.context
-    actionSchema.object = objectSchema
+    actionSchema.object = objectsListSchema
 
     const result = adventure('look all')
-    result.should.be.length(3)
-
-    result.should.all.not.have.nested.property('object.id', 14)
-    result.forEach((action) => {
-        action.should.have.interface(actionSchema)
-    })
+    result.should.be.length(1)
+    const action = result[0]
+    action.should.have.interface(actionSchema)
+    action.object.should.all.not.have.property('id', 14)
 })
