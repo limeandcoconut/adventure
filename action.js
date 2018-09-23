@@ -1,13 +1,12 @@
 class Action {
     constructor(verb) {
-        let {text, object, indirect, tool} = verb
+        let {value, object, indirect, tool, word} = verb
         this.steps = {}
         this.live = true
         this.object = object
         this.indirect = indirect
         this.tool = tool
-        this.word = text
-        this.verb = verb
+        this.word = word || value
         this.accessibleRequired = true
         this.apparentRequired = true
         // this.variants = {}
@@ -62,10 +61,7 @@ class Action {
     // }
 
     clone() {
-        const clone = new this.constructor({
-            word: this.word,
-            object: this.object,
-        })
+        const clone = new this.constructor(this)
         clone.live = this.live
         const steps = {}
         const keys = Object.keys(this.steps)
@@ -74,30 +70,39 @@ class Action {
             steps[step] = Object.assign({}, this.steps[step])
         }
         clone.steps = steps
+        clone.type = this.type
 
         clone.procedure = this.procedure.slice()
         clone.reporter = this.reporter
-        clone.fault = this.faul
+        clone.fault = this.fault
 
-        clone.bifurcated = this.bifurcated
-        clone.entity = Object.assign({}, this.entity)
+        clone.entity = this.entity
         clone.initiative = this.initiative
+        clone.accessibleRequired = this.accessibleRequired
+        clone.apparentRequired = this.apparentRequired
+
+        clone.verb = this.verb
 
         const copy = [
             'word',
             'object',
+            'tool',
+            'indirect',
+            'value',
             'live',
             'steps',
+            'type',
             'procedure',
             'reporter',
             'fault',
-            'bifurcated',
             'entity',
             'initiative',
-
+            'apparentRequired',
+            'accessibleRequired',
             'variants',
+            'verb',
         ]
-        const props = Object.keys(keys)
+        const props = Object.keys(this)
         while (props.length) {
             let prop = props.shift()
             if (!copy.includes(prop)) {
