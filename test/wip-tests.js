@@ -5,7 +5,10 @@ chai.should()
 chai.use(require('chai-interface'))
 chai.use(require('chai-things'))
 
-adventure.debugMode = 'resolve'
+adventure.debugMode = {
+    resolve: true,
+    verbs: true,
+}
 adventure.silent = true
 
 const globalObjectSchema = {

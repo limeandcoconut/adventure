@@ -1,11 +1,11 @@
 const entities = require('./entities')
-const ResolverSystem = require('./systems/resolver-system')
-const LocatorSystem = require('./systems/locator-system')
+// const ResolverSystem = require('./systems/resolver-system')
+// const LocatorSystem = require('./systems/locator-system')
 const GetterSystem = require('./systems/getter-system')
 const DroppingSystem = require('./systems/dropping-system')
 const InventorySystem = require('./systems/inventory-system')
 const OpenSystem = require('./systems/open-system')
-const CloseSystem = require('./systems/close-system')
+// const CloseSystem = require('./systems/close-system')
 const MovementSystem = require('./systems/movement-system')
 const BeginSystem = require('./systems/begin-system')
 const LookSystem = require('./systems/look-system')
@@ -25,15 +25,15 @@ const {
     Area,
     Option,
     Tool,
+    Actor,
 } = require('./components.js')
 
-let resolverSystem = new ResolverSystem()
-let locatorSystem = new LocatorSystem()
+// let resolverSystem = new ResolverSystem()
+// let locatorSystem = new LocatorSystem()
 let getterSystem = new GetterSystem()
 let droppingSystem = new DroppingSystem()
 let inventorySystem = new InventorySystem()
 let openSystem = new OpenSystem()
-let closeSystem = new CloseSystem()
 let movementSystem = new MovementSystem()
 let beginSystem = new BeginSystem()
 let lookSystem = new LookSystem()
@@ -42,10 +42,9 @@ let readSystem = new ReadSystem()
 let checkSystem = new CheckSystem()
 
 let systems = {
-    resolve: resolverSystem,
-    locate: locatorSystem,
+    // resolve: resolverSystem,
+    // locate: locatorSystem,
     open: openSystem,
-    close: closeSystem,
     get: getterSystem,
     drop: droppingSystem,
     inventory: inventorySystem,
@@ -247,6 +246,7 @@ function createPlayer(props = {}) {
         fixture,
         visible,
         transparent,
+        initiative,
     } = props
     let player = {
         id: newId(),
@@ -255,6 +255,7 @@ function createPlayer(props = {}) {
         descriptors: new Descriptors(['you', 'self', 'me', 'myself'], []),
         container: new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface}),
         properties: new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}),
+        actor: new Actor(initiative),
     }
 
     return player
@@ -606,6 +607,6 @@ if (newId.lowestFreeId === 10) {
 module.exports = {
     systems,
     player,
-    generalInputProcess,
+    // generalInputProcess,
     processes,
 }

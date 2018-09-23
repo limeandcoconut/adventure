@@ -1,24 +1,19 @@
 const Action = require('./action')
 const {
-    // list,
     parentOf,
     entity,
-    // childrenOf,
     contentsOf,
     deepChildrenOf,
-    // deepContentsOf,
     visible,
     tool,
-    // deep,
     siblingsOf,
     firstOne,
     onlyOne,
-    // either,
     legible,
     appropriate,
 } = require('./resolve-helpers')
 /* eslint-disable require-jsdoc */
-let baseProcess = ['locate']
+let baseProcess = []
 
 // TODO: Allow for different accessiblity for different objects.
 class Find extends Action {
@@ -67,11 +62,6 @@ Get.prototype.context.set('object', {
     from: parentOf(entity()),
     all: appropriate(siblingsOf(entity())),
 })
-// Get.prototype.variants = {foo: 'foo'}
-// Get.prototype.context.set('indirect', {
-//     // resolve: parentOf(entity()),
-
-// })
 
 class Pick extends Action {
     constructor(verb) {
@@ -157,8 +147,8 @@ class Begin extends Action {
         this.type = 'begin'
         this.procedure = [
             'begin',
-            'locate',
-            'look',
+            // 'locate',
+            // 'look',
         ]
         this.reporter = this.type
     }
@@ -169,6 +159,7 @@ class Open extends Action {
         super(verb)
 
         this.type = 'open'
+        this.desired = this.word === 'open'
         this.procedure = baseProcess.concat('open')
         this.reporter = this.type
     }
@@ -182,23 +173,23 @@ Open.prototype.variants = {
     up: Open,
 }
 
-class Close extends Action {
-    constructor(verb) {
-        super(verb)
+// class Close extends Action {
+//     constructor(verb) {
+//         super(verb)
 
-        this.type = 'close'
-        this.procedure = baseProcess.concat('close')
-        this.reporter = this.type
-    }
-}
-Close.prototype.context = new Map(Action.prototype.context)
-Close.prototype.context.set('object', {
-    from: parentOf(entity()),
-})
+//         this.type = 'close'
+//         this.procedure = baseProcess.concat('close')
+//         this.reporter = this.type
+//     }
+// }
+// Close.prototype.context = new Map(Action.prototype.context)
+// Close.prototype.context.set('object', {
+//     from: parentOf(entity()),
+// })
 
-Close.prototype.variants = {
-    up: Close,
-}
+// Close.prototype.variants = {
+//     up: Close,
+// }
 
 class Put extends Action {
     constructor(verb) {
@@ -245,7 +236,6 @@ Read.prototype.context.set('object', {
     // },
     resolve: onlyOne(appropriate(legible(deepChildrenOf(parentOf(entity()))))),
     from: parentOf(entity()),
-    // inaccessible: true,
 })
 
 class Check extends Action {
@@ -253,7 +243,7 @@ class Check extends Action {
         super(verb)
 
         this.type = 'check'
-        this.desired = verb.text === 'check'
+        this.desired = this.word === 'check'
         this.procedure = baseProcess.concat('check')
         this.reporter = this.type
     }
@@ -311,7 +301,7 @@ const actions = {
     i: Inventory,
     go: Go,
     open: Open,
-    close: Close,
+    close: Open,
     look: Look,
     l: Look,
     read: Read,

@@ -5,7 +5,10 @@ chai.should()
 chai.use(require('chai-interface'))
 chai.use(require('chai-things'))
 
-adventure.debugMode = 'resolve'
+adventure.debugMode = {
+    resolve: true,
+    verbs: true,
+}
 adventure.silent = true
 
 const globalObjectSchema = {
@@ -238,33 +241,33 @@ test('Look should autoresolve to parent.', (t) => {
 test('Find on all siblings should succeed.', (t) => {
     const {
         actionSchema,
-        objectsListSchema,
+        objectSchema,
     } = t.context
-    actionSchema.object = objectsListSchema
+    actionSchema.object = objectSchema
 
     const result = adventure('find all')
-    result.should.be.length(1)
-    const action = result[0]
-    action.should.have.interface(actionSchema)
-    action.object.length.should.equal(3)
-    action.object.forEach(({
-        location,
-    }) => location.parent.id.should.equal(10))
+    result.should.be.length(3)
+
+    result.forEach((action) => {
+        action.should.have.interface(actionSchema)
+    })
+    result.should.all.have.nested.property('object.location.parent.id', 10)
 })
 
 test('Find on all siblings except, one should succeed.', (t) => {
     const {
         actionSchema,
-        objectsListSchema,
+        objectSchema,
     } = t.context
-    actionSchema.object = objectsListSchema
+    actionSchema.object = objectSchema
 
     const result = adventure('find all except screw')
-    result.should.be.length(1)
-    const action = result[0]
-    action.should.have.interface(actionSchema)
-    action.object.length.should.equal(2)
-    action.object.should.not.any.equal(18)
+    result.should.be.length(2)
+
+    result.forEach((action) => {
+        action.should.have.interface(actionSchema)
+    })
+    result.should.all.not.have.nested.property('object.id', 18)
 })
 
 test('Find on general determined, ambiguous, apparent, accessible, sibling should succeed.', (t) => {
@@ -297,17 +300,18 @@ test('Find on general, ambiguous, apparent, accessible, sibling should succeed.'
 test('Find on all described siblings should succeed.', (t) => {
     const {
         actionSchema,
-        objectsListSchema,
+        objectSchema,
     } = t.context
-    actionSchema.object = objectsListSchema
+    actionSchema.object = objectSchema
 
     const result = adventure('find red all')
-    result.should.be.length(1)
-    const action = result[0]
-    action.should.have.interface(actionSchema)
-    action.object.length.should.equal(2)
-    action.object.should.include.one.with.property('id', 19)
-    action.object.should.include.one.with.property('id', 18)
+    result.should.be.length(2)
+
+    result.forEach((action) => {
+        action.should.have.interface(actionSchema)
+    })
+    result.should.contain.one.with.nested.property('object.id', 18)
+    result.should.contain.one.with.nested.property('object.id', 19)
 })
 
 test('Go on multiple object should fail.', (t) => {
@@ -391,14 +395,15 @@ test('Read should autoresolve to a fixture if necessary.', (t) => {
 test('Look at all should not include fixtures.', (t) => {
     const {
         actionSchema,
-        objectsListSchema,
+        objectSchema,
     } = t.context
-    actionSchema.object = objectsListSchema
+    actionSchema.object = objectSchema
 
     const result = adventure('look all')
-    result.should.be.length(1)
-    const action = result[0]
-    action.should.have.interface(actionSchema)
-    action.object.length.should.equal(3)
-    action.object.should.not.include.one.with.property('id', 14)
+    result.should.be.length(3)
+
+    result.should.all.not.have.nested.property('object.id', 14)
+    result.forEach((action) => {
+        action.should.have.interface(actionSchema)
+    })
 })

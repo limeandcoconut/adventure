@@ -211,7 +211,7 @@ function resolveCandidates({object, from, except, context = {}, action}, describ
     if (!described && (object.multiple || object.general)) {
         if (!context.all) {
             let type = object.multiple ? 'multiple' : 'general'
-            throw new ResolveError(`Cannot use ${type} noun with the verb "${action.verb.value}"`, 'aor7')
+            throw new ResolveError(`Cannot use ${type} noun with the verb "${action.word}"`, 'aor7')
         }
         candidates = context.all
     } else {

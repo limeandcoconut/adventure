@@ -1,5 +1,5 @@
-const {parser, lexer} = require('./parser')
-const {interpreter} = require('./interpreter')
+// const {parser, lexer} = require('./parser')
+// const {interpreter} = require('./interpreter')
 /* eslint-disable require-jsdoc, complexity */
 
 function describeContents({contents, opening = 'a ', closing = '', level = 0}) {
@@ -354,24 +354,25 @@ const responses = {
     },
 }
 
-const machines = {
-    lexer,
-    parser,
-    interpreter,
-}
+// const machines = {
+//     lexer,
+//     parser,
+//     interpreter,
+// }
 
 function formatResponse(output) {
     // Errors:
     if (output instanceof Error) {
-        let errorClass = Object.keys(output).reduce((str, key) => (key.match(/is(.*?)e?Error/i) || [])[1], '')
-        errorClass += 'er'
-        errorClass = errorClass.toLowerCase()
-        if (!errorClass) {
-            return responses.errors.general.fatal()
-        }
-        const errorMeta = machines[errorClass].errorMeta
-        const handler = responses.errors[errorClass][errorMeta.type]
-        const response = handler(errorMeta)
+        // const {code, meta} = output
+        // let errorClass = Object.keys(output).reduce((str, key) => (key.match(/is(.*?)e?Error/i) || [])[1], '')
+        // errorClass += 'er'
+        // errorClass = errorClass.toLowerCase()
+        // if (!errorClass) {
+        //     return responses.errors.general.fatal()
+        // }
+        // const errorMeta = machines[errorClass].errorMeta
+        const handler = responses.errors[output.code]
+        const response = handler(output)
         if (response) {
             return response
         }
