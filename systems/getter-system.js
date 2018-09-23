@@ -5,43 +5,27 @@ const {put} = require('./methods')
 class GetterSystem extends System {
 
     update(action) {
-        if (!action.object.apparent) {
-            this.fail(action, {
-                reason: 'Inapparent.',
-                container: action.object.container,
-            })
-            return
-        }
-
-        if (!action.object.accessible) {
-            this.fail(action, {
-                reason: 'Inaccessible.',
-                container: action.object.container,
-            })
-            return
-        }
-
-        if (action.object.fixture) {
+        if (action.object.properties.fixture) {
             this.fail(action, {
                 reason: 'Fixture.',
-                object: action.object.id,
+                code: 'sgf1',
+                object: action.object,
             })
             return
         }
 
         // console.log('---------- GET ---------')
 
-        let entity = action.entity.id
+        const {entity, object} = action
+        const source = object.location.parent
 
-        if (action.object.parent === entity) {
+        if (source === entity) {
             this.fail(action, {
                 reason: 'Already Have.',
+                code: 'sgh1',
             })
             return
         }
-
-        let object = action.object.id
-        let source = em.getComponent('Location', object).getParent()
 
         let result = put(object, source, entity)
         if (result) {
@@ -51,12 +35,13 @@ class GetterSystem extends System {
 
         action.steps.get = {
             success: true,
+            code: 'sgs1',
         }
     }
 
     fail(action, info) {
         info.success = false
-        info.id = action.object.id
+        // info.id = action.object.id
         action.steps.get = info
         action.live = false
         action.fault = 'get'

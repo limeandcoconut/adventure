@@ -1,190 +1,190 @@
 
-
 const methods = {
     formatContents(contents, entity) {
-
         contents = Array.from(contents)
 
-        const newContents = []
+        const dummyContents = []
         for (let i = 0; i < contents.length; i++) {
-            const id = contents[i]
+            const object = contents[i]
 
-            let properties = em.getComponent('ObjectProperties', id)
-            if (id === entity || (properties && !properties.isVisible())) {
+            const properties = object.properties
+            if (object === entity || (properties && !properties.visible)) {
                 continue
             }
-            let item = {
-                id,
+            const container = object.container
+            const dummy = {
+                object,
             }
-            let container = em.getComponent('Container', id)
-            if (container && (container.isOpen() || (properties && properties.isTransparent()))) {
-                item.contents = methods.formatContents(container.getContents(), entity)
+            if (container && (container.open || (properties && properties.transparent))) {
+                dummy.contents = this.formatContents(container.contents, entity)
             }
-            newContents.push(item)
+            dummyContents.push(dummy)
         }
 
-        return newContents
+        return dummyContents
     },
 
     put(object, source, destination) {
-        const objectProperties = em.getComponent('ObjectProperties', object)
+        // const object.properties = object.properties
 
-        if (objectProperties.isFixture()) {
+        if (object.properties.fixture) {
             return {
                 reason: 'Fixture.',
+                code: 'mpf1',
                 object,
             }
         }
 
-        const destinationContainer = em.getComponent('Container', destination)
+        // const destination.container = destination.container
 
         // Build a list of containers already carrying this load.
         let parent = source
         let sourceParents = [parent]
 
         do {
-            parent = em.getComponent('Location', parent).getParent()
+            parent = parent.location.parent
             sourceParents.push(parent)
-            // If the destination is in the list or the list is complete stop.
+        // If the destination is in the list or the list is complete stop.
         } while (parent && parent !== destination)
 
         // If the destination is closed and doesn't contain the source, fail.
-        if (!destinationContainer.isOpen() && !sourceParents.includes(destination)) {
+        // TODO: Check if you can move an item up inside a nested set of containers whose parent is closed to you.
+        if (!destination.container.open && !sourceParents.includes(destination)) {
             return {
                 success: false,
                 reason: 'Destination closed.',
+                code: 'mpc1',
                 object,
                 destination,
             }
         }
 
-        const destinationFreeVolume = destinationContainer.getFreeVolume()
+        // const destinationFreeVolume = destination.container.freeVolume
 
-        const objectSize = objectProperties.getSize()
+        // const object.properties.size = object.properties.size
 
-        // If the object wont fit into the destination fail.
-        if (objectSize > destinationFreeVolume) {
+        // If the object won't fit into the destination fail.
+        if (object.properties.size > destination.container.freeVolume) {
             return {
                 success: false,
                 reason: 'Too Big.',
+                code: 'mpb1',
                 object,
                 destination,
-                // container: destination,
             }
         }
 
         // Refit if the load is valid through the whole tree.
-        const objectWeight = objectProperties.getWeight()
+        // const objectWeight = object.properties.weight
         // If a reason is returned then this failed.
         // If parents are returned that means this was successful and they should be modified.
-        sourceParents = this.checkWeight(objectWeight, destination, destinationContainer, sourceParents)
-        if (sourceParents.reason) {
+        sourceParents = this.checkWeight(object.properties.weight, destination, sourceParents)
+        if (sourceParents.code) {
             sourceParents.object = object
             return sourceParents
         }
 
-        // Weights were successfully refit so refit the parents' weights.
+        // Weights were successfully refit, so refit the parents' weights.
         // There's no guarantee that a parent will need it's weight modified.
         parent = sourceParents.shift()
         while (parent) {
-            let parentProperties = em.getComponent('ObjectProperties', parent)
-            let parentWeight = em.getComponent('ObjectProperties', parent).getWeight()
-            parentProperties.setWeight(parentWeight - objectWeight)
+            // let parentProperties = em.getComponent('ObjectProperties', parent)
+            // let parentWeight = em.getComponent('ObjectProperties', parent).getWeight()
+            parent.properties.weight -= object.properties.weight
             parent = sourceParents.shift()
         }
 
         // Set the destination's volume.
-        destinationContainer.setFreeVolume(destinationFreeVolume - objectSize)
+        destination.container.freeVolume -= object.properties.size
 
         // Set the destination's contents.
-        destinationContainer.setContents(destinationContainer.getContents().add(object))
+        destination.container.contents.push(object)
         // Set the object to be in the destination.
-        em.getComponent('Location', object).setParent(destination)
+        object.location.parent = destination
 
         // Remove the object from the source's contents
-        const sourceContainer = em.getComponent('Container', source)
-        const sourceContents = sourceContainer.getContents()
-        sourceContents.delete(object)
-        sourceContainer.setContents(sourceContents)
+        // const sourceContainer = em.getComponent('Container', source)
+        // const sourceContents = sourceContainer.getContents()
+        source.container.contents.splice(source.container.contents.indexOf(object), 1)
+        // sourceContainer.setContents(sourceContents)
 
         // Increase the source's free volume.
-        const sourceFreeVolume = sourceContainer.getFreeVolume()
-        sourceContainer.setFreeVolume(sourceFreeVolume + objectSize)
+        // const sourceFreeVolume = sourceContainer.getFreeVolume()
+        source.container.freeVolume += object.properties.size
 
         // this.logResults(object, source, destination)
     },
 
-    checkWeight(weight, target, targetContainer, sourceParents) {
-    // If the target container is in the list of containers already bearing this weight don't continue to refit.
+    checkWeight(weight, target, sourceParents) {
+        // If the target container is in the list of containers already bearing this weight don't continue to refit.
         let index = sourceParents.indexOf(target)
         if (index !== -1) {
         // Return the list of parents in need of a refit.
             return sourceParents.slice(0, index)
         }
         // What the target can carry.
-        const maxLoad = targetContainer.getMaxLoad()
-        const targetProperties = em.getComponent('ObjectProperties', target)
+        // const maxLoad = target.container.maxLoad
+        // const targetProperties = target.properties
         // What it currently weights including contents.
-        const targetWeight = targetProperties.getWeight()
+        // const targetWeight = targetProperties.weight
         // What it weighs empty.
-        const targetBaseWeight = targetProperties.getBaseWeight()
+        // const targetBaseWeight = targetProperties.baseWeight
         // What it would weigh with the new weight added.
         // Done this way to save a recalculation of weight for the parent.
-        const newWeight = targetWeight + weight
-        const maxWeight = targetBaseWeight + maxLoad
+        const newWeight = target.properties.weight + weight
+        const maxWeight = target.properties.baseWeight + target.container.maxLoad
         // If the new weight is withing limits this step succeeds.
         if (newWeight > maxWeight) {
             return {
                 success: false,
                 reason: 'Too heavy.',
+                code: 'mph1',
                 container: target,
             }
         }
 
-        const parent = em.getComponent('Location', target).getParent()
         // If there is a parent then check if it can support this.
-        if (parent) {
-            const parentContainer = em.getComponent('Container', parent)
+        if (target.location.parent) {
             // If the rest of the tree cannot support this, fail all the way down.
             // If a reason is returned then this has failed.
             // If parents are returned that means this was successful and they should be modified.
-            sourceParents = this.checkWeight(weight, parent, parentContainer, sourceParents)
-            if (sourceParents.reason) {
+            sourceParents = this.checkWeight(weight, target.location.parent, sourceParents)
+            if (sourceParents.code) {
                 return sourceParents
             }
         }
         // If there is no parent then there is nothing to check and the whole operation succeeds.
         // If the operation is valid for the whole tree commit it.
-        targetProperties.setWeight(newWeight)
+        target.properties.weight = newWeight
         return sourceParents
     },
 
-    logResults(object, source, destination) {
-        console.log('OBJECT:')
-        console.log(JSON.stringify(em.getComponent('ObjectProperties', object), null, 4))
-        console.log('SOURCE:')
-        console.log(JSON.stringify(em.getComponent('ObjectProperties', source), null, 4))
-        console.log(JSON.stringify(em.getComponent('Container', source), null, 4))
-        let s = em.getComponent('Location', source).getParent()
-        while (s) {
-            console.log('SOURCE PARENT:')
-            console.log(JSON.stringify(em.getComponent('ObjectProperties', s), null, 4))
-            console.log(JSON.stringify(em.getComponent('Container', s), null, 4))
-            s = em.getComponent('Location', s).getParent()
-        }
-        console.log('DESTINATION:')
-        console.log(JSON.stringify(em.getComponent('ObjectProperties', destination), null, 4))
-        console.log(JSON.stringify(em.getComponent('Container', destination), null, 4))
-        let d = em.getComponent('Location', destination).getParent()
-        while (d) {
-            console.log('DESTINATION PARENT:')
-            console.log(JSON.stringify(em.getComponent('ObjectProperties', d), null, 4))
-            console.log(JSON.stringify(em.getComponent('Container', d), null, 4))
-            d = em.getComponent('Location', d).getParent()
-        }
-        console.log('')
-        console.log('')
-    },
+    // logResults(object, source, destination) {
+    // console.log('OBJECT:')
+    // console.log(JSON.stringify(em.getComponent('ObjectProperties', object), null, 4))
+    // console.log('SOURCE:')
+    // console.log(JSON.stringify(em.getComponent('ObjectProperties', source), null, 4))
+    // console.log(JSON.stringify(em.getComponent('Container', source), null, 4))
+    // let s = em.getComponent('Location', source).getParent()
+    // while (s) {
+    //     console.log('SOURCE PARENT:')
+    //     console.log(JSON.stringify(em.getComponent('ObjectProperties', s), null, 4))
+    //     console.log(JSON.stringify(em.getComponent('Container', s), null, 4))
+    //     s = em.getComponent('Location', s).getParent()
+    // }
+    // console.log('DESTINATION:')
+    // console.log(JSON.stringify(em.getComponent('ObjectProperties', destination), null, 4))
+    // console.log(JSON.stringify(em.getComponent('Container', destination), null, 4))
+    // let d = em.getComponent('Location', destination).getParent()
+    // while (d) {
+    //     console.log('DESTINATION PARENT:')
+    //     console.log(JSON.stringify(em.getComponent('ObjectProperties', d), null, 4))
+    //     console.log(JSON.stringify(em.getComponent('Container', d), null, 4))
+    //     d = em.getComponent('Location', d).getParent()
+    // }
+    // console.log('')
+    // console.log('')
+    // },
 }
 
 const keys = Object.keys(methods)

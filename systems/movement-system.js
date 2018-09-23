@@ -9,8 +9,10 @@ class MovementSystem extends System {
         // console.log('-------- MOVE --------')
         let info
 
-        if (action.object.id) {
-            info = this.teleport(action)
+        if (action.object) {
+            // Teleport.
+            // let {entity, object} = action
+            info = this.goTo(action.object, action.entity.location.parent, action.entity, action)
         } else {
             info = this.move(action)
         }
@@ -22,40 +24,39 @@ class MovementSystem extends System {
         }
     }
 
-    teleport(action) {
-        let {entity: {id: entity}, object: {id: destination}} = action
-
-        return this.goTo(em.getComponent('Location', entity).getParent(), destination, entity, action)
-    }
+    // teleport(action) {
+    // }
 
     move(action) {
-        let {entity: {id: entity}, object: {word: direction}} = action
-        const parent = em.getComponent('Location', entity).getParent()
+        let {entity, object: {word: direction}} = action
+        const parent = entity.location.parent
 
-        let doors = em.getComponent('Area', parent).getDoors()
+        // Distill direction character codes.
         direction = direction.match(/^(n)?(?:orth)?(s)?(?:outh)?(e)?(?:ast)?(w)?(?:est)?$|^(d)?(?:own)?$|^(u)?(?:p)?$/)
         direction = direction.slice(1, 7).join('')
 
-        let destination = doors[direction]
+        let destination = parent.area.doors[direction]
 
         if (typeof destination !== 'number') {
             return {
                 reason: 'No Door.',
+                code: 'smd1',
                 direction,
                 success: false,
             }
         }
 
-        action.object.id = destination
-        const info = this.goTo(parent, destination, entity, action)
+        action.object = destination
+        const info = this.goTo(destination, parent, entity, action)
         info.direction = direction
         return info
     }
 
-    goTo(parent, destination, entity, action) {
-        if (em.getComponent('ObjectProperties', entity).isFixture()) {
+    goTo(destination, parent, entity, action) {
+        if (entity.properties.fixture) {
             return {
                 success: false,
+                code: 'smf1',
                 reason: 'Fixture.',
             }
         }
@@ -66,19 +67,17 @@ class MovementSystem extends System {
             return putResult
         }
 
-        const area = em.getComponent('Area', destination)
-        const visited = area.getVisited()
-
+        const visited = destination.area.visited
         if (!visited.includes(entity)) {
             visited.push(entity)
-            area.setVisited(visited)
-            action.procedure.push('locate')
+            // action.procedure.push('locate')
             action.procedure.push('look')
         }
 
         return {
             parent: destination,
-            area: area,
+            area: destination.area,
+            code: 'sms1',
             success: true,
         }
     }

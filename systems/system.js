@@ -30,7 +30,7 @@ module.exports = class System {
 
         this.events = []
 
-        let userUpdate = this.update
+        // let userUpdate = this.update
 
         /**
          * Wrapper for user set update method. This ensures that events will be cleared before running user logic.
@@ -39,10 +39,10 @@ module.exports = class System {
          * @return {*}                                          Return is controlled by the user but currently has no
          *                                                      use for systems.
          */
-        this.update = (function() {
-            this.clearEvents()
-            return userUpdate.apply(this, arguments)
-        }).bind(this)
+        // this.update = (function() {
+        //     // this.clearEvents()
+        //     return userUpdate.apply(this, arguments)
+        // }).bind(this)
 
     }
 

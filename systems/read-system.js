@@ -1,25 +1,17 @@
 const System = require('./system')
 
-
 class ReadSystem extends System {
 
     update(action) {
-        if (!action.object.apparent) {
-            this.fail(action, {
-                reason: 'Inapparent.',
-                container: action.object.container,
-            })
-            return
-        }
 
         // console.log('-------- READ --------')
 
-        const {object: {id: object}} = action
+        const {object} = action
 
-        const textComponent = em.getComponent('Text', object)
-        if (!textComponent) {
+        if (!object.text) {
             this.fail(action, {
                 reason: 'Nothing to Read.',
+                code: 'srn1',
             })
             return
         }
@@ -27,13 +19,12 @@ class ReadSystem extends System {
         action.steps.read = {
             success: true,
             object,
-            text: textComponent.getText(),
+            code: 'srs1',
         }
     }
 
     fail(action, info) {
         info.success = false
-        info.id = action.object.id
         action.steps.read = info
         action.live = false
         action.fault = 'read'

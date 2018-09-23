@@ -1,14 +1,12 @@
 const System = require('./system')
 
-
 class BeginSystem extends System {
 
     update(action) {
 
         // console.log('-------- BEGIN --------')
-        action.object = {
-            id: em.getComponent('Location', action.entity.id).getParent(),
-        }
+        console.log(action)
+        action.object = action.entity.location.parent
         action.steps.begin = {success: true}
     }
 

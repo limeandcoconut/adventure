@@ -1,36 +1,20 @@
 const System = require('./system')
 
-
 class OpenSystem extends System {
 
     update(action) {
-
-        if (!action.object.apparent) {
-            this.fail(action, {
-                reason: 'Inapparent.',
-                container: action.object.container,
-            })
-            return
-        }
-
-        if (!action.object.accessible) {
-            this.fail(action, {
-                reason: 'Inaccessible.',
-                container: action.object.container,
-            })
-            return
-        }
 
         // console.log('-------- OPEN --------')
 
         let object = action.object.id
 
-        let container = em.getComponent('Container', object)
+        let container = object.container
 
         if (!container) {
             this.fail(action, {
                 reason: 'Not a Container.',
-                id: action.object.id,
+                object,
+                code: 'son1',
             })
             return
         }
@@ -38,28 +22,31 @@ class OpenSystem extends System {
         if (container.isSurface()) {
             this.fail(action, {
                 reason: 'Surface.',
-                id: action.object.id,
+                object,
+                code: 'sou1',
             })
             return
         }
 
-        if (container.isOpen()) {
+        if (container.open === action.desired) {
             this.fail(action, {
-                reason: 'Already Open.',
+                reason: 'Already Done.',
+                code: 'soa1',
             })
             return
         }
 
-        container.setOpen(true)
+        container.open = action.desired
 
         action.steps.open = {
             success: true,
+            code: 'sos1',
         }
     }
 
     fail(action, info) {
         info.success = false
-        info.id = action.object.id
+        // info.id = action.object.id
         action.steps.open = info
         action.live = false
         action.fault = 'open'

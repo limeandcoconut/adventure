@@ -5,45 +5,30 @@ const {put} = require('./methods')
 class DroppingSystem extends System {
 
     update(action) {
-        const entity = action.entity.id
-        if (action.object.parent !== entity) {
+        const {entity, object} = action
+        if (object.location.parent !== entity) {
             this.fail(action, {
                 reason: 'Don\'t have.',
+                code: 'sdh1',
             })
             return
         }
 
-        if (!action.object.apparent) {
-            this.fail(action, {
-                reason: 'Inapparent.',
-                container: action.object.container,
-            })
-            return
-        }
-
-        if (!action.object.accessible) {
-            this.fail(action, {
-                reason: 'Inaccessible.',
-                container: action.object.container,
-            })
-            return
-        }
-
-        if (action.object.fixture) {
+        if (object.properties.fixture) {
             this.fail(action, {
                 reason: 'Fixture.',
-                object: action.object.id,
+                code: 'sdf1',
+                object,
             })
             return
         }
 
-        console.log('-------- DROP --------')
+        // console.log('-------- DROP --------')
 
-        const object = action.object.id
-        const source = entity
-        const destination = em.getComponent('Location', entity).getParent()
+        // const source = entity
+        // const destination = entity.location.parent
 
-        let result = put(object, source, destination)
+        let result = put(object, entity, entity.location.parent)
         if (result) {
             this.fail(action, result)
             return
@@ -51,13 +36,14 @@ class DroppingSystem extends System {
 
         action.steps.drop = {
             success: true,
+            code: 'sds1',
         }
     }
 
     fail(action, info) {
         info.success = false
+        // info.id = action.object.id
         action.steps.drop = info
-        info.id = action.object.id
         action.live = false
         action.fault = 'drop'
     }

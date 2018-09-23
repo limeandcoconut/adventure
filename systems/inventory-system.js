@@ -7,16 +7,10 @@ class InventorySystem extends System {
     update(action) {
         console.log('-------- INVENTORY --------')
 
-        let entity = action.entity.id
-
-        let container = em.getComponent('Container', entity)
-        let contents = container.getContents()
-
-        contents = formatContents(contents, entity)
-
         action.steps.inventory = {
             success: true,
-            inventory: contents,
+            code: 'sis1',
+            inventory: formatContents(action.entity.container.contents, action.entity),
         }
     }
 }

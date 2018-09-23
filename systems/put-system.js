@@ -4,75 +4,36 @@ const {put} = require('./methods')
 class PutSystem extends System {
 
     update(action) {
-        let {entity: {id: entity}, object} = action
-        let indirect = object.object
+        let {entity, object, indirect} = action
 
-        if (object.id === indirect.id) {
+        if (object === indirect) {
             this.fail(action, {
                 reason: 'Inceptive.',
-                object: object.id,
+                code: 'spi1',
+                object,
             })
             return
         }
 
-        if (object.fixture) {
+        if (object.properties.fixture) {
             this.fail(action, {
                 reason: 'Fixture.',
-                object: object.id,
+                code: 'spf1',
+                object,
             })
             return
         }
 
-        if (!object.apparent) {
-            this.fail(action, {
-                reason: 'Inapparent.',
-                object: object.id,
-                container: object.container,
-            })
-            return
-        }
+        // console.log('---------- PUT ---------')
 
-        if (!object.accessible) {
-            this.fail(action, {
-                reason: 'Inaccessible.',
-                object: object.id,
-                container: object.container,
-            })
-            return
-        }
-
-        if (!indirect.apparent) {
-            this.fail(action, {
-                reason: 'Inapparent.',
-                object: indirect.id,
-                container: indirect.container,
-            })
-            return
-        }
-
-        if (!indirect.accessible) {
-            this.fail(action, {
-                reason: 'Inaccessible.',
-                object: indirect.id,
-                container: indirect.container,
-            })
-            return
-        }
-
-        console.log('---------- PUT ---------')
-
-        if (object.parent !== entity) {
+        if (object.location.parent !== entity) {
             // TODO: Maybe these should be put into different actions.
             action.procedure.push('get')
-            action.procedure.push('locate')
             action.procedure.push('put')
             return
         }
-        object = object.id
-        const destination = indirect.id
-        const source = entity
 
-        let result = put(object, source, destination)
+        let result = put(object, entity, indirect)
         if (result) {
             this.fail(action, result)
             return
@@ -80,12 +41,13 @@ class PutSystem extends System {
 
         action.steps.put = {
             success: true,
+            code: 'sps1',
         }
     }
 
     fail(action, info) {
         info.success = false
-        info.id = info.object
+        // info.id = info.object
         action.steps.put = info
         action.live = false
         action.fault = 'put'
