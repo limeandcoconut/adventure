@@ -104,12 +104,12 @@ class Container {
         }
         this.maxLoad = maxLoad
 
-        if (typeof contents.entries !== 'function') {
-            if (!Array.isArray(contents)) {
-                throw new TypeError('Argument \'contents\' must be an Array or Set')
-            }
-            contents = new Set(contents)
+        // if (typeof contents.entries !== 'function') {
+        if (!Array.isArray(contents)) {
+            throw new TypeError('Argument \'contents\' must be an Array')
         }
+        // contents = new Set(contents)
+        // }
         this.contents = contents
 
         if (typeof fixtures.entries !== 'function') {
@@ -164,6 +164,12 @@ class Location {
     }
 }
 
+class Actor {
+    constructor(initiative = 2) {
+        this.initiative = initiative
+    }
+}
+
 /* eslint-disable require-jsdoc */
 function assertBoolean(bool) {
     if (typeof bool !== 'boolean') {
@@ -182,4 +188,5 @@ module.exports = {
     Area,
     Option,
     Tool,
+    Actor,
 }
