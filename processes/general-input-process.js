@@ -15,8 +15,10 @@ class GeneralInputProcess extends Process {
     }
 
     update() {
-        console.log('-------- GENERAL PROCESS --------')
         let actions = this.generalActionQueue
+        if (actions.length) {
+            console.log('-------- GENERAL PROCESS --------')
+        }
         this.generalActionQueue = []
         return actions
     }
