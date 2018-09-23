@@ -7,145 +7,96 @@ grammar = nearley.Grammar.fromCompiled(grammar)
 const resolve = require('./resolve')
 const {ResolveError} = require('./resolve-helpers')
 
-// const formatResponse = require('./responses')
-// const {
-//     begin: Begin,
-//     // go: Go,
-// } = require('./actions')
+const formatResponse = require('./responses')
+const {
+    begin: Begin,
+    // go: Go,
+} = require('./actions')
 const actionTypes = require('./actions')
 /* eslint-disable require-jsdoc */
 const {systems, player, processes} = require('./setup')
-// let debugMode = null
-// const debugTest = /^\s*debug:\s*(.*)/i
-// const {logAction} = require('./helpers')
+let gameStarted = false
+adventure.debugMode = {}
+function log() {
+    if (adventure.silent) {
+        return
+    }
+    console.log(...arguments)
+}
 
-// let gameStarted = false
+function debug() {
+    console.log(...arguments)
+}
 
 module.exports = adventure
 function adventure(line) {
-    if (!adventure.silent) {
-        console.log('')
-        console.log('################################')
-        console.log('########### NEW INPUT ##########')
-    }
+    log('')
+    log('################################')
+    log('########### NEW INPUT ##########')
 
-    // if (debugMode === null) {
-    //     console.log(adventure.debug)
-    //     debugMode = debugTest.test(line)
-    //     if (debugMode) {
-    //         line = line.match(debugTest)[1]
-    //     }
-    // }
     // Create a Parser object from our grammar
     const parser = new nearley.Parser(grammar)
     // Lex and parse.
     try {
         parser.feed(line)
     } catch (error) {
-        // console.log(JSON.stringify(error, null, 4))
-        // console.log(error.offset)
-        // if (error.token) {
-        console.log(error.code)
-        throw error
-        return formatResponse(error)
-        // }
+        log(error.code)
+        // throw error
+        return respond(error)
     }
 
     if (parser.results.length > 1) {
-        throw new Error('Can\'t parse reliably')
+        throw new Error('Can\'t parse reliably. This is not an expected error.')
     }
 
-    let actions = parser.results[0].map((verb) => {
-        // console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&')
-        // console.log(verb)
-        // console.log(JSON.stringify(verb, null, 4))
-        if (verb.type !== 'verb') {
-            return new ResolveError('Noun only.', 'acn1')
-        }
+    let actions = parser.results[0].map(createAction)
 
-        const constructor = actionTypes[verb.value]
-        if (!constructor) {
-            throw new ResolveError('No such action', 'act1')
-        }
-        const action = !verb.modifiers.length ? new constructor(verb) : constructor.delegate(verb)
-        action.entity = player
-        return action
-    })
+    // Resolve objects on actions
+    try {
+        resolve(actions)
+    } catch (error) {
+        log(error.code)
+        // throw error
+        return respond(error)
+    }
 
-    resolve(actions)
-    // console.log(actions)
-    if (adventure.debugMode === 'resolve') {
-        // console.log(actions)
-        // console.log('*')
-        // console.log('*')
+    if (!gameStarted) {
+        beginGame(actions)
+    }
+
+    if (adventure.debugMode.resolve) {
+        // let debugActions = [action, ...actions]
+        // debug(debugActions)
+        // debug('*')
         return actions
     }
-    // console.log(JSON.stringify(actions, null, 4))
-    return
-
-    // // Parser errors.
-    // if (parseTree instanceof Error) {
-    //     return formatResponse(parseTree)
-    // }
-    // Remove empty nodes
-    // parseTree = parseTree.filter((node) => node)
-    // console.log('*********** PARSE TREE **********')
-    // console.log(JSON.stringify(parseTree, null, 1))
-
-    // if (!parseTree.length && gameStarted) {
-    //     return formatResponse(parseTree)
-    // }
 
     // ###########
-    // Interpret actions
-    // let actions = interpret(parseTree)
-    // // Filter null actions/nodes.
-    // let filteredActions = []
-    // for (let i = 0; i < actions.length; i++) {
-    //     let action = actions[i]
-    //     console.log('*********** ACTION **********')
-    //     logAction(action)
-    //     console.log('')
-    //     if (action instanceof Error) {
-    //         return formatResponse(action)
-    //     }
-    //     filteredActions.push(action)
-    // }
-
-    // actions = filteredActions
-
-    // if (!gameStarted) {
-    //     beginGame(actions)
-    // }
 
     // // Construct response from executing actions.
-    // let output = ''
+    let output = ''
 
-    // while (actions.length) {
-    //     let action = actions.shift()
-    //     console.log('*********** EXECUTE MAIN **********')
+    while (actions.length) {
+        let action = actions.shift()
+        log('*********** EXECUTE MAIN **********')
 
-    //     // Add properties to action.
-    //     action.entity = {
-    //         id: player,
-    //     }
-    //     action.initiative = 2
+        // Split actions.
+        if (action.object && action.object.length) {
+            const objects = action.object
+            let newAction
+            while (objects.length) {
+                if (newAction) {
+                    actions.unshift(newAction)
+                }
+                newAction = action.clone()
+                newAction.object = objects.shift()
+            }
+            action = newAction
+        }
 
-    //     if (action.object) {
-    //         //  If the object is a bifurcation or need preresolution get all variants of this action.
-    //         let variants = bifurcate(action)
-
-    //         if (variants.length) {
-    //             // Add the new variant actions to the list.
-    //             actions = variants.concat(actions)
-    //             // Set the current action to the first one
-    //             action = actions.shift()
-    //         }
-    //     }
-
-    //     output += execute(action)
-    // }
-    // return output + '\n'
+        output += execute(action)
+    }
+    return output + '\n'
 }
 
 function execute(action) {
@@ -169,7 +120,6 @@ function execute(action) {
 
     for (let i = 0; i < actions.length; i++) {
         const action = actions[i]
-
         // Do each step listed by that action.
         let procedure = action.procedure
         let j = 0
@@ -182,15 +132,27 @@ function execute(action) {
         } while (j < procedure.length)
 
         // TODO: Adjust this to account for the acting entity.
-        let output = ` \n${formatResponse(action)}`
+        // if (adventure.debugMode.codes) {
+        //     output
+        // } else {
+        let output = ` \n${respond(action)}`
+        // }
 
-        if (!output) {
-            output += console.log(JSON.stringify(action, null, 4))
+        if (!output || adventure.debugMode.codes) {
+            let {type, steps, info, success, fault, reporter} = action
+            output = {
+                type,
+                steps,
+                info,
+                success,
+                fault,
+                reporter,
+            }
+            output = JSON.stringify(output, null, 4) + '\n'
         }
         response += output
-
     }
-    console.log('\n \n')
+    log('\n \n')
     return response
 }
 
@@ -198,25 +160,12 @@ function beginGame(actions) {
     gameStarted = true
 
     if (!actions.length || actions[0].type !== 'begin') {
-        console.log(`It doesn't look like you've begun yet. Lets do that.`)
-        // lookAction.object = {
-        //     word: 'room',
-        //     descriptors: [],
-        // }
-        // actions.unshift(lookAction)
-
-        // goAction.object = {
-        //     id: 10,
-        //     // word: 'room',
-        //     descriptors: [],
-        // }
-        // actions.unshift(goAction)
-
-        // actions.unshift(beginningAction)
-        let beginningAction = new Begin('begin')
+        log(`It doesn't look like you've begun yet. Lets do that.`)
+        let beginningAction = new Begin({word: 'begin'})
+        beginningAction.entity = player
+        beginningAction.initiative = player.actor.initiative
         actions.unshift(beginningAction)
     }
-
 }
 
 function byInitiative(a, b) {
@@ -229,3 +178,27 @@ function byInitiative(a, b) {
     return 0
 }
 
+function createAction(verb) {
+    if (verb.type !== 'verb') {
+        return new ResolveError('Noun only.', 'acn1')
+    }
+
+    const constructor = actionTypes[verb.value]
+    if (!constructor) {
+        throw new ResolveError('No such action', 'act1')
+    }
+    const action = !verb.modifiers.length ? new constructor(verb) : constructor.delegate(verb)
+    action.entity = player
+    action.initiative = player.actor.initiative
+    if (adventure.debugMode.verbs) {
+        action.verb = verb
+    }
+    return action
+}
+
+function respond(output) {
+    if (adventure.debugMode.codes) {
+        return output
+    }
+    return formatResponse(output)
+}
