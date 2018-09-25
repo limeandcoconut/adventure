@@ -1,39 +1,52 @@
 // const {parser, lexer} = require('./parser')
 // const {interpreter} = require('./interpreter')
 /* eslint-disable require-jsdoc, complexity */
+// const {formatContents} = require('./systems/methods.js')
+// const entities = require('./entities')
 
 function describeContents({contents, opening = 'a ', closing = '', level = 0}) {
     let tab = '    '
     let indent = tab.repeat(level)
     let output = ''
+    if (!level) {
+        let c = contents.map(simplify)
+        console.log(JSON.stringify(c, null, 4))
+    }
     if (contents.length) {
         if (level) {
             output += `${indent}It contains:\n`
         }
-    }
-    for (let i = 0; i < contents.length; i++) {
-        const {id, contents: itemContents} = contents[i]
-        const name = em.getComponent('Descriptors', id).getName()
-        output += `${tab}${indent}${opening}${name}${closing}\n`
+        for (let i = 0; i < contents.length; i++) {
+            const {object, contents: itemContents} = contents[i]
+            const name = object.descriptors.name
+            output += `${indent}${tab}${opening}${name}${closing}\n`
 
-        if (itemContents) {
-            output += describeContents({
-                contents: itemContents,
-                level: level + 1,
-            })
+            if (itemContents) {
+                output += describeContents({
+                    contents: itemContents,
+                    level: level + 1,
+                })
+            }
         }
     }
 
     return output
 }
 
-const missingParseParts = {
-    'conjunction': 'noun',
-    'verb': 'noun',
-    'adverb': 'verb',
-    'preposition-adverb-postfix': 'verb',
-    'preposition-phrase-infix': 'noun',
+function simplify({object, contents}) {
+    if (contents && contents.length) {
+        contents = contents.map(simplify)
+    }
+    return {object: object.id, contents}
 }
+
+// const missingParseParts = {
+//     'conjunction': 'noun',
+//     'verb': 'noun',
+//     'adverb': 'verb',
+//     'preposition-adverb-postfix': 'verb',
+//     'preposition-phrase-infix': 'noun',
+// }
 
 const responses = {
     errors: {
@@ -91,58 +104,58 @@ const responses = {
             return `I don't understand how you used the ${type} "${word}".`
         },
 
-        lexer: {
-            // unknownWord({word}) {
-            //     return `I'm sorry, I don't know the word "${word}".`
-            // },
-            // unknownChar({char}) {
-            //     return `I'm sorry, I don't know what "${char}" means.`
-            // },
-        },
-        parser: {
-            unexpectedToken({token, binder}) {
-                const type = binder ? binder.type : token.type
-                const missing = missingParseParts[type]
-                if (missing) {
-                    return `There seems to be an ${missing} missing from that sentence.`
-                }
-                if (token.type !== parser.endToken) {
-                    return `I don't understand how you used the word "${token.word}".`
-                }
-            },
-        },
-        interpreter: {
-            adjectiveNoMultiple({multiple}) {
-                return `You can't use adjectives with the multiple noun '${multiple}'.`
-            },
-            adjectiveNoPronoun({pronoun}) {
-                return `You can't use adjectives with the pronoun '${pronoun}' like that.`
-            },
-            verbObjectCount({verb, min, max, count}) {
-                if (typeof min !== 'undefined') {
-                    return `I don't know how to '${verb}' with only ${count} object${count > 1 ? 's' : ''}.`
-                }
-                return `I don't know how to '${verb}' ${count - 1} indirect object${count > 2 ? 's' : ''}.`
-            },
-            // verbNoInfix({verb, disallowed: [disallowed]}) {
-            //     return `I don't know how to '${verb}' '${disallowed}' something`
-            // },
-            // indirectNoMultiple({infix, multiple}) {
-            //     return `You can't use the multiple noun '${multiple}' as an indirect object like that.`
-            // },
-        },
+        // lexer: {
+        // unknownWord({word}) {
+        //     return `I'm sorry, I don't know the word "${word}".`
+        // },
+        // unknownChar({char}) {
+        //     return `I'm sorry, I don't know what "${char}" means.`
+        // },
+        // },
+        // parser: {
+        //     unexpectedToken({token, binder}) {
+        //         const type = binder ? binder.type : token.type
+        //         const missing = missingParseParts[type]
+        //         if (missing) {
+        //             return `There seems to be an ${missing} missing from that sentence.`
+        //         }
+        //         if (token.type !== parser.endToken) {
+        //             return `I don't understand how you used the word "${token.word}".`
+        //         }
+        //     },
+        // },
+        // interpreter: {
+        // adjectiveNoMultiple({multiple}) {
+        //     return `You can't use adjectives with the multiple noun '${multiple}'.`
+        // },
+        // adjectiveNoPronoun({pronoun}) {
+        //     return `You can't use adjectives with the pronoun '${pronoun}' like that.`
+        // },
+        // verbObjectCount({verb, min, max, count}) {
+        //     if (typeof min !== 'undefined') {
+        //         return `I don't know how to '${verb}' with only ${count} object${count > 1 ? 's' : ''}.`
+        //     }
+        //     return `I don't know how to '${verb}' ${count - 1} indirect object${count > 2 ? 's' : ''}.`
+        // },
+        // verbNoInfix({verb, disallowed: [disallowed]}) {
+        //     return `I don't know how to '${verb}' '${disallowed}' something`
+        // },
+        // indirectNoMultiple({infix, multiple}) {
+        //     return `You can't use the multiple noun '${multiple}' as an indirect object like that.`
+        // },
+        // },
         general: {
             understandSentence() {
                 return `That sentence isn't one I recognize`
             },
             fatal() {
-                return `Well it looks like this one is on me. ` +
-                    `Something terrible just happened and it doesn't look like we can fix it.`
+                return 'Well it looks like this one is on me. ' +
+                    'Something terrible just happened and it doesn\'t look like we can fix it.'
             },
         },
     },
     steps: {
-        // resolve({live, steps: {resolve: {reason, object, objects}}}) {
+        // resolve({steps: {resolve: {reason, object, objects}}}) {
         //     if (live) {
         //         return
         //     }
@@ -157,74 +170,61 @@ const responses = {
         //         return `Do you mean the ${names}?`
         //     }
         // },
-        preresolve({live, steps: {preresolve: {reason}}}) {
-            // return 'I don\'t see anything.'
-            if (live) {
-                return
-            }
-            return reason
-        },
-        get({live, steps: {get: {reason}}}) {
-            if (live) {
+        // preresolve({live, steps: {preresolve: {reason}}}) {
+        //     // return 'I don\'t see anything.'
+        //     if (live) {
+        //         return
+        //     }
+        //     return reason
+        // },
+        get({steps: {get: {code}}}) {
+            if (code === 'sg-ss') {
                 return 'Taken.'
             }
-            if (/have/i.test(reason)) {
+            if (code === 'sg-ax') {
                 return 'You already have that.'
             }
         },
-        drop({live, steps: {drop: {reason}}}) {
-            if (live) {
+        drop({steps: {drop: {code}}}) {
+            if (code === 'sd-ss') {
                 return 'Dropped.'
             }
-            if (/don.?t/i.test(reason)) {
-                return `You don't have that`
+            if (code === 'sd-dh') {
+                return 'You don\'t have that.'
             }
         },
-        inventory({live, steps: {inventory: {inventory}}}) {
-            if (!live) {
+        inventory({steps: {inventory: {inventory, code}}}) {
+            if (code !== 'si-ss') {
                 return
             }
             if (!inventory.length) {
-                return `You don't have anything.`
+                return 'You don\'t have anything.'
             }
 
             let output = `You are carrying:\n`
             output += describeContents({contents: inventory})
             return output
         },
-        open({live, steps: {open: {reason, id}}}) {
-            if (live) {
-                return 'Opened.'
+        open({steps: {open: {code}}, object, desired}) {
+            if (code === 'so-ss') {
+                return desired ? 'Opened.' : 'Closed.'
             }
-            if (/already/i.test(reason)) {
-                return 'It\'s already open.'
+            if (code === 'so-ax') {
+                return `It's already ${desired ? 'open' : 'closed'}.`
             }
-            if (/not.*container/i.test(reason) || /surface/i.test(reason)) {
-                let name = em.getComponent('Descriptors', id).getName()
-                return `How do you open a ${name}?`
-            }
-        },
-        close({live, steps: {close: {reason, id}}}) {
-            if (live) {
-                return 'Opened.'
-            }
-            if (/already/i.test(reason)) {
-                return 'It\'s already closed.'
-            }
-            if (/not.*container/i.test(reason) || /surface/i.test(reason)) {
-                let name = em.getComponent('Descriptors', id).getName()
-                return `How do you close a ${name}?`
+            if (code === 'so-nc' || code === 'so-cs') {
+                return `How do you ${desired ? 'open' : 'close'} a ${object.descriptors.name}?`
             }
         },
         move(action) {
-            const {live, steps: {move: {reason, direction, area}, look}} = action
-            if (live) {
+            const {steps: {move: {direction, area, code}, look}} = action
+            if (code === 'sm-ss') {
                 if (look) {
                     return responses.steps.look(action)
                 }
-                return `- ${area.getTitle()} -\n`
+                return `- ${area.title} -\n`
             }
-            if (/no.*door/i.test(reason)) {
+            if (code === 'sm-nd') {
                 let directions = {
                     n: 'north',
                     s: 'south',
@@ -241,7 +241,7 @@ const responses = {
             }
         },
         begin(action) {
-            if (!action.live) {
+            if (action.code === 'sb-ss') {
                 return
             }
             return '\n \nYou\'re in a room, utterly boring with just a hint of institutionalized over optimism. ' +
@@ -260,19 +260,21 @@ const responses = {
                 responses.steps.look(action)
         },
         look(action) {
-            const {live, steps: {look: {object, area, contents}, read}} = action
-            if (!live) {
+            console.log(action)
+            console.log(action.steps)
+            // console.log(JSON.stringify(action.steps, null, 4))
+            const {steps: {look: {code, object, area, contents}, read}} = action
+            if (code !== 'sl-ss') {
                 return
             }
-            // const  = steps
             let output = ''
             const context = {contents}
             if (area) {
-                output += `\n- ${area.getTitle()} -\n `
+                output += `\n- ${area.title} -\n `
                 context.opening = 'There is a '
                 context.closing = ' here.'
             }
-            output += `\n${em.getComponent('Appearance', object).getAppearance()}\n`
+            output += `\n${object.appearance.appearance}\n`
             if (read) {
                 output += 'It reads:\n \n'
                 output += responses.steps.read(action)
@@ -287,119 +289,121 @@ const responses = {
             return output
         },
         put(action) {
-            let {live, steps: {put: {reason, object, container, destination}, get}} = action
+            let {steps: {put: {code, object}, get}} = action
             let output = ''
             if (get) {
                 output += responses.steps.get(action)
                 output += ' \n'
             }
-            if (live) {
+            if (code === 'sp-ss') {
                 return output + 'Done.'
             }
-            console.log(JSON.stringify(action.steps, null, 4))
-            console.log(JSON.stringify(action.steps.put, null, 4))
-            container = container || destination
-            object = em.getComponent('Descriptors', object).getName()
-            if (/inceptive/i.test(reason)) {
-                return output + `You can't put a ${object} inside itself!`
+            // console.log(JSON.stringify(action.steps, null, 4))
+            // console.log(JSON.stringify(action.steps.put, null, 4))
+            // container = container || destination
+            if (code === 'sp-iv') {
+                return output + `You can't put a ${object.descriptors.name} inside itself!`
             }
             // object = em.getComponent('Descriptors', object).getName()
-            if (container) {
-                container = em.getComponent('Descriptors', container).getName()
-            }
-            if (/big/i.test(reason)) {
-                return output + `The ${object} is too big for the ${container}.`
-            }
-            if (/closed/i.test(reason)) {
-                return `The ${container} is closed.`
-            }
-            if (/heavy/i.test(reason)) {
-                return output + `The ${object} is just too heavy for the ${container}.`
-            }
-            if (output.length) {
-                return output + reason
-            }
+            // if (container) {
+            //     container = container.descriptors.name
+            // }
+            // if (code) {
+            //     return output + `The ${object} is too big for the ${container}.`
+            // }
+            // if (/closed/i.test(reason)) {
+            //     return `The ${container} is closed.`
+            // }
+            // if (/heavy/i.test(reason)) {
+            //     return output + `The ${object} is just too heavy for the ${container}.`
+            // }
+            // if (output.length) {
+            //     return output + reason
+            // }
         },
-        read({live, steps: {read: {text, reason}}}) {
-            if (live) {
+        read({steps: {read: {object: {text: {text}}, code}}}) {
+            if (code === 'sr-ss') {
                 return `"${text}"`
             }
-            if (/read/i.test(reason)) {
+            if (code === 'sr-nr') {
                 return `It doesn't say anything.`
             }
         },
-        check({live, steps: {check: {reason, object, value}}}) {
-            if (live) {
-                return value ? 'Checked.' : 'Unchecked.'
+        check({desired, steps: {check: {code, object, tool}}}) {
+            if (code === 'sc-ss') {
+                return desired ? 'Checked.' : 'Unchecked.'
             }
-            if (/don.*t.*have/i.test(reason)) {
-                const name = em.getComponent('Descriptors', object).getName()
-                return `You don't have the ${name}.`
+            if (code === 'sc-dh') {
+                return `You don't have the ${object.descriptors.name}.`
             }
-            if (/tool/i.test(reason)) {
-                const name = em.getComponent('Descriptors', object).getName()
-                return `I don't know how you do that with a ${name}.`
+            if (code === 'sc-nt') {
+                return `I don't know how you do that with a ${tool.descriptors.name}.`
             }
-            if (/already/i.test(reason)) {
-                return `It's already ${value ? 'checked' : 'unchecked'}.`
+            if (code === 'sc-ax') {
+                return `It's already ${desired ? 'checked' : 'unchecked'}.`
             }
         },
     },
     general(action) {
         let {steps, fault} = action
         if (fault) {
-            let {reason, id, object, container, destination} = steps[fault]
+            let {code, reason, object, container} = steps[fault]
             if (/inapparent/i.test(reason)) {
-                let name = em.getComponent('Descriptors', id).getName()
-                return `You don't see any ${name} here.`
+                throw new Error('unexpected inapparent')
+                // let name = em.getComponent('Descriptors', id).getName()
+                // return `You don't see any ${name} here.`
             }
-            let objectName
-            if (typeof object !== 'undefined') {
-                objectName = em.getComponent('Descriptors', object).getName()
+            if (/inaccessible/i.test(reason)) {
+                throw new Error('unexpected inaccessible')
+                // let name = em.getComponent('Descriptors', container).getName()
+                // return `The ${name} is closed.`
             }
-            if (/inceptive/i.test(reason)) {
+            const subcode = code.substring(3, 5)
+            if (subcode === 'iv') {
                 let word = 'It'
-                if (objectName) {
-                    word = 'The ' + objectName
+                if (object) {
+                    word = 'The ' + object.descriptors.name
                 }
-                return `The ${word} can't do that to itself!`
+                return `${word} can't do that to itself!`
             }
-
-            if (/big/i.test(reason)) {
-                let objectWord = 'It\'s'
-                if (objectName) {
-                    objectWord = `The ${objectName} is`
+            if (subcode === 'cc') {
+                let containerWord = 'it\'s'
+                if (container) {
+                    containerWord = `the ${container.descriptors.name} is`
                 }
-                let destinationWord = ''
-                if (typeof destination !== 'undefined') {
-                    destinationWord = ' in the ' + em.getComponent('Descriptors', destination).getName()
-                }
-                return `${objectWord} too big to fit${destinationWord}.`
+                return `You can't do that while ${containerWord} closed.`
             }
-            if (/heavy/i.test(reason)) {
+            if (subcode === 'tb') {
                 let objectWord = 'It\'s'
-                if (objectName) {
-                    objectWord = `The ${objectName} is`
+                if (object) {
+                    objectWord = `The ${object.descriptors.name} is`
                 }
                 let containerWord = ''
                 if (typeof container !== 'undefined') {
-                    containerWord = ' for the ' + em.getComponent('Descriptors', container).getName()
+                    containerWord = ' in the ' + container.descriptors.name
+                }
+                return `${objectWord} too big to fit${containerWord}.`
+            }
+            if (subcode === 'th') {
+                let objectWord = 'It\'s'
+                if (object) {
+                    objectWord = `The ${object.descriptors.name} is`
+                }
+                let containerWord = ''
+                if (typeof container !== 'undefined') {
+                    containerWord = ' for the ' + container.descriptors.name
                 }
                 return `${objectWord} too heavy${containerWord}.`
             }
-
-            if (/inaccessible/i.test(reason)) {
-                let name = em.getComponent('Descriptors', container).getName()
-                return `The ${name} is closed.`
+            if (subcode === 'ft') {
+                return `You can't move the ${object.descriptors.name}.`
             }
 
-            if (/fixture/i.test(reason)) {
-                return `You can't move the ${objectName}.`
-            }
-
+            // If there's no response give a general response.
             const word = fault.replace(/^\w/, (c) => c.toUpperCase())
-            return `${word} Nope.`
+            return `${word}? Nope.`
         }
+        // If there's no fault give a general response.
         const word = action.type.replace(/^\w/, (c) => c.toUpperCase())
         return `${word}, done.`
     },

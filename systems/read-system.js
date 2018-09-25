@@ -11,7 +11,7 @@ class ReadSystem extends System {
         if (!object.text) {
             this.fail(action, {
                 reason: 'Nothing to Read.',
-                code: 'srn1',
+                code: 'sr-nr',
             })
             return
         }
@@ -19,7 +19,7 @@ class ReadSystem extends System {
         action.steps.read = {
             success: true,
             object,
-            code: 'srs1',
+            code: 'sr-ss',
         }
     }
 

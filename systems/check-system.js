@@ -8,7 +8,7 @@ class CheckSystem extends System {
         if (object === tool) {
             this.fail(action, {
                 reason: 'Inceptive.',
-                code: 'sci1',
+                code: 'sc-ic',
                 object,
             })
             return
@@ -17,8 +17,8 @@ class CheckSystem extends System {
         if (tool.location.parent !== entity) {
             this.fail(action, {
                 reason: 'Don\'t Have Indirect.',
-                code: 'sch1',
-                object: tool,
+                code: 'sc-dh',
+                tool,
             })
             return
         }
@@ -28,7 +28,7 @@ class CheckSystem extends System {
         if (!tool.tool || tool.tool.type !== 'write') {
             this.fail(action, {
                 reason: 'Not Tool.',
-                code: 'sct1',
+                code: 'sc-nt',
                 object: tool,
             })
             return
@@ -37,7 +37,7 @@ class CheckSystem extends System {
         if (object.option.value === action.desired) {
             this.fail(action, {
                 reason: 'Already Done.',
-                code: 'sca1',
+                code: 'sc-ax',
                 value: object.option.value,
             })
             return
@@ -47,7 +47,7 @@ class CheckSystem extends System {
 
         action.steps.check = {
             success: true,
-            code: 'scs1',
+            code: 'sc-ss',
             value: action.desired,
         }
     }

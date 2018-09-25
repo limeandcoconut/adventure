@@ -33,14 +33,17 @@ module.exports = function(actions) {
         const action = actions[i]
         const contexts = action.context
         // Evidently the fastest map loop: https://jsperf.com/array-object-set-map-iterate
+        console.log(contexts.keys())
         for (let type of contexts.keys()) {
             const context = contexts.get(type)
             let object = action[type]
+            console.log(type)
+            console.log(object)
             // If there isn't an object.
             if (!object) {
                 // If one isn't required, return.
                 if (!context || context.optional) {
-                    return
+                    continue
                 }
                 // If one is, and there's no way to resolve, throw.
                 if (!context.resolve) {
@@ -49,7 +52,7 @@ module.exports = function(actions) {
                 // This will resolve properly or throw.
                 const target = context.resolve(action)
                 action[type] = target
-                return
+                continue
             }
             // There's an object:
             // If there is an unaccepted object, throw.
@@ -67,11 +70,11 @@ module.exports = function(actions) {
             // If the object should not be resolved return early.
             if (context.acceptsPassthrough && passthrough.test(object.value)) {
                 action[type] = object
-                return
+                continue
             }
             if (context.acceptsWordLiteral && object.type === 'string') {
                 action[type] = object
-                return
+                continue
             }
 
             // Get the search context for manual object resolution.

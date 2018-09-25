@@ -9,7 +9,7 @@ class DroppingSystem extends System {
         if (object.location.parent !== entity) {
             this.fail(action, {
                 reason: 'Don\'t have.',
-                code: 'sdh1',
+                code: 'sd-dh',
             })
             return
         }
@@ -17,7 +17,7 @@ class DroppingSystem extends System {
         if (object.properties.fixture) {
             this.fail(action, {
                 reason: 'Fixture.',
-                code: 'sdf1',
+                code: 'gx-ft',
                 object,
             })
             return
@@ -36,7 +36,7 @@ class DroppingSystem extends System {
 
         action.steps.drop = {
             success: true,
-            code: 'sds1',
+            code: 'sd-ss',
         }
     }
 

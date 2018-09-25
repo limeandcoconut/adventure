@@ -9,16 +9,7 @@ class PutSystem extends System {
         if (object === indirect) {
             this.fail(action, {
                 reason: 'Inceptive.',
-                code: 'spi1',
-                object,
-            })
-            return
-        }
-
-        if (object.properties.fixture) {
-            this.fail(action, {
-                reason: 'Fixture.',
-                code: 'spf1',
+                code: 'sp-iv',
                 object,
             })
             return
@@ -41,7 +32,7 @@ class PutSystem extends System {
 
         action.steps.put = {
             success: true,
-            code: 'sps1',
+            code: 'sp-ss',
         }
     }
 

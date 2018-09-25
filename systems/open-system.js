@@ -6,24 +6,23 @@ class OpenSystem extends System {
 
         // console.log('-------- OPEN --------')
 
-        let object = action.object.id
+        let object = action.object
 
         let container = object.container
-
         if (!container) {
             this.fail(action, {
                 reason: 'Not a Container.',
                 object,
-                code: 'son1',
+                code: 'so-nc',
             })
             return
         }
 
-        if (container.isSurface()) {
+        if (container.surface) {
             this.fail(action, {
                 reason: 'Surface.',
                 object,
-                code: 'sou1',
+                code: 'so-cs',
             })
             return
         }
@@ -31,7 +30,7 @@ class OpenSystem extends System {
         if (container.open === action.desired) {
             this.fail(action, {
                 reason: 'Already Done.',
-                code: 'soa1',
+                code: 'so-ax',
             })
             return
         }
@@ -40,7 +39,7 @@ class OpenSystem extends System {
 
         action.steps.open = {
             success: true,
-            code: 'sos1',
+            code: 'so-ss',
         }
     }
 

@@ -73,3 +73,11 @@ FPS counter
 - [ ] history
 - [ ] disambiguation
 - [ ] pronouns (here)
+
+
+## TODO
+- [ ] fix word length
+- [ ] open containers
+- [ ] at
+- [ ] see checked
+- [ ] errors as objects

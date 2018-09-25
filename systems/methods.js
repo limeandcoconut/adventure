@@ -6,6 +6,7 @@ const methods = {
         const dummyContents = []
         for (let i = 0; i < contents.length; i++) {
             const object = contents[i]
+            console.log(object)
 
             const properties = object.properties
             if (object === entity || (properties && !properties.visible)) {
@@ -15,7 +16,8 @@ const methods = {
             const dummy = {
                 object,
             }
-            if (container && (container.open || (properties && properties.transparent))) {
+            // If there is a container and the contents are apparent and the container has contents.
+            if (container && (container.open || (properties && properties.transparent)) && container.contents.length) {
                 dummy.contents = this.formatContents(container.contents, entity)
             }
             dummyContents.push(dummy)
@@ -30,7 +32,7 @@ const methods = {
         if (object.properties.fixture) {
             return {
                 reason: 'Fixture.',
-                code: 'mpf1',
+                code: 'gx-ft',
                 object,
             }
         }
@@ -53,9 +55,9 @@ const methods = {
             return {
                 success: false,
                 reason: 'Destination closed.',
-                code: 'mpc1',
+                code: 'mp-cc',
                 object,
-                destination,
+                container: destination,
             }
         }
 
@@ -68,9 +70,9 @@ const methods = {
             return {
                 success: false,
                 reason: 'Too Big.',
-                code: 'mpb1',
+                code: 'mp-tb',
                 object,
-                destination,
+                container: destination,
             }
         }
 
@@ -138,7 +140,7 @@ const methods = {
             return {
                 success: false,
                 reason: 'Too heavy.',
-                code: 'mph1',
+                code: 'mp-th',
                 container: target,
             }
         }

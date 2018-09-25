@@ -9,7 +9,7 @@ class InventorySystem extends System {
 
         action.steps.inventory = {
             success: true,
-            code: 'sis1',
+            code: 'si-ss',
             inventory: formatContents(action.entity.container.contents, action.entity),
         }
     }

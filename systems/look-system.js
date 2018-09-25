@@ -24,7 +24,7 @@ class LookSystem extends System {
         }
 
         info.success = true
-        info.code = 'sls1'
+        info.code = 'sl-ss'
         action.steps.look = info
     }
 

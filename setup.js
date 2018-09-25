@@ -419,7 +419,7 @@ if (newId.lowestFreeId === 10) {
         labels: ['paper'],
         descriptors: ['sheet'],
         appearance: 'A sheet of 8.5"x11" paper.',
-        text: 'Please complete this form totally filling in the circles. \nHave you taken this test previously? \nYES: () NO: ()',
+        text: 'Please finish this form, completely filling in the circles. \nHave you taken this test previously? \nYES: () NO: ()',
         volume: 0,
         maxLoad: 0,
         size: 0,

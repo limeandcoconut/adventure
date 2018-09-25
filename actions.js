@@ -148,7 +148,7 @@ class Begin extends Action {
         this.procedure = [
             'begin',
             // 'locate',
-            // 'look',
+            'look',
         ]
         this.reporter = this.type
     }

@@ -44,7 +44,7 @@ let lexer = moo.compile({
         'pencil',
         'paper',
         'yes',
-        /no(?=\s)/,
+        /no(?=\s|$)/,
         'weight',
         'fish',
         'room',
@@ -53,10 +53,10 @@ let lexer = moo.compile({
         'all',
     ],
     deteterminer: [
-        /a(?=\s)/,
+        /a(?=\s|$)/,
         'an',
         'the',
-        /some(?=\s)/,
+        /some(?=\s|$)/,
     ],
     adjective: [
         'red',
@@ -93,10 +93,10 @@ let lexer = moo.compile({
         'check',
         'uncheck',
         'look',
-        /l(?=\s)/,
+        /l(?=\s|$)/,
         'begin',
         'inventory',
-        /i(?=\s)/,
+        /i(?=\s|$)/,
         'say',
     ],
     preposition: [
@@ -300,6 +300,7 @@ var grammar = {
         function([noun], location, reject) {
             noun = Object.assign({}, noun)
             verb = Object.assign({}, noun, nounImpliedVerbs[noun.text])
+            verb.modifiers = []
             verb.object = noun
             noun.type = 'noun'
             noun.converted = true

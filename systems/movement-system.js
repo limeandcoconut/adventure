@@ -9,7 +9,7 @@ class MovementSystem extends System {
         // console.log('-------- MOVE --------')
         let info
 
-        if (action.object) {
+        if (action.object.id) {
             // Teleport.
             // let {entity, object} = action
             info = this.goTo(action.object, action.entity.location.parent, action.entity, action)
@@ -28,7 +28,7 @@ class MovementSystem extends System {
     // }
 
     move(action) {
-        let {entity, object: {word: direction}} = action
+        let {entity, object: {value: direction}} = action
         const parent = entity.location.parent
 
         // Distill direction character codes.
@@ -36,11 +36,10 @@ class MovementSystem extends System {
         direction = direction.slice(1, 7).join('')
 
         let destination = parent.area.doors[direction]
-
-        if (typeof destination !== 'number') {
+        if (!destination) {
             return {
                 reason: 'No Door.',
-                code: 'smd1',
+                code: 'sm-nd',
                 direction,
                 success: false,
             }
@@ -53,13 +52,6 @@ class MovementSystem extends System {
     }
 
     goTo(destination, parent, entity, action) {
-        if (entity.properties.fixture) {
-            return {
-                success: false,
-                code: 'smf1',
-                reason: 'Fixture.',
-            }
-        }
 
         const putResult = put(entity, parent, destination)
         if (putResult) {
@@ -75,9 +67,10 @@ class MovementSystem extends System {
         }
 
         return {
+            // TODO: Parent probably isnt needed.
             parent: destination,
             area: destination.area,
-            code: 'sms1',
+            code: 'sm-ss',
             success: true,
         }
     }

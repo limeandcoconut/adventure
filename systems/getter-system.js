@@ -8,7 +8,7 @@ class GetterSystem extends System {
         if (action.object.properties.fixture) {
             this.fail(action, {
                 reason: 'Fixture.',
-                code: 'sgf1',
+                code: 'gx-ft',
                 object: action.object,
             })
             return
@@ -22,7 +22,7 @@ class GetterSystem extends System {
         if (source === entity) {
             this.fail(action, {
                 reason: 'Already Have.',
-                code: 'sgh1',
+                code: 'sg-ax',
             })
             return
         }
@@ -35,7 +35,7 @@ class GetterSystem extends System {
 
         action.steps.get = {
             success: true,
-            code: 'sgs1',
+            code: 'sg-ss',
         }
     }
 
