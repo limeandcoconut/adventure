@@ -116,7 +116,9 @@ let lexer = moo.compile({
         'us',
     ],
     // adverbialPreposition: [
+    // See the non-token 'adverbialPreposition ->' below.
     //     'up',
+    //     'at',
     // ],
     adverb: [
         'quickly',
@@ -153,12 +155,12 @@ let lexer = moo.compile({
             return x.slice(1, -1)
         },
     },
-    number: /0|[1-9][0-9]*?/,
+    number: /0|[1-9][0-9]*/,
     // TODO: should these be non greedy?
     // Remember that one of the format functions below must match this.
     // Consider adding a token that includes a "," for occasions when that would be allowed and ignored.
-    _: /[ \t]+?/,
-    word: /[a-zA-Z]+?(?=\s)/
+    _: /[ \t]+/,
+    word: /[a-zA-Z]+(?=\s|$)/
 })
 
 let prepositionTypes = {
@@ -260,6 +262,8 @@ var grammar = {
     {"name": "verbPhrase", "symbols": [(lexer.has("verb") ? {type: "verb"} : verb), (lexer.has("_") ? {type: "_"} : _), "adverbialPreposition", (lexer.has("_") ? {type: "_"} : _), "nounPhrase"], "postprocess": 
         function([verb, , preposition, , noun], location, reject) {
             verb.object = noun
+            console.log('here')
+            console.log(preposition)
             verb.modifiers = [preposition]
             return verb
         } },
@@ -377,6 +381,7 @@ var grammar = {
     {"name": "adjectivePhrase$ebnf$3", "symbols": ["adjectivePhrase$ebnf$3$subexpression$1"], "postprocess": id},
     {"name": "adjectivePhrase$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "adjectivePhrase", "symbols": ["adjectivePhrase$ebnf$2", (lexer.has("complexAdjective") ? {type: "complexAdjective"} : complexAdjective), "adjectivePhrase$ebnf$3", (lexer.has("_") ? {type: "_"} : _), "adjectivePhrase"], "postprocess": ([, adjective1, , , [adjective2]]) => [adjective1, adjective2]},
+    {"name": "adverbialPreposition", "symbols": [{"literal":"at"}]},
     {"name": "adverbialPreposition", "symbols": [{"literal":"up"}]}
 ]
   , ParserStart: "line"

@@ -33,12 +33,9 @@ module.exports = function(actions) {
         const action = actions[i]
         const contexts = action.context
         // Evidently the fastest map loop: https://jsperf.com/array-object-set-map-iterate
-        console.log(contexts.keys())
         for (let type of contexts.keys()) {
             const context = contexts.get(type)
             let object = action[type]
-            console.log(type)
-            console.log(object)
             // If there isn't an object.
             if (!object) {
                 // If one isn't required, return.

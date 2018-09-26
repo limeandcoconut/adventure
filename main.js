@@ -41,23 +41,24 @@ function adventure(line) {
         parser.feed(line)
     } catch (error) {
         error.code = codify(error)
-        // log(error.code)
-        // throw error
         return respond(error)
     }
 
-    if (parser.results.length > 1) {
-        throw new Error('Can\'t parse reliably. This is not an expected error.')
+    if (parser.results.length !== 1) {
+        if (parser.results.length < 1) {
+            // This has no code so that it will fallback to the default response.
+            return respond(new ResolveError('Cannot parse sentence.'))
+        }
+        console.log(parser.results)
+        throw new Error('This parsed ambiguously. This is not an expected error.')
     }
-
+    log(parser.results)
     let actions = parser.results[0].map(createAction)
 
     // Resolve objects on actions
     try {
         resolve(actions)
     } catch (error) {
-        log(error.code)
-        // throw error
         return respond(error)
     }
 
@@ -75,19 +76,24 @@ function adventure(line) {
     while (actions.length) {
         let action = actions.shift()
         log('*********** EXECUTE MAIN **********')
-
         // Split actions.
-        if (action.object && action.object.length) {
-            const objects = action.object
-            let newAction
-            while (objects.length) {
-                if (newAction) {
-                    actions.unshift(newAction)
+        if (action.object) {
+            if (action.object.length) {
+                const objects = action.object
+                let newAction
+                while (objects.length) {
+                    if (newAction) {
+                        actions.unshift(newAction)
+                    }
+                    newAction = action.clone()
+                    newAction.object = objects.shift()
                 }
-                newAction = action.clone()
-                newAction.object = objects.shift()
+                action = newAction
             }
-            action = newAction
+            if (action.object instanceof Error) {
+                output += respond(action.object) + '\n'
+                continue
+            }
         }
 
         output += execute(action)

@@ -76,8 +76,14 @@ FPS counter
 
 
 ## TODO
-- [ ] fix word length
-- [ ] open containers
-- [ ] at
+- [x] unable to parse
+- [x] fix word length
+- [x] open containers
+- [x]  at
 - [ ] see checked
-- [ ] errors as objects
+- [x] errors as objects
+- [ ] begin earlier
+- [ ] standardize newlines
+- [ ] add history for actions
+- [ ] add line history
+- [ ] from = dont see any there

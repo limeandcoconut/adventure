@@ -6,7 +6,6 @@ const methods = {
         const dummyContents = []
         for (let i = 0; i < contents.length; i++) {
             const object = contents[i]
-            console.log(object)
 
             const properties = object.properties
             if (object === entity || (properties && !properties.visible)) {

@@ -40,6 +40,10 @@ function simplify({object, contents}) {
     return {object: object.id, contents}
 }
 
+function describeOption(option) {
+    return `It is ${option ? 'checked' : 'unchecked'}.`
+}
+
 // const missingParseParts = {
 //     'conjunction': 'noun',
 //     'verb': 'noun',
@@ -79,7 +83,6 @@ const responses = {
             return `I don't know how to use a ${type} noun with the verb "${verb}".`
         },
         lis1({message, offset}) {
-            console.log(offset)
             const col = message.match(/line\s\d+\scol\s(\d+)/i)[1]
             let capture = new RegExp(`\\n\\n\\s+.{${col - 1}}(.)`)
             capture = message.match(capture)
@@ -260,10 +263,7 @@ const responses = {
                 responses.steps.look(action)
         },
         look(action) {
-            console.log(action)
-            console.log(action.steps)
-            // console.log(JSON.stringify(action.steps, null, 4))
-            const {steps: {look: {code, object, area, contents}, read}} = action
+            const {steps: {look: {code, object, area, contents, option}, read}} = action
             if (code !== 'sl-ss') {
                 return
             }
@@ -279,7 +279,9 @@ const responses = {
                 output += 'It reads:\n \n'
                 output += responses.steps.read(action)
             }
-
+            if (option) {
+                output += describeOption(option)
+            }
             if (contents && contents.length) {
                 if (!area) {
                     output += `It contains:\n`
@@ -429,10 +431,12 @@ function formatResponse(output) {
         //     return responses.errors.general.fatal()
         // }
         // const errorMeta = machines[errorClass].errorMeta
-        const handler = responses.errors[output.code]
-        const response = handler(output)
-        if (response) {
-            return response
+        if (output.code) {
+            const handler = responses.errors[output.code]
+            const response = handler(output)
+            if (response) {
+                return response
+            }
         }
 
         return responses.errors.general.understandSentence()

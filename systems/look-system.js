@@ -22,6 +22,9 @@ class LookSystem extends System {
         if (object.text) {
             action.procedure.push('read')
         }
+        if (object.option) {
+            info.option = object.option
+        }
 
         info.success = true
         info.code = 'sl-ss'

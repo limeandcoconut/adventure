@@ -114,7 +114,9 @@ let lexer = moo.compile({
         'us',
     ],
     // adverbialPreposition: [
+    // See the non-token 'adverbialPreposition ->' below.
     //     'up',
+    //     'at',
     // ],
     adverb: [
         'quickly',
@@ -151,12 +153,12 @@ let lexer = moo.compile({
             return x.slice(1, -1)
         },
     },
-    number: /0|[1-9][0-9]*?/,
+    number: /0|[1-9][0-9]*/,
     // TODO: should these be non greedy?
     // Remember that one of the format functions below must match this.
     // Consider adding a token that includes a "," for occasions when that would be allowed and ignored.
-    _: /[ \t]+?/,
-    word: /[a-zA-Z]+?(?=\s)/
+    _: /[ \t]+/,
+    word: /[a-zA-Z]+(?=\s|$)/
 })
 
 let prepositionTypes = {
@@ -260,6 +262,8 @@ verbPhrase -> %verb %_ nounPhrase {%
     | %verb %_ adverbialPreposition %_ nounPhrase {%
     function([verb, , preposition, , noun], location, reject) {
         verb.object = noun
+        console.log('here')
+        console.log(preposition)
         verb.modifiers = [preposition]
         return verb
     } %}
@@ -375,4 +379,4 @@ adjectivePhrase -> (%adjectivalPronoun %_):? %complexAdjective  {% ([, adjective
 
 # Lexical additions:
 
-adverbialPreposition -> "up"
+adverbialPreposition -> "at" | "up"
