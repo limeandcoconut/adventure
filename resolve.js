@@ -3,7 +3,8 @@
 
 const {
     // deep,
-    deepChildrenOf,
+    // deepChildrenOf,
+    deepConstituentsOf,
     ResolveError,
     exclude,
     appropriate,
@@ -218,7 +219,7 @@ function resolveCandidates({object, from, except, context = {}, action}, describ
         }
         candidates = context.all
     } else {
-        candidates = appropriate(deepChildrenOf(from))
+        candidates = appropriate(deepConstituentsOf(from))
     }
 
     if (except) {

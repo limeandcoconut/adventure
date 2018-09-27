@@ -61,7 +61,7 @@ class Area {
 }
 
 class ObjectProperties {
-    constructor({size, baseWeight, weight = baseWeight, fixture = false, visible = true, transparent = false}) {
+    constructor({size, baseWeight, weight = baseWeight, fixture = false, part = false, visible = true, transparent = false}) {
 
         if (typeof size !== 'number') {
             throw new TypeError('Argument \'size\' must be a number')
@@ -79,6 +79,8 @@ class ObjectProperties {
         this.baseWeight = baseWeight
 
         this.fixture = fixture
+
+        this.part = part
 
         this.visible = visible
 
@@ -104,19 +106,13 @@ class Container {
         }
         this.maxLoad = maxLoad
 
-        // if (typeof contents.entries !== 'function') {
         if (!Array.isArray(contents)) {
             throw new TypeError('Argument \'contents\' must be an Array')
         }
-        // contents = new Set(contents)
-        // }
         this.contents = contents
 
-        if (typeof fixtures.entries !== 'function') {
-            if (!Array.isArray(fixtures)) {
-                throw new TypeError('Argument \'fixtures\' must be an Array or Set')
-            }
-            fixtures = new Set(fixtures)
+        if (!Array.isArray(fixtures)) {
+            throw new TypeError('Argument \'fixtures\' must be an Array')
         }
         this.fixtures = fixtures
 
@@ -129,6 +125,15 @@ class Container {
             throw new TypeError('Argument \'surface\' must be a boolean')
         }
         this.surface = surface
+    }
+}
+
+class Multipart {
+    constructor(parts = []) {
+        if (!Array.isArray(parts)) {
+            throw new TypeError('Argument \'parts\' must be an Array')
+        }
+        this.parts = parts
     }
 }
 
@@ -189,4 +194,5 @@ module.exports = {
     Option,
     Tool,
     Actor,
+    Multipart,
 }

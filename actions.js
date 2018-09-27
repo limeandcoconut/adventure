@@ -4,6 +4,7 @@ const {
     entity,
     contentsOf,
     deepChildrenOf,
+    deepConstituentsOf,
     visible,
     tool,
     siblingsOf,
@@ -234,7 +235,7 @@ Read.prototype.context.set('object', {
     //     this.resolutionSet = childrenOf(parentOf(entity()), accessibleRequired, apparentRequired)(action)
     //     return this._completeResolution(this._standinResolver)
     // },
-    resolve: onlyOne(appropriate(legible(deepChildrenOf(parentOf(entity()))))),
+    resolve: onlyOne(appropriate(legible(deepConstituentsOf(parentOf(entity()))))),
     from: parentOf(entity()),
 })
 
@@ -250,9 +251,9 @@ class Check extends Action {
 }
 Check.prototype.context = new Map(Action.prototype.context)
 Check.prototype.context.set('object', {
-    resolve: onlyOne(appropriate(option(deepChildrenOf(parentOf(entity()))))),
+    resolve: onlyOne(appropriate(option(deepConstituentsOf(parentOf(entity()))))),
     from: parentOf(entity()),
-    all: appropriate(option(deepChildrenOf(parentOf(entity())))),
+    all: appropriate(option(deepConstituentsOf(parentOf(entity())))),
 })
 Check.prototype.context.set('tool', {
     resolve: onlyOne(appropriate(tool('write', deepChildrenOf(entity())))),

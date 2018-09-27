@@ -5,18 +5,27 @@ const {put} = require('./methods')
 class GetterSystem extends System {
 
     update(action) {
-        if (action.object.properties.fixture) {
+        const {entity, object} = action
+        if (object.properties.fixture) {
             this.fail(action, {
                 reason: 'Fixture.',
                 code: 'gx-ft',
-                object: action.object,
+                object: object,
+            })
+            return
+        }
+
+        if (object.properties.part) {
+            this.fail(action, {
+                reason: 'Part.',
+                code: 'gx-pt',
+                object,
             })
             return
         }
 
         // console.log('---------- GET ---------')
 
-        const {entity, object} = action
         const source = object.location.parent
 
         if (source === entity) {

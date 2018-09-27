@@ -87,3 +87,6 @@ FPS counter
 - [ ] add history for actions
 - [ ] add line history
 - [ ] from = dont see any there
+
+- [ ] message for not resolving tools
+- [ ] different messages for if you don't have what you couldn't resolve

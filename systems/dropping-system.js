@@ -23,6 +23,15 @@ class DroppingSystem extends System {
             return
         }
 
+        if (object.properties.part) {
+            this.fail(action, {
+                reason: 'Part.',
+                code: 'gx-pt',
+                object,
+            })
+            return
+        }
+
         // console.log('-------- DROP --------')
 
         // const source = entity

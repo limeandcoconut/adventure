@@ -40,8 +40,48 @@ function simplify({object, contents}) {
     return {object: object.id, contents}
 }
 
-function describeOption(option) {
-    return `It is ${option ? 'checked' : 'unchecked'}.`
+// function describeOption(option) {
+//     return `It is ${option ? 'checked' : 'unchecked'}.`
+// }
+
+function outputText(text) {
+    return `"${text}"`
+}
+
+function describeObject(info) {
+    // console.log(info)
+    const {appearance, area, contents, option, text, parts} = info
+    let output = ''
+    const context = {
+        contents,
+    }
+    if (area) {
+        output += `\n- ${area.title} -\n `
+        context.opening = 'There is a '
+        context.closing = ' here.'
+    }
+    output += `\n${appearance}\n`
+    if (text) {
+        output += 'It reads:\n \n'
+        output += outputText(text)
+    }
+    if (option) {
+        output += `It is ${option.value ? 'checked' : 'unchecked'}.`
+    }
+    if (contents && contents.length) {
+        if (!area) {
+            output += `It contains:\n`
+        }
+        output += describeContents(context)
+    }
+    if (parts) {
+        while (parts.length) {
+            const part = parts.shift()
+            output += `\n \nYou notice the ${part.object.descriptors.name}:\n \n`
+            output += describeObject(part)
+        }
+    }
+    return output
 }
 
 // const missingParseParts = {
@@ -263,32 +303,13 @@ const responses = {
                 responses.steps.look(action)
         },
         look(action) {
-            const {steps: {look: {code, object, area, contents, option}, read}} = action
-            if (code !== 'sl-ss') {
+            const {steps: {look: info}} = action
+
+            if (info.code !== 'sl-ss') {
                 return
             }
-            let output = ''
-            const context = {contents}
-            if (area) {
-                output += `\n- ${area.title} -\n `
-                context.opening = 'There is a '
-                context.closing = ' here.'
-            }
-            output += `\n${object.appearance.appearance}\n`
-            if (read) {
-                output += 'It reads:\n \n'
-                output += responses.steps.read(action)
-            }
-            if (option) {
-                output += describeOption(option)
-            }
-            if (contents && contents.length) {
-                if (!area) {
-                    output += `It contains:\n`
-                }
-                output += describeContents(context)
-            }
-            return output
+
+            return describeObject(info)
         },
         put(action) {
             let {steps: {put: {code, object}, get}} = action
@@ -323,9 +344,9 @@ const responses = {
             //     return output + reason
             // }
         },
-        read({steps: {read: {object: {text: {text}}, code}}}) {
+        read({steps: {read: {object, code}}}) {
             if (code === 'sr-ss') {
-                return `"${text}"`
+                return outputText(object.text.text)
             }
             if (code === 'sr-nr') {
                 return `It doesn't say anything.`
@@ -397,8 +418,17 @@ const responses = {
                 }
                 return `${objectWord} too heavy${containerWord}.`
             }
+
             if (subcode === 'ft') {
                 return `You can't move the ${object.descriptors.name}.`
+            }
+
+            if (subcode === 'pt') {
+                return `The ${object.descriptors.name} is part of the ${object.location.parent.descriptors.name}.`
+            }
+
+            if (subcode === 'nc') {
+                return `The ${object.descriptors.name} can't hold things.`
             }
 
             // If there's no response give a general response.

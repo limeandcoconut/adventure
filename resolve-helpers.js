@@ -165,6 +165,79 @@ function deepChildrenOf(getEntity) {
     }
 }
 
+function constituentsOf(getEntity) {
+    return (action) => {
+        let set = getEntity(action)
+        if (!Array.isArray(set)) {
+            set = set ? [set] : []
+        }
+
+        let result = []
+
+        let {accessibleRequired, apparentRequired} = action
+        for (let i = 0; i < set.length; i++) {
+            let entity = set[i]
+            const isVisible = entity.properties && entity.properties.visible
+            if (entity.container) {
+                const childApparent = isVisible && (entity.container.open || (entity.properties && entity.properties.transparent))
+                // Order matters on the ORs.
+                if ((!apparentRequired || childApparent) && (!accessibleRequired || entity.container.open)) {
+                    result = [...result, ...entity.container.contents, ...entity.container.fixtures]
+                }
+            }
+            if (entity.multipart) {
+                if ((!apparentRequired || isVisible)) {
+                    result = [...result, ...entity.multipart.parts]
+                }
+            }
+        }
+        return result
+    }
+}
+
+function deepConstituentsOf(getEntity) {
+    const internalContext = {}
+    return (action) => {
+        let {accessibleRequired, apparentRequired} = internalContext
+        let set = getEntity(action)
+        if (!Array.isArray(set)) {
+            set = set ? [set] : []
+        }
+
+        let result = []
+        let subset = set
+        let subResult
+
+        do {
+            if (subResult) {
+                result = [...result, ...subResult]
+            }
+            subResult = []
+
+            for (let i = 0; i < subset.length; i++) {
+                let entity = subset[i]
+                const isVisible = entity.properties && entity.properties.visible
+                if (entity.container) {
+                    const childApparent = isVisible && (entity.container.open || (entity.properties && entity.properties.transparent))
+                    // Order matters on the ORs.
+                    if ((!apparentRequired || childApparent) && (!accessibleRequired || entity.container.open)) {
+                        subResult = [...subResult, ...entity.container.contents, ...entity.container.fixtures]
+                    }
+                }
+                if (entity.multipart) {
+                    if ((!apparentRequired || isVisible)) {
+                        subResult = [...subResult, ...entity.multipart.parts]
+                    }
+                }
+            }
+
+            subset = subResult
+        } while (subset.length)
+
+        return result
+    }
+}
+
 function contentsOf(getEntity) {
     return (action) => {
         let set = getEntity(action)
@@ -387,8 +460,10 @@ module.exports = {
     parentOf,
     childrenOf,
     contentsOf,
+    constituentsOf,
     deepChildrenOf,
     deepContentsOf,
+    deepConstituentsOf,
     siblingsOf,
     deepSiblingsOf,
     deep,

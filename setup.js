@@ -26,6 +26,7 @@ const {
     Option,
     Tool,
     Actor,
+    Multipart,
 } = require('./components.js')
 
 // let resolverSystem = new ResolverSystem()
@@ -92,6 +93,7 @@ function createRoom(props = {}) {
         baseWeight,
         weight,
         fixture,
+        part,
         visible,
         transparent,
         visited,
@@ -105,7 +107,7 @@ function createRoom(props = {}) {
         location: new Location(parent),
         descriptors: new Descriptors(['room']),
         container: new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface}),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}),
+        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
         area: new Area(title, visited, doors),
     }
     return room
@@ -128,6 +130,7 @@ function createContainer(props = {}) {
         baseWeight,
         weight,
         fixture,
+        part,
         visible,
         transparent,
         text,
@@ -139,7 +142,7 @@ function createContainer(props = {}) {
         location: new Location(parent),
         descriptors: new Descriptors(labels, descriptors),
         container: new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface}),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}),
+        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
     }
 
     if (text) {
@@ -158,6 +161,7 @@ function createThing(props = {}) {
         baseWeight,
         weight,
         fixture,
+        part,
         visible,
         transparent,
         text,
@@ -167,7 +171,7 @@ function createThing(props = {}) {
         appearance: new Appearance(appearance),
         location: new Location(parent),
         descriptors: new Descriptors(labels, descriptors),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}),
+        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
     }
     if (text) {
         thing.text = new Text(text)
@@ -185,6 +189,7 @@ function createTool(props = {}) {
         baseWeight,
         weight,
         fixture,
+        part,
         visible,
         transparent,
         text,
@@ -196,7 +201,7 @@ function createTool(props = {}) {
         appearance: new Appearance(appearance),
         location: new Location(parent),
         descriptors: new Descriptors(labels, descriptors),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}),
+        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
     }
     if (text) {
         tool.text = new Text(text)
@@ -214,6 +219,7 @@ function createOption(props = {}) {
         baseWeight = 0,
         weight,
         fixture,
+        part,
         visible,
         transparent,
         value,
@@ -223,7 +229,7 @@ function createOption(props = {}) {
         appearance: new Appearance(appearance),
         location: new Location(parent),
         descriptors: new Descriptors(labels, descriptors),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}),
+        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
         option: new Option(value),
     }
     return option
@@ -244,6 +250,7 @@ function createPlayer(props = {}) {
         baseWeight,
         weight,
         fixture,
+        part,
         visible,
         transparent,
         initiative,
@@ -254,7 +261,7 @@ function createPlayer(props = {}) {
         location: new Location(parent),
         descriptors: new Descriptors(['you', 'self', 'me', 'myself'], []),
         container: new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface}),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, visible, transparent}),
+        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
         actor: new Actor(initiative),
     }
 
@@ -418,7 +425,7 @@ if (newId.lowestFreeId === 10) {
         parent: desk,
         labels: ['paper'],
         descriptors: ['sheet'],
-        appearance: 'A sheet of 8.5"x11" paper.',
+        appearance: 'An sheet of 8.5"x11" paper.',
         text: 'Please finish this form, completely filling in the circles. \nHave you taken this test previously? \nYES: () NO: ()',
         volume: 0,
         maxLoad: 0,
@@ -428,6 +435,8 @@ if (newId.lowestFreeId === 10) {
         surface: true,
     })
 
+    paper.multipart = new Multipart()
+
     let yes = createOption({
         parent: paper,
         labels: ['yes'],
@@ -435,7 +444,7 @@ if (newId.lowestFreeId === 10) {
         appearance: 'A printed option reading "YES:" with a little circle beside it. The circle looks like one of those dots that is meant to be read by an automatic machine.',
         size: 0,
         baseWeight: 0,
-        fixture: true,
+        part: true,
         value: false,
     })
 
@@ -446,7 +455,7 @@ if (newId.lowestFreeId === 10) {
         appearance: 'A printed option reading "NO:" with a little circle beside it. You should probably fill in the circle completely.',
         size: 0,
         baseWeight: 0,
-        fixture: true,
+        part: true,
         value: false,
     })
 
@@ -511,7 +520,7 @@ if (newId.lowestFreeId === 10) {
     testingChamber00178.container.fixtures = [sign]
     anotherRoom.container.contents = [weight, desk]
     desk.container.contents = [tray, paper, pencil]
-    paper.container.fixtures = [no, yes]
+    paper.multipart.parts = [no, yes]
 
     console.log(JSON.stringify({
         testingChamber00178: testingChamber00178.id,

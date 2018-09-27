@@ -36,6 +36,22 @@ const methods = {
             }
         }
 
+        if (object.properties.part) {
+            return {
+                reason: 'Part.',
+                code: 'gx-pt',
+                object,
+            }
+        }
+
+        if (!destination.container) {
+            return {
+                reason: 'Not a Container.',
+                code: 'gx-nc',
+                object,
+            }
+        }
+
         // const destination.container = destination.container
 
         // Build a list of containers already carrying this load.
@@ -106,7 +122,11 @@ const methods = {
         // Remove the object from the source's contents
         // const sourceContainer = em.getComponent('Container', source)
         // const sourceContents = sourceContainer.getContents()
-        source.container.contents.splice(source.container.contents.indexOf(object), 1)
+        const index = source.container.contents.indexOf(object)
+        if (index === -1) {
+            throw new Error('Entity does not contain child.')
+        }
+        source.container.contents.splice(index, 1)
         // sourceContainer.setContents(sourceContents)
 
         // Increase the source's free volume.
