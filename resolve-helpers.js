@@ -69,7 +69,7 @@ function parentOf(getSet) {
 }
 
 // function contentsOf(getEntity) {
-//     const internalContext = {}
+//
 //     return (action) => {
 //         let set
 //         let result
@@ -86,7 +86,7 @@ function parentOf(getSet) {
 
 //         result = []
 
-//         let {accessibleRequired, apparentRequired} = internalContext
+//         let {accessibleRequired, apparentRequired} = action
 //         for (let i = 0; i < set.length; i++) {
 //             let entity = set[i]
 //             if (entity.container) {
@@ -128,9 +128,8 @@ function childrenOf(getEntity) {
 }
 
 function deepChildrenOf(getEntity) {
-    const internalContext = {}
     return (action) => {
-        let {accessibleRequired, apparentRequired} = internalContext
+        let {accessibleRequired, apparentRequired} = action
         let set = getEntity(action)
         if (!Array.isArray(set)) {
             set = set ? [set] : []
@@ -196,9 +195,8 @@ function constituentsOf(getEntity) {
 }
 
 function deepConstituentsOf(getEntity) {
-    const internalContext = {}
     return (action) => {
-        let {accessibleRequired, apparentRequired} = internalContext
+        let {accessibleRequired, apparentRequired} = action
         let set = getEntity(action)
         if (!Array.isArray(set)) {
             set = set ? [set] : []
@@ -264,9 +262,8 @@ function contentsOf(getEntity) {
 }
 
 function deepContentsOf(getEntity) {
-    const internalContext = {}
     return (action) => {
-        let {accessibleRequired, apparentRequired} = internalContext
+        let {accessibleRequired, apparentRequired} = action
         let set = getEntity(action)
         if (!Array.isArray(set)) {
             set = set ? [set] : []

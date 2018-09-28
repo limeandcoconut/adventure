@@ -109,7 +109,10 @@ const responses = {
         aor4({meta: {verb}}) {
             return `I don't know how to '${verb}' multiple indirect objects.`
         },
-        aor5({meta: {noun}}) {
+        aor5({meta: {noun, action}}) {
+            if (action.type === 'drop') {
+                return `You don't have a ${noun.value}.`
+            }
             return `I don't see any ${noun.value}.`
         },
         aor6({meta: {candidates}}) {

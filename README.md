@@ -88,5 +88,7 @@ FPS counter
 - [ ] add line history
 - [ ] from = dont see any there
 
+- [ ] proper error if you cant reach it but it's apparent
+
 - [ ] message for not resolving tools
 - [ ] different messages for if you don't have what you couldn't resolve

@@ -486,6 +486,21 @@ if (newId.lowestFreeId === 10) {
         surface: true,
     })
 
+    let sack = createContainer({
+        parent: anotherRoom,
+        labels: ['sack', 'bag'],
+        descriptors: ['cloth', 'mesh'],
+        appearance: 'Drawstring bag made from cloth mesh.',
+        volume: 3,
+        // freeVolume: 1,
+        maxLoad: 2,
+        size: 1,
+        baseWeight: 1,
+        // weight: 1,
+        open: true,
+        transparent: true,
+    })
+
     // let testingArea = entityManager.getComponent('Area', testingChamber00178)
     testingChamber00178.area.visited = [player]
     // testingChamber00178.area.([player])
@@ -512,13 +527,14 @@ if (newId.lowestFreeId === 10) {
     entities.store(no)
     entities.store(pencil)
     entities.store(tray)
+    entities.store(sack)
 
     player.container.contents = [thing, coin]
     crate.container.contents = [box, bolt]
     box.container.contents = [wrench]
     testingChamber00178.container.contents = [player, crate, screw, rock]
     testingChamber00178.container.fixtures = [sign]
-    anotherRoom.container.contents = [weight, desk]
+    anotherRoom.container.contents = [weight, desk, sack]
     desk.container.contents = [tray, paper, pencil]
     paper.multipart.parts = [no, yes]
 

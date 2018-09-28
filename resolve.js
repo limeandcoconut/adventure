@@ -177,7 +177,7 @@ function findObject(args) {
 
     // If there are no matches this is an error.
     if (candidates.length === 0) {
-        const error = new ResolveError(`Cannot resolve "${type}" object`, 'aor5', {noun: object})
+        const error = new ResolveError(`Cannot resolve "${type}" object`, 'aor5', {noun: object, action: args.action})
         if (type !== 'object') {
             throw error
         }
