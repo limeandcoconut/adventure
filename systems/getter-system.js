@@ -10,7 +10,7 @@ class GetterSystem extends System {
             this.fail(action, {
                 reason: 'Fixture.',
                 code: 'gx-ft',
-                object: object,
+                object,
             })
             return
         }

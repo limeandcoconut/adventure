@@ -67,6 +67,7 @@ const methods = {
         // If the destination is closed and doesn't contain the source, fail.
         // TODO: Check if you can move an item up inside a nested set of containers whose parent is closed to you.
         if (!destination.container.open && !sourceParents.includes(destination)) {
+            // Source being closed is handled by object accessiblity, probably.
             return {
                 success: false,
                 reason: 'Destination closed.',
@@ -178,6 +179,27 @@ const methods = {
         // If the operation is valid for the whole tree commit it.
         target.properties.weight = newWeight
         return sourceParents
+    },
+
+    validateContext(action) {
+        const {object, accessibleRequired, accessible} = action
+        if (accessibleRequired && !accessible[object.id]) {
+            return {
+                success: false,
+                reason: 'Inaccessible',
+                code: 'gx-ix',
+                object,
+            }
+            // action.steps[this.step] = {
+            //     success: false,
+            //     reason: 'Inaccessible',
+            //     code: 'gx-ix',
+            //     object,
+            // }
+            // action.live = false
+            // action.fault = this.step
+            // return
+        }
     },
 
     // logResults(object, source, destination) {

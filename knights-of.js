@@ -45,6 +45,8 @@ let lexer = moo.compile({
         'paper',
         'yes',
         /no(?=\s|$)/,
+        'option',
+        'optoin',
         'weight',
         'sack',
         'bag',
@@ -265,8 +267,6 @@ var grammar = {
     {"name": "verbPhrase", "symbols": [(lexer.has("verb") ? {type: "verb"} : verb), (lexer.has("_") ? {type: "_"} : _), "adverbialPreposition", (lexer.has("_") ? {type: "_"} : _), "nounPhrase"], "postprocess": 
         function([verb, , preposition, , noun], location, reject) {
             verb.object = noun
-            console.log('here')
-            console.log(preposition)
             verb.modifiers = [preposition]
             return verb
         } },

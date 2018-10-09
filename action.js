@@ -9,6 +9,7 @@ class Action {
         this.word = word || value
         this.accessibleRequired = true
         this.apparentRequired = true
+        this.accessible = {}
         // this.variants = {}
     }
 
@@ -80,6 +81,7 @@ class Action {
         clone.initiative = this.initiative
         clone.accessibleRequired = this.accessibleRequired
         clone.apparentRequired = this.apparentRequired
+        clone.accessible = this.accessible
 
         clone.verb = this.verb
 
@@ -101,6 +103,7 @@ class Action {
             'accessibleRequired',
             'variants',
             'verb',
+            'accessible',
         ]
         const props = Object.keys(this)
         while (props.length) {

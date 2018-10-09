@@ -11,11 +11,14 @@ class ResolveError extends Error {
 // function entities() {
 //     return () => entities.get()
 // }
-/* eslint-disable require-jsdoc */
+/* eslint-disable require-jsdoc, complexity, max-depth */
 
 function entity() {
     // return action.entity
-    return (action) => action.entity
+    return (action) => {
+        action.accessible[action.entity.id] = true
+        return action.entity
+    }
 }
 
 function list(getEntity) {
@@ -64,7 +67,12 @@ function firstOne(getSet) {
 function parentOf(getSet) {
     return (action) => {
         const entity = getSet(action)
-        return entity ? entity.location.parent : undefined
+        if (!entity) {
+            return undefined
+        }
+        const parent = entity.location.parent
+        action.accessible[parent.id] = true
+        return parent
     }
 }
 
@@ -110,26 +118,39 @@ function childrenOf(getEntity) {
         }
 
         let result = []
+        const childrenInaccessible = {}
 
-        let {accessibleRequired, apparentRequired} = action
+        let {apparentRequired} = action
         for (let i = 0; i < set.length; i++) {
             let entity = set[i]
+
             if (entity.container) {
+
+                childrenInaccessible[entity.id] = !action.accessible[entity.id] || !entity.container.open
+
                 const isVisible = entity.properties && entity.properties.visible
-                const childApparent = isVisible && (entity.container.open || (entity.properties && entity.properties.transparent))
+                const isTransparent = entity.properties && entity.properties.transparent
+                const childApparent = isVisible && (entity.container.open || isTransparent)
+
                 // Order matters on the ORs.
-                if ((!apparentRequired || childApparent) && (!accessibleRequired || entity.container.open)) {
+                if (!apparentRequired || childApparent) {
                     result = [...result, ...entity.container.contents, ...entity.container.fixtures]
                 }
             }
         }
+
+        for (let i = 0; i < result.length; i++) {
+            const entity = result[i]
+            action.accessible[entity.id] = !childrenInaccessible[entity.location.parent.id]
+        }
+
         return result
     }
 }
 
 function deepChildrenOf(getEntity) {
     return (action) => {
-        let {accessibleRequired, apparentRequired} = action
+        let {apparentRequired} = action
         let set = getEntity(action)
         if (!Array.isArray(set)) {
             set = set ? [set] : []
@@ -138,6 +159,7 @@ function deepChildrenOf(getEntity) {
         let result = []
         let subset = set
         let subResult
+        const childrenInaccessible = {}
 
         do {
             if (subResult) {
@@ -147,11 +169,20 @@ function deepChildrenOf(getEntity) {
 
             for (let i = 0; i < subset.length; i++) {
                 let entity = subset[i]
+
+                if (result.length) {
+                    action.accessible[entity.id] = !childrenInaccessible[entity.location.parent.id]
+                }
+
                 if (entity.container) {
+                    childrenInaccessible[entity.id] = !action.accessible[entity.id] || !entity.container.open
+
                     const isVisible = entity.properties && entity.properties.visible
-                    const childApparent = isVisible && (entity.container.open || (entity.properties && entity.properties.transparent))
+                    const isTransparent = entity.properties && entity.properties.transparent
+                    const childApparent = isVisible && (entity.container.open || isTransparent)
+
                     // Order matters on the ORs.
-                    if ((!apparentRequired || childApparent) && (!accessibleRequired || entity.container.open)) {
+                    if (!apparentRequired || childApparent) {
                         subResult = [...subResult, ...entity.container.contents, ...entity.container.fixtures]
                     }
                 }
@@ -173,14 +204,15 @@ function constituentsOf(getEntity) {
 
         let result = []
 
-        let {accessibleRequired, apparentRequired} = action
+        let {apparentRequired} = action
         for (let i = 0; i < set.length; i++) {
             let entity = set[i]
             const isVisible = entity.properties && entity.properties.visible
             if (entity.container) {
-                const childApparent = isVisible && (entity.container.open || (entity.properties && entity.properties.transparent))
+                const isTransparent = entity.properties && entity.properties.transparent
+                const childApparent = isVisible && (entity.container.open || isTransparent)
                 // Order matters on the ORs.
-                if ((!apparentRequired || childApparent) && (!accessibleRequired || entity.container.open)) {
+                if (!apparentRequired || childApparent) {
                     result = [...result, ...entity.container.contents, ...entity.container.fixtures]
                 }
             }
@@ -190,13 +222,20 @@ function constituentsOf(getEntity) {
                 }
             }
         }
+
+        for (let i = 0; i < result.length; i++) {
+            const entity = result[i]
+            const parent = entity.location.parent
+            action.accessible[entity.id] = action.accessible[parent.id] && ((entity.properties && entity.properties.part) || (parent.container && parent.container.open))
+        }
+
         return result
     }
 }
 
 function deepConstituentsOf(getEntity) {
     return (action) => {
-        let {accessibleRequired, apparentRequired} = action
+        let {apparentRequired} = action
         let set = getEntity(action)
         if (!Array.isArray(set)) {
             set = set ? [set] : []
@@ -215,10 +254,17 @@ function deepConstituentsOf(getEntity) {
             for (let i = 0; i < subset.length; i++) {
                 let entity = subset[i]
                 const isVisible = entity.properties && entity.properties.visible
+
+                if (result.length) {
+                    const parent = entity.location.parent
+                    action.accessible[entity.id] = action.accessible[parent.id] && ((entity.properties && entity.properties.part) || (parent.container && parent.container.open))
+                }
+
                 if (entity.container) {
-                    const childApparent = isVisible && (entity.container.open || (entity.properties && entity.properties.transparent))
+                    const isTransparent = entity.properties && entity.properties.transparent
+                    const childApparent = isVisible && (entity.container.open || isTransparent)
                     // Order matters on the ORs.
-                    if ((!apparentRequired || childApparent) && (!accessibleRequired || entity.container.open)) {
+                    if (!apparentRequired || childApparent) {
                         subResult = [...subResult, ...entity.container.contents, ...entity.container.fixtures]
                     }
                 }
@@ -244,26 +290,36 @@ function contentsOf(getEntity) {
         }
 
         let result = []
+        const childrenInaccessible = {}
 
-        let {accessibleRequired, apparentRequired} = action
+        let {apparentRequired} = action
         for (let i = 0; i < set.length; i++) {
             let entity = set[i]
             if (entity.container) {
+                childrenInaccessible[entity.id] = !action.accessible[entity.id] || !entity.container.open
+
                 const isVisible = entity.properties && entity.properties.visible
-                const childApparent = isVisible && (entity.container.open || (entity.properties && entity.properties.transparent))
+                const isTransparent = entity.properties && entity.properties.transparent
+                const childApparent = isVisible && (entity.container.open || isTransparent)
                 // Order matters on the ORs.
-                if ((!apparentRequired || childApparent) && (!accessibleRequired || entity.container.open)) {
+                if ((!apparentRequired || childApparent)) {
                     result = [...result, ...entity.container.contents]
                 }
             }
         }
+
+        for (let i = 0; i < result.length; i++) {
+            const entity = result[i]
+            action.accessible[entity.id] = !childrenInaccessible[entity.location.parent.id]
+        }
+
         return result
     }
 }
 
 function deepContentsOf(getEntity) {
     return (action) => {
-        let {accessibleRequired, apparentRequired} = action
+        let {apparentRequired} = action
         let set = getEntity(action)
         if (!Array.isArray(set)) {
             set = set ? [set] : []
@@ -272,6 +328,7 @@ function deepContentsOf(getEntity) {
         let result = []
         let subset = set
         let subResult
+        const childrenInaccessible = {}
 
         do {
             if (subResult) {
@@ -281,11 +338,19 @@ function deepContentsOf(getEntity) {
 
             for (let i = 0; i < subset.length; i++) {
                 let entity = subset[i]
+
+                if (result.length) {
+                    action.accessible[entity.id] = !childrenInaccessible[entity.location.parent.id]
+                }
+
                 if (entity.container) {
+                    childrenInaccessible[entity.id] = !action.accessible[entity.id] || !entity.container.open
+
                     const isVisible = entity.properties && entity.properties.visible
-                    const childApparent = isVisible && (entity.container.open || (entity.properties && entity.properties.transparent))
+                    const isTransparent = entity.properties && entity.properties.transparent
+                    const childApparent = isVisible && (entity.container.open || isTransparent)
                     // Order matters on the ORs.
-                    if ((!apparentRequired || childApparent) && (!accessibleRequired || entity.container.open)) {
+                    if (!apparentRequired || childApparent) {
                         subResult = [...subResult, ...entity.container.contents]
                     }
                 }
@@ -312,7 +377,7 @@ function deep(getSet) {
 }
 
 function siblingsOf(getEntity, broad = false) {
-    const getSet = broad ? childrenOf : contentsOf
+    const getSet = broad ? childrenOf : constituentsOf
     return (action) => {
         let siblings = getSet(parentOf(getEntity))(action)
         if (siblings.length <= 1) {
@@ -324,7 +389,7 @@ function siblingsOf(getEntity, broad = false) {
 }
 
 function deepSiblingsOf(getEntity, broad = false) {
-    const getSet = broad ? childrenOf : contentsOf
+    const getSet = broad ? childrenOf : constituentsOf
     return (action) => {
         let siblings = getSet(parentOf(getEntity))(action)
         if (siblings.length <= 1) {
@@ -463,7 +528,7 @@ module.exports = {
     deepConstituentsOf,
     siblingsOf,
     deepSiblingsOf,
-    deep,
+    // deep,
     visible,
     tool,
     legible,

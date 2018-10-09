@@ -80,7 +80,7 @@ FPS counter
 - [x] fix word length
 - [x] open containers
 - [x]  at
-- [ ] see checked
+- [x] see checked
 - [x] errors as objects
 - [ ] begin earlier
 - [ ] standardize newlines
@@ -88,7 +88,12 @@ FPS counter
 - [ ] add line history
 - [ ] from = dont see any there
 
-- [ ] proper error if you cant reach it but it's apparent
+- [x] proper error if you cant reach it but it's apparent
 
 - [ ] message for not resolving tools
-- [ ] different messages for if you don't have what you couldn't resolve
+- [x] different messages for if you don't have what you couldn't resolve
+
+- [x] Fix empty array of objects
+- [x] Fix from context for all
+
+- [ ] Better format looking at all

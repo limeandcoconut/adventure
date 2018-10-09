@@ -78,7 +78,11 @@ function adventure(line) {
         log('*********** EXECUTE MAIN **********')
         // Split actions.
         if (action.object) {
-            if (action.object.length) {
+            if (Array.isArray(action.object)) {
+                if (!action.object.length) {
+                    output += respond(new ResolveError('Cannot resolve multiple noun', 'aor9'))
+                    continue
+                }
                 const objects = action.object
                 let newAction
                 while (objects.length) {

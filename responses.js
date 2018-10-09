@@ -125,6 +125,12 @@ const responses = {
         aor7({meta: {verb, type}}) {
             return `I don't know how to use a ${type} noun with the verb "${verb}".`
         },
+        aor8({meta: {object}}) {
+            return `You can't touch the ${object.descriptors.name}.`
+        },
+        aor9() {
+            return 'There\'s nothing here. What were you looking for?'
+        },
         lis1({message, offset}) {
             const col = message.match(/line\s\d+\scol\s(\d+)/i)[1]
             let capture = new RegExp(`\\n\\n\\s+.{${col - 1}}(.)`)
@@ -471,6 +477,9 @@ function formatResponse(output) {
                 return response
             }
         }
+
+        // TODO: Unexpected error
+        console.log(output)
 
         return responses.errors.general.understandSentence()
     }

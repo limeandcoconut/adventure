@@ -1,5 +1,5 @@
 'use strict'
-/* eslint-disable require-jsdoc */
+/* eslint-disable require-jsdoc, complexity */
 
 const {
     // deep,
@@ -74,7 +74,6 @@ module.exports = function(actions) {
                 action[type] = object
                 continue
             }
-
             // Get the search context for manual object resolution.
             let from
             // If there is a specified search context resolve it.
@@ -113,7 +112,7 @@ module.exports = function(actions) {
             }
 
             // Resolve the object using search context, exceptions, etc.
-            action[type] = findObjects({
+            let result = findObjects({
                 object,
                 type,
                 from,
@@ -121,8 +120,31 @@ module.exports = function(actions) {
                 context,
                 action,
             })
+
+            if (result.objects) {
+                let i = 0
+                do {
+                    result.objects[i] = checkAccessibility(result.objects[i], action, type)
+                    i++
+                } while (i < result.objects.length)
+            } else {
+                result = checkAccessibility(result, action, type)
+            }
+
+            action[type] = result
         }
     }
+}
+
+function checkAccessibility(object, action, type) {
+    if (typeof object.id !== 'undefined' && action.accessibleRequired && !action.accessible[object.id]) {
+        const error = new ResolveError('Target is inaccessible', 'aor8', {object})
+        if (type !== 'object') {
+            throw error
+        }
+        return error
+    }
+    return object
 }
 
 function findObjects(args) {
@@ -172,8 +194,12 @@ function findObject(args) {
             return candidates[Math.floor(candidates.length * Math.random())]
         }
     }
+    // candidates.forEach((obj) => {
+    //     console.log(obj.toString())
+    // })
+    // console.log(JSON.stringify(candidates, null, 4))
     // Refine candidates using descriptors and labels.
-    candidates = scoreCandidates(candidates, descriptors, object)
+    candidates = scoreCandidates(candidates, descriptors, object, args.action)
 
     // If there are no matches this is an error.
     if (candidates.length === 0) {
@@ -212,7 +238,7 @@ function resolveCandidates({object, from, except, context = {}, action}, describ
     // If it's a multiple noun and there's no descriptors return everything.
     let candidates
     // TODO: There might not be a default 'from' context.
-    if (!described && (object.multiple || object.general)) {
+    if (!described && !object.from && (object.multiple || object.general)) {
         if (!context.all) {
             let type = object.multiple ? 'multiple' : 'general'
             throw new ResolveError(`Cannot use a ${type} noun with the verb "${action.word}"`, 'aor7', {type, verb: action.word})
@@ -228,10 +254,11 @@ function resolveCandidates({object, from, except, context = {}, action}, describ
     return candidates(action)
 }
 
-function scoreCandidates(candidates, descriptors, object) {
+function scoreCandidates(candidates, descriptors, object, {accessible, accessibleRequired}) {
     let entities = []
     // Make 0 not count
-    let score = 1
+    let score = 0.5
+    let accessibleFound
 
     // Check to see how well each candidate matches our search.
     while (candidates.length) {
@@ -240,8 +267,24 @@ function scoreCandidates(candidates, descriptors, object) {
         if (!object.general && !object.multiple && !entity.descriptors.labels.includes(object.value)) {
             continue
         }
+        // console.log(object.value)
+        // console.log(entity.descriptors.labels)
         // If there are no descriptors this entity is a label match.
         if (!descriptors.length) {
+            if (accessibleRequired) {
+                if (accessibleFound && !accessible[entity.id]) {
+                    continue
+                }
+                if (accessibleFound === false && accessible[entity.id]) {
+                    accessibleFound = accessible[entity.id]
+                    entities = []
+                } else if (typeof accessibleFound === 'undefined') {
+                    accessibleFound = accessible[entity.id]
+                }
+                entities.push(entity)
+                continue
+                // }
+            }
             entities.push(entity)
             continue
         }
@@ -249,6 +292,9 @@ function scoreCandidates(candidates, descriptors, object) {
         const entityDescriptors = entity.descriptors.descriptors
         let entityScore = descriptors.filter(({value}) => entityDescriptors.includes(value))
         entityScore = entityScore.length
+        if (accessibleRequired && !accessible[entity.id]) {
+            entityScore -= 0.5
+        }
         if (entityScore > score) {
             // New best.
             score = entityScore
@@ -258,6 +304,7 @@ function scoreCandidates(candidates, descriptors, object) {
             entities.push(entity)
         }
     }
-
+    // console.log(entities)
+    // console.log(score)
     return entities
 }

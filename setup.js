@@ -1,4 +1,5 @@
 const entities = require('./entities')
+const Entity = require('./entity')
 // const ResolverSystem = require('./systems/resolver-system')
 // const LocatorSystem = require('./systems/locator-system')
 const GetterSystem = require('./systems/getter-system')
@@ -101,15 +102,15 @@ function createRoom(props = {}) {
         doors,
     } = props
 
-    let room = {
-        id: newId(),
-        appearance: new Appearance(appearance),
-        location: new Location(parent),
-        descriptors: new Descriptors(['room']),
-        container: new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface}),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
-        area: new Area(title, visited, doors),
-    }
+    let room = new Entity()
+    room.id = newId()
+    room.appearance = new Appearance(appearance)
+    room.location = new Location(parent)
+    room.descriptors = new Descriptors(['room'])
+    room.container = new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface})
+    room.properties = new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent})
+    room.area = new Area(title, visited, doors)
+
     return room
 }
 
@@ -136,14 +137,13 @@ function createContainer(props = {}) {
         text,
     } = props
 
-    let container = {
-        id: newId(),
-        appearance: new Appearance(appearance),
-        location: new Location(parent),
-        descriptors: new Descriptors(labels, descriptors),
-        container: new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface}),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
-    }
+    let container = new Entity()
+    container.id = newId()
+    container.appearance = new Appearance(appearance)
+    container.location = new Location(parent)
+    container.descriptors = new Descriptors(labels, descriptors)
+    container.container = new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface})
+    container.properties = new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent})
 
     if (text) {
         container.text = new Text(text)
@@ -166,13 +166,12 @@ function createThing(props = {}) {
         transparent,
         text,
     } = props
-    let thing = {
-        id: newId(),
-        appearance: new Appearance(appearance),
-        location: new Location(parent),
-        descriptors: new Descriptors(labels, descriptors),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
-    }
+    let thing = new Entity()
+    thing.id = newId()
+    thing.appearance = new Appearance(appearance)
+    thing.location = new Location(parent)
+    thing.descriptors = new Descriptors(labels, descriptors)
+    thing.properties = new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent})
     if (text) {
         thing.text = new Text(text)
     }
@@ -195,14 +194,13 @@ function createTool(props = {}) {
         text,
         toolType,
     } = props
-    let tool = {
-        id: newId(),
-        tool: new Tool(toolType),
-        appearance: new Appearance(appearance),
-        location: new Location(parent),
-        descriptors: new Descriptors(labels, descriptors),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
-    }
+    let tool = new Entity()
+    tool.id = newId()
+    tool.tool = new Tool(toolType)
+    tool.appearance = new Appearance(appearance)
+    tool.location = new Location(parent)
+    tool.descriptors = new Descriptors(labels, descriptors)
+    tool.properties = new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent})
     if (text) {
         tool.text = new Text(text)
     }
@@ -224,14 +222,13 @@ function createOption(props = {}) {
         transparent,
         value,
     } = props
-    let option = {
-        id: newId(),
-        appearance: new Appearance(appearance),
-        location: new Location(parent),
-        descriptors: new Descriptors(labels, descriptors),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
-        option: new Option(value),
-    }
+    let option = new Entity()
+    option.id = newId()
+    option.appearance = new Appearance(appearance)
+    option.location = new Location(parent)
+    option.descriptors = new Descriptors(labels, descriptors)
+    option.properties = new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent})
+    option.option = new Option(value)
     return option
 }
 
@@ -255,15 +252,14 @@ function createPlayer(props = {}) {
         transparent,
         initiative,
     } = props
-    let player = {
-        id: newId(),
-        appearance: new Appearance(appearance),
-        location: new Location(parent),
-        descriptors: new Descriptors(['you', 'self', 'me', 'myself'], []),
-        container: new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface}),
-        properties: new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent}),
-        actor: new Actor(initiative),
-    }
+    let player = new Entity()
+    player.id = newId()
+    player.appearance = new Appearance(appearance)
+    player.location = new Location(parent)
+    player.descriptors = new Descriptors(['you', 'self', 'me', 'myself'], [])
+    player.container = new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface})
+    player.properties = new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent})
+    player.actor = new Actor(initiative)
 
     return player
 }
@@ -286,6 +282,19 @@ if (newId.lowestFreeId === 10) {
         appearance: 'This all looks unbearably banal. There\'s a rather outdated looking desk in this room. It\'s worn and uninspiring.',
         doors: {
             s: testingChamber00178,
+            // w: closet,
+        },
+        volume: Number.POSITIVE_INFINITY,
+        maxLoad: Number.POSITIVE_INFINITY,
+        size: Number.POSITIVE_INFINITY,
+        baseWeight: Number.POSITIVE_INFINITY,
+    })
+
+    let closet = createRoom({
+        title: 'Supply Closet',
+        appearance: 'You are in an empty supply closet. Beneath your feet is a stained concrete floor.',
+        doors: {
+            e: anotherRoom,
         },
         volume: Number.POSITIVE_INFINITY,
         maxLoad: Number.POSITIVE_INFINITY,
@@ -439,8 +448,8 @@ if (newId.lowestFreeId === 10) {
 
     let yes = createOption({
         parent: paper,
-        labels: ['yes'],
-        descriptors: ['option'],
+        labels: ['yes', 'option', 'optoin'],
+        descriptors: [],
         appearance: 'A printed option reading "YES:" with a little circle beside it. The circle looks like one of those dots that is meant to be read by an automatic machine.',
         size: 0,
         baseWeight: 0,
@@ -450,8 +459,8 @@ if (newId.lowestFreeId === 10) {
 
     let no = createOption({
         parent: paper,
-        labels: ['no'],
-        descriptors: ['option'],
+        labels: ['no', 'option', 'optoin'],
+        descriptors: [],
         appearance: 'A printed option reading "NO:" with a little circle beside it. You should probably fill in the circle completely.',
         size: 0,
         baseWeight: 0,
@@ -463,7 +472,7 @@ if (newId.lowestFreeId === 10) {
         parent: desk,
         labels: ['pencil'],
         descriptors: ['yellow', 'ticonderoga'],
-        appearance: 'A standard No. 2 HP Pencil. What did you expect?',
+        appearance: 'A standard No. 2 HB Pencil. What did you expect?',
         text: 'HB 2 TICONDEROGA',
         size: 0,
         baseWeight: 0,
@@ -508,8 +517,13 @@ if (newId.lowestFreeId === 10) {
         n: anotherRoom,
     }
 
+    anotherRoom.area.doors = {
+        w: closet,
+    }
+
     entities.store(testingChamber00178)
     entities.store(anotherRoom)
+    entities.store(closet)
     entities.store(player)
     entities.store(thing)
     entities.store(sign)
