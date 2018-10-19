@@ -293,9 +293,11 @@ const responses = {
             }
         },
         begin(action) {
+            // I think this might be in error.
             if (action.code === 'sb-ss') {
                 return
             }
+            console.log(action)
             return '\n \nYou\'re in a room, utterly boring with just a hint of institutionalized over optimism. ' +
                 'It\'s a small kindness not to describe the nearly blank nearly white walls and other environs ' +
                 'in any detail. ' +
@@ -310,6 +312,7 @@ const responses = {
                 '######################################\n \n' +
                 'You can feel the ennui setting in already.\n \n' +
                 responses.steps.look(action)
+
         },
         look(action) {
             const {steps: {look: info}} = action

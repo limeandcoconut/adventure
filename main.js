@@ -34,6 +34,10 @@ function adventure(line) {
     log('################################')
     log('########### NEW INPUT ##########')
 
+    if (!gameStarted && !adventure.debugMode.begun) {
+        return beginGame() + '\n' + adventure(line)
+    }
+
     // Create a Parser object from our grammar
     const parser = new nearley.Parser(grammar)
     // Lex and parse.
@@ -60,10 +64,6 @@ function adventure(line) {
         resolve(actions)
     } catch (error) {
         return respond(error)
-    }
-
-    if (!gameStarted && !adventure.debugMode.begun) {
-        beginGame(actions)
     }
 
     if (adventure.debugMode.resolve) {
@@ -179,16 +179,22 @@ function codify({message}) {
     }
 }
 
-function beginGame(actions) {
-    gameStarted = true
+function beginGame() {
+    // gameStarted = true
 
-    if (!actions.length || actions[0].type !== 'begin') {
-        log(`It doesn't look like you've begun yet. Lets do that.`)
-        let beginningAction = new Begin({word: 'begin'})
-        beginningAction.entity = player
-        beginningAction.initiative = player.actor.initiative
-        actions.unshift(beginningAction)
-    }
+    // if (!actions.length || actions[0].type !== 'begin') {
+    //     log(`It doesn't look like you've begun yet. Lets do that.`)
+    //     let beginningAction = new Begin({word: 'begin'})
+    //     beginningAction.entity = player
+    //     beginningAction.initiative = player.actor.initiative
+    //     actions.unshift(beginningAction)
+    // }
+    gameStarted = true
+    log(`It doesn't look like you've begun yet. Lets do that.`)
+    let beginningAction = new Begin({word: 'begin'})
+    beginningAction.entity = player
+    beginningAction.initiative = player.actor.initiative
+    return execute(beginningAction)
 }
 
 function byInitiative(a, b) {

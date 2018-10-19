@@ -519,6 +519,7 @@ if (newId.lowestFreeId === 10) {
 
     anotherRoom.area.doors = {
         w: closet,
+        s: testingChamber00178,
     }
 
     entities.store(testingChamber00178)

@@ -82,11 +82,11 @@ FPS counter
 - [x]  at
 - [x] see checked
 - [x] errors as objects
-- [ ] begin earlier
+- [x] begin earlier
 - [ ] standardize newlines
 - [ ] add history for actions
 - [ ] add line history
-- [ ] from = dont see any there
+- [x] from = dont see any there
 
 - [x] proper error if you cant reach it but it's apparent
 
