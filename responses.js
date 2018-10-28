@@ -95,7 +95,7 @@ function describeObject(info) {
 const responses = {
     errors: {
         aor1({meta: {verb, type}}) {
-            return `I don't know how to '${verb}' using a '${type === 'object' ? 'direct' : 'indirect'}' object in that way`
+            return `I don't know how to '${verb}' using a ${type === 'object' ? 'direct' : 'indirect'} object in that way`
         },
         oar1() {
             return 'I\'m not sure what you\'re looking for.'
@@ -109,8 +109,8 @@ const responses = {
         aor4({meta: {verb}}) {
             return `I don't know how to '${verb}' multiple indirect objects.`
         },
-        aor5({meta: {noun, action}}) {
-            if (action.type === 'drop') {
+        aor5({meta: {noun, action, type}}) {
+            if (action.type === 'drop' || type === 'tool') {
                 return `You don't have a ${noun.value}.`
             }
             return `I don't see any ${noun.value}.`

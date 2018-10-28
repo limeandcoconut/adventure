@@ -84,13 +84,13 @@ FPS counter
 - [x] errors as objects
 - [x] begin earlier
 - [ ] standardize newlines
-- [ ] add history for actions
+- [ ] add history for actions   
 - [ ] add line history
 - [x] from = dont see any there
 
 - [x] proper error if you cant reach it but it's apparent
 
-- [ ] message for not resolving tools
+- [x] message for not resolving tools
 - [x] different messages for if you don't have what you couldn't resolve
 
 - [x] Fix empty array of objects
