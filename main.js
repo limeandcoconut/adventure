@@ -8,20 +8,20 @@ const resolve = require('./resolve')
 const {ResolveError} = require('./resolve-helpers')
 
 const formatResponse = require('./responses')
-const {
-    begin: Begin,
-    // go: Go,
-} = require('./actions')
 const actionTypes = require('./actions')
+// const {
+//     begin: Begin,
+//     // go: Go,
+// } = actionTypes
 /* eslint-disable require-jsdoc */
 const {systems, player, processes} = require('./setup')
 let gameStarted = false
 adventure.debugMode = {}
 function log() {
-    if (adventure.silent) {
-        return
-    }
-    console.log(...arguments)
+  if (adventure.silent) {
+    return
+  }
+  console.log(...arguments)
 }
 
 // function debug() {
@@ -30,204 +30,202 @@ function log() {
 
 module.exports = adventure
 function adventure(line) {
-    log('')
-    log('################################')
-    log('########### NEW INPUT ##########')
+  log('')
+  log('################################')
+  log('########### NEW INPUT ##########')
 
-    if (!gameStarted && !adventure.debugMode.begun) {
-        return beginGame() + '\n' + adventure(line)
+  if (!gameStarted && !adventure.debugMode.begun) {
+    return beginGame() + '\n' + adventure(line)
+  }
+
+  // Create a Parser object from our grammar
+  const parser = new nearley.Parser(grammar)
+  // Lex and parse.
+  try {
+    parser.feed(line)
+  } catch (error) {
+    error.code = codify(error)
+    return respond(error)
+  }
+
+  if (parser.results.length !== 1) {
+    if (parser.results.length < 1) {
+      // This has no code so that it will fallback to the default response.
+      return respond(new ResolveError('Cannot parse sentence.'))
     }
+    console.log(parser.results)
+    throw new Error('This parsed ambiguously. This is not an expected error.')
+  }
+  log(parser.results)
+  let actions = parser.results[0].map(createAction)
 
-    // Create a Parser object from our grammar
-    const parser = new nearley.Parser(grammar)
-    // Lex and parse.
-    try {
-        parser.feed(line)
-    } catch (error) {
-        error.code = codify(error)
-        return respond(error)
-    }
+  // Resolve objects on actions
+  try {
+    resolve(actions)
+  } catch (error) {
+    return respond(error)
+  }
 
-    if (parser.results.length !== 1) {
-        if (parser.results.length < 1) {
-            // This has no code so that it will fallback to the default response.
-            return respond(new ResolveError('Cannot parse sentence.'))
+  if (adventure.debugMode.resolve) {
+    return actions
+  }
+
+  // Construct response from executing actions.
+  let output = ''
+
+  while (actions.length) {
+    let action = actions.shift()
+    log('*********** EXECUTE MAIN **********')
+    // Split actions.
+    if (action.object) {
+      if (Array.isArray(action.object)) {
+        if (!action.object.length) {
+          output += respond(new ResolveError('Cannot resolve multiple noun', 'aor9'))
+          continue
         }
-        console.log(parser.results)
-        throw new Error('This parsed ambiguously. This is not an expected error.')
-    }
-    log(parser.results)
-    let actions = parser.results[0].map(createAction)
-
-    // Resolve objects on actions
-    try {
-        resolve(actions)
-    } catch (error) {
-        return respond(error)
-    }
-
-    if (adventure.debugMode.resolve) {
-        return actions
-    }
-
-    // Construct response from executing actions.
-    let output = ''
-
-    while (actions.length) {
-        let action = actions.shift()
-        log('*********** EXECUTE MAIN **********')
-        // Split actions.
-        if (action.object) {
-            if (Array.isArray(action.object)) {
-                if (!action.object.length) {
-                    output += respond(new ResolveError('Cannot resolve multiple noun', 'aor9'))
-                    continue
-                }
-                const objects = action.object
-                let newAction
-                while (objects.length) {
-                    if (newAction) {
-                        actions.unshift(newAction)
-                    }
-                    newAction = action.clone()
-                    newAction.object = objects.shift()
-                }
-                action = newAction
-            }
-            if (action.object instanceof Error) {
-                output += respond(action.object) + '\n'
-                continue
-            }
+        const objects = action.object
+        let newAction
+        while (objects.length) {
+          if (newAction) { // eslint-disable-line max-depth
+            actions.unshift(newAction)
+          }
+          newAction = action.clone()
+          newAction.object = objects.shift()
         }
-
-        output += execute(action)
+        action = newAction
+      }
+      if (action.object instanceof Error) {
+        output += respond(action.object) + '\n'
+        continue
+      }
     }
-    return output + '\n'
+
+    output += execute(action)
+  }
+  return output + '\n'
 }
 
 function execute(action) {
 
-    // Format a simple response.
-    let response = ''
-    // All simultaneous actions by all actors.
-    let actions = [action]
+  // Format a simple response.
+  let response = ''
+  // All simultaneous actions by all actors.
+  let actions = [action]
 
-    // Run all processes
-    for (let i = 0; i < processes.length; i++) {
-        let processActions = processes[i].update(action)
-        // If any actions were generated add them to the list.
-        if (typeof processActions !== 'undefined') {
-            actions = actions.concat(processActions)
-        }
+  // Run all processes
+  for (const process of processes) {
+    let processActions = process.update(action)
+    // If any actions were generated add them to the list.
+    if (typeof processActions !== 'undefined') {
+      actions = actions.concat(processActions)
     }
+  }
 
-    // Sort actions by initiative.
-    actions = actions.sort(byInitiative)
+  // Sort actions by initiative.
+  actions = actions.sort(byInitiative)
 
-    for (let i = 0; i < actions.length; i++) {
-        const action = actions[i]
-        // Do each step listed by that action.
-        let procedure = action.procedure
-        let j = 0
-        do {
-            if (!action.live) {
-                break
-            }
-            systems[procedure[j]].update(action)
-            j++
-        } while (j < procedure.length)
+  for (const action of actions) {
+    // Do each step listed by that action.
+    let procedure = action.procedure
+    let j = 0
+    do {
+      if (!action.live) {
+        break
+      }
+      systems[procedure[j]].update(action)
+      j++
+    } while (j < procedure.length)
 
-        // TODO: Adjust this to account for the acting entity.
-        // if (adventure.debugMode.codes) {
-        //     output
-        // } else {
-        let output = ` \n${respond(action)}`
-        // }
+    // TODO: [>=0.1.0] Adjust this to account for the acting entity.
+    // if (adventure.debugMode.codes) {
+    //     output
+    // } else {
+    let output = ` \n${respond(action)}`
+    // }
 
-        if (!output || adventure.debugMode.codes) {
-            let {type, steps, info, success, fault, reporter} = action
-            output = {
-                type,
-                steps,
-                info,
-                success,
-                fault,
-                reporter,
-            }
-            output = JSON.stringify(output, null, 4) + '\n'
-        }
-        response += output
+    if (!output || adventure.debugMode.codes) {
+      let {type, steps, info, success, fault, reporter} = action
+      output = {
+        type,
+        steps,
+        info,
+        success,
+        fault,
+        reporter,
+      }
+      output = JSON.stringify(output, null, 2) + '\n'
     }
-    log('\n \n')
-    return response
+    response += output
+  }
+  log('\n \n')
+  return response
 }
 
 // These are ordered, most to least specific.
 const codeTests = [
-    [/unexpected\sword\stoken/i, 'lis2'],
-    [/unexpected.*?token/i, 'lis3'],
-    [/invalid\ssyntax/i, 'lis1'],
-    // [/invalid\s+syntax.*(?!unexpected\s+token)/i, 'lis1'],
+  [/unexpected\sword\stoken/i, 'lis2'],
+  [/unexpected.*?token/i, 'lis3'],
+  [/invalid\ssyntax/i, 'lis1'],
+  // [/invalid\s+syntax.*(?!unexpected\s+token)/i, 'lis1'],
 ]
 function codify({message}) {
-    for (let i = 0; i < codeTests.length; i++) {
-        const [test, code] = codeTests[i]
-        if (test.test(message)) {
-            console.log(message)
-            return code
-        }
+  for (const [test, code] of codeTests) {
+    if (test.test(message)) {
+      console.log(message)
+      return code
     }
+  }
 }
 
 function beginGame() {
-    // gameStarted = true
+  // gameStarted = true
 
-    // if (!actions.length || actions[0].type !== 'begin') {
-    //     log(`It doesn't look like you've begun yet. Lets do that.`)
-    //     let beginningAction = new Begin({word: 'begin'})
-    //     beginningAction.entity = player
-    //     beginningAction.initiative = player.actor.initiative
-    //     actions.unshift(beginningAction)
-    // }
-    gameStarted = true
-    log(`It doesn't look like you've begun yet. Lets do that.`)
-    let beginningAction = new Begin({word: 'begin'})
-    beginningAction.entity = player
-    beginningAction.initiative = player.actor.initiative
-    return execute(beginningAction)
+  // if (!actions.length || actions[0].type !== 'begin') {
+  //     log(`It doesn't look like you've begun yet. Lets do that.`)
+  //     let beginningAction = new Begin({word: 'begin'})
+  //     beginningAction.entity = player
+  //     beginningAction.initiative = player.actor.initiative
+  //     actions.unshift(beginningAction)
+  // }
+  gameStarted = true
+  log(`It doesn't look like you've begun yet. Lets do that.`)
+  let beginningAction = new actionTypes.begin({word: 'begin'}) // eslint-disable-line new-cap
+  beginningAction.entity = player
+  beginningAction.initiative = player.actor.initiative
+  return execute(beginningAction)
 }
 
 function byInitiative(a, b) {
-    if (a.initiative < b.initiative) {
-        return -1
-    }
-    if (b.initiative < a.initiative) {
-        return 1
-    }
-    return 0
+  if (a.initiative < b.initiative) {
+    return -1
+  }
+  if (b.initiative < a.initiative) {
+    return 1
+  }
+  return 0
 }
 
 function createAction(verb) {
-    if (verb.type !== 'verb') {
-        return new ResolveError('Noun only.', 'acn1')
-    }
+  if (verb.type !== 'verb') {
+    return new ResolveError('Noun only.', 'acn1')
+  }
 
-    const constructor = actionTypes[verb.value]
-    if (!constructor) {
-        throw new ResolveError('No such action', 'act1')
-    }
-    const action = !verb.modifiers.length ? new constructor(verb) : constructor.delegate(verb)
-    action.entity = player
-    action.initiative = player.actor.initiative
-    if (adventure.debugMode.verbs) {
-        action.verb = verb
-    }
-    return action
+  const constructor = actionTypes[verb.value]
+  if (!constructor) {
+    throw new ResolveError('No such action', 'act1')
+  }
+  const action = !verb.modifiers.length ? new constructor(verb) : constructor.delegate(verb)
+  action.entity = player
+  action.initiative = player.actor.initiative
+  if (adventure.debugMode.verbs) {
+    action.verb = verb
+  }
+  return action
 }
 
 function respond(output) {
-    if (adventure.debugMode.codes) {
-        return output
-    }
-    return formatResponse(output)
+  if (adventure.debugMode.codes) {
+    return output
+  }
+  return formatResponse(output)
 }

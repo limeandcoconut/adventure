@@ -159,7 +159,7 @@ let lexer = moo.compile({
         },
     },
     number: /0|[1-9][0-9]*/,
-    // TODO: should these be non greedy?
+    // TODO: [>=0.1.0] should these be non greedy?
     // Remember that one of the format functions below must match this.
     // Consider adding a token that includes a "," for occasions when that would be allowed and ignored.
     _: /[ \t]+/,

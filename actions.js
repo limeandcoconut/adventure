@@ -1,177 +1,177 @@
 const Action = require('./action')
 const {
-    parentOf,
-    entity,
-    contentsOf,
-    deepChildrenOf,
-    deepConstituentsOf,
-    visible,
-    tool,
-    siblingsOf,
-    firstOne,
-    onlyOne,
-    legible,
-    appropriate,
+  parentOf,
+  entity,
+  contentsOf,
+  deepChildrenOf,
+  deepConstituentsOf,
+  visible,
+  tool,
+  siblingsOf,
+  firstOne,
+  onlyOne,
+  legible,
+  appropriate,
 } = require('./resolve-helpers')
 /* eslint-disable require-jsdoc */
 let baseProcess = []
 
-// TODO: Allow for different accessiblity for different objects.
+// TODO: [>=0.1.0] Allow for different accessiblity for different objects.
 class Find extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'find'
-        this.procedure = baseProcess.concat('find')
-        this.reporter = this.type
-    }
+    this.type = 'find'
+    this.procedure = baseProcess.concat('find')
+    this.reporter = this.type
+  }
 }
 Find.prototype.context = new Map(Action.prototype.context)
 Find.prototype.context.set('object', {
-    from: parentOf(entity()),
-    all: appropriate(siblingsOf(entity())),
+  from: parentOf(entity()),
+  all: appropriate(siblingsOf(entity())),
 })
 
 class Dowse extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'dowse'
-        this.procedure = baseProcess.concat('dowse')
-        this.reporter = this.type
-        this.accessibleRequired = false
-        this.apparentRequired = false
-    }
+    this.type = 'dowse'
+    this.procedure = baseProcess.concat('dowse')
+    this.reporter = this.type
+    this.accessibleRequired = false
+    this.apparentRequired = false
+  }
 }
 Dowse.prototype.context = new Map(Action.prototype.context)
 Dowse.prototype.context.set('object', {
-    from: parentOf(entity()),
-    all: appropriate(siblingsOf(entity())),
+  from: parentOf(entity()),
+  all: appropriate(siblingsOf(entity())),
 })
 
 class Get extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'get'
-        this.procedure = baseProcess.concat('get')
-        this.reporter = this.type
-    }
+    this.type = 'get'
+    this.procedure = baseProcess.concat('get')
+    this.reporter = this.type
+  }
 }
 Get.prototype.context = new Map(Action.prototype.context)
 Get.prototype.context.set('object', {
-    from: parentOf(entity()),
-    all: appropriate(siblingsOf(entity())),
+  from: parentOf(entity()),
+  all: appropriate(siblingsOf(entity())),
 })
 
 class Pick extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'pick'
-        this.procedure = []
-        this.reporter = ''
-    }
+    this.type = 'pick'
+    this.procedure = []
+    this.reporter = ''
+  }
 }
 Pick.prototype.context = new Map(Action.prototype.context)
 Pick.prototype.context.set('object', {
 })
 
 Pick.prototype.variants = {
-    up: Get,
+  up: Get,
 }
 
 class Inventory extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'inventory'
-        this.procedure = ['inventory']
-        this.reporter = this.type
-    }
+    this.type = 'inventory'
+    this.procedure = ['inventory']
+    this.reporter = this.type
+  }
 }
 
 class Drop extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'drop'
-        this.procedure = baseProcess.concat('drop')
-        this.reporter = this.type
-    }
+    this.type = 'drop'
+    this.procedure = baseProcess.concat('drop')
+    this.reporter = this.type
+  }
 }
 Drop.prototype.context = new Map(Action.prototype.context)
 Drop.prototype.context.set('object', {
-    from: entity(),
-    all: appropriate(contentsOf(entity())),
+  from: entity(),
+  all: appropriate(contentsOf(entity())),
 })
 
 class Go extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'go'
-        this.procedure = ['move']
-        this.reporter = 'move'
-    }
+    this.type = 'go'
+    this.procedure = ['move']
+    this.reporter = 'move'
+  }
 }
 Go.prototype.context = new Map(Action.prototype.context)
 Go.prototype.context.set('object', {
-    acceptsPassthrough: true,
+  acceptsPassthrough: true,
 })
 
 class Look extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'look'
-        this.procedure = baseProcess.concat('look')
-        this.reporter = this.type
-        this.accessibleRequired = false
-    }
+    this.type = 'look'
+    this.procedure = baseProcess.concat('look')
+    this.reporter = this.type
+    this.accessibleRequired = false
+  }
 }
 Look.prototype.context = new Map(Action.prototype.context)
 Look.prototype.context.set('object', {
-    resolve: firstOne(visible(parentOf(entity()))),
-    from: parentOf(entity()),
-    all: appropriate(siblingsOf(entity())),
+  resolve: firstOne(visible(parentOf(entity()))),
+  from: parentOf(entity()),
+  all: appropriate(siblingsOf(entity())),
 })
 
 Look.prototype.variants = {
-    at: Look,
+  at: Look,
 }
 
 class Begin extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'begin'
-        this.procedure = [
-            'begin',
-            // 'locate',
-            'look',
-        ]
-        this.reporter = this.type
-    }
+    this.type = 'begin'
+    this.procedure = [
+      'begin',
+      // 'locate',
+      'look',
+    ]
+    this.reporter = this.type
+  }
 }
 
 class Open extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'open'
-        this.desired = this.word === 'open'
-        this.procedure = baseProcess.concat('open')
-        this.reporter = this.type
-    }
+    this.type = 'open'
+    this.desired = this.word === 'open'
+    this.procedure = baseProcess.concat('open')
+    this.reporter = this.type
+  }
 }
 Open.prototype.context = new Map(Action.prototype.context)
 Open.prototype.context.set('object', {
-    from: parentOf(entity()),
+  from: parentOf(entity()),
 })
 
 Open.prototype.variants = {
-    up: Open,
+  up: Open,
 }
 
 // class Close extends Action {
@@ -193,122 +193,122 @@ Open.prototype.variants = {
 // }
 
 class Put extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'put'
-        this.procedure = baseProcess.concat('put')
-        this.reporter = this.type
-    }
+    this.type = 'put'
+    this.procedure = baseProcess.concat('put')
+    this.reporter = this.type
+  }
 }
 Put.prototype.context = new Map(Action.prototype.context)
 Put.prototype.context.set('object', {
-    from: parentOf(entity()),
-    all: appropriate(contentsOf(entity())),
+  from: parentOf(entity()),
+  all: appropriate(contentsOf(entity())),
 })
 Put.prototype.context.set('indirect', {
-    from: parentOf(entity()),
+  from: parentOf(entity()),
 })
 
 class Read extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'read'
-        this.procedure = baseProcess.concat('read')
-        this.reporter = this.type
-        this.accessibleRequired = false
-    }
+    this.type = 'read'
+    this.procedure = baseProcess.concat('read')
+    this.reporter = this.type
+    this.accessibleRequired = false
+  }
 }
 Read.prototype.context = new Map(Action.prototype.context)
 Read.prototype.context.set('object', {
-    // resolve: onlyOne(visible(legible(either(
-    //     deep(childrenOf(entity(), false)),
-    //     deepSiblingsOf(entity(), false),
-    // )))),
-    // _beginResolution: chilre
-    // _completeResolution,
-    // _standinResolver() {
-    //     return this.resolutionSet
-    // },
-    // resolve(action, accessibleRequired = true, apparentRequired = true) {
-    //     this.resolutionSet = childrenOf(parentOf(entity()), accessibleRequired, apparentRequired)(action)
-    //     return this._completeResolution(this._standinResolver)
-    // },
-    resolve: onlyOne(appropriate(legible(deepConstituentsOf(parentOf(entity()))))),
-    from: parentOf(entity()),
+  // resolve: onlyOne(visible(legible(either(
+  //     deep(childrenOf(entity(), false)),
+  //     deepSiblingsOf(entity(), false),
+  // )))),
+  // _beginResolution: chilre
+  // _completeResolution,
+  // _standinResolver() {
+  //     return this.resolutionSet
+  // },
+  // resolve(action, accessibleRequired = true, apparentRequired = true) {
+  //     this.resolutionSet = childrenOf(parentOf(entity()), accessibleRequired, apparentRequired)(action)
+  //     return this._completeResolution(this._standinResolver)
+  // },
+  resolve: onlyOne(appropriate(legible(deepConstituentsOf(parentOf(entity()))))),
+  from: parentOf(entity()),
 })
 
 class Check extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'check'
-        this.desired = this.word === 'check'
-        this.procedure = baseProcess.concat('check')
-        this.reporter = this.type
-    }
+    this.type = 'check'
+    this.desired = this.word === 'check'
+    this.procedure = baseProcess.concat('check')
+    this.reporter = this.type
+  }
 }
 Check.prototype.context = new Map(Action.prototype.context)
 Check.prototype.context.set('object', {
-    resolve: onlyOne(appropriate(option(deepConstituentsOf(parentOf(entity()))))),
-    from: parentOf(entity()),
-    all: appropriate(option(deepConstituentsOf(parentOf(entity())))),
+  resolve: onlyOne(appropriate(option(deepConstituentsOf(parentOf(entity()))))),
+  from: parentOf(entity()),
+  all: appropriate(option(deepConstituentsOf(parentOf(entity())))),
 })
 Check.prototype.context.set('tool', {
-    resolve: onlyOne(appropriate(tool('write', deepChildrenOf(entity())))),
-    from: entity(),
+  resolve: onlyOne(appropriate(tool('write', deepChildrenOf(entity())))),
+  from: entity(),
 })
 
 function option(getSet) {
-    return (action) => {
-        const set = getSet(action)
+  return (action) => {
+    const set = getSet(action)
 
-        const result = []
-        while (set.length) {
-            let entity = set.shift()
-            if (entity.option) {
-                set.push(entity)
-            }
-        }
-        return result
+    const result = []
+    while (set.length) {
+      let entity = set.shift()
+      if (entity.option) {
+        set.push(entity)
+      }
     }
+    return result
+  }
 }
 
 class Say extends Action {
-    constructor(verb) {
-        super(verb)
+  constructor(verb) {
+    super(verb)
 
-        this.type = 'say'
-        this.procedure = baseProcess.concat('say')
-        this.reporter = this.type
-    }
+    this.type = 'say'
+    this.procedure = baseProcess.concat('say')
+    this.reporter = this.type
+  }
 }
 Say.prototype.context = new Map(Action.prototype.context)
 Say.prototype.context.set('object', {
-    acceptsWordLiteral: true,
+  acceptsWordLiteral: true,
 })
 
 const actions = {
-    begin: Begin,
-    find: Find,
-    dowse: Dowse,
-    get: Get,
-    put: Put,
-    take: Get,
-    pick: Pick,
-    drop: Drop,
-    inventory: Inventory,
-    i: Inventory,
-    go: Go,
-    open: Open,
-    close: Open,
-    look: Look,
-    l: Look,
-    read: Read,
-    check: Check,
-    uncheck: Check,
-    say: Say,
+  begin: Begin,
+  find: Find,
+  dowse: Dowse,
+  get: Get,
+  put: Put,
+  take: Get,
+  pick: Pick,
+  drop: Drop,
+  inventory: Inventory,
+  i: Inventory,
+  go: Go,
+  open: Open,
+  close: Open,
+  look: Look,
+  l: Look,
+  read: Read,
+  check: Check,
+  uncheck: Check,
+  say: Say,
 }
 
 module.exports = actions

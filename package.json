@@ -10,8 +10,14 @@
     "tap": "nyc --reporter=lcov ava test/test.js --tap | tap-nyan",
     "tapn": "npm run nc && nyc --reporter=lcov ava test/test.js --tap | tap-nyan",
     "nc": "nearleyc knights-of.ne -o knights-of.js",
-    "railroad": "nearley-railroad knights-of.ne -o railroad.html"
+    "railroad": "nearley-railroad knights-of.ne -o railroad.html",
+    "fix": "./node_modules/.bin/eslint './**.js' './**.json'  --fix"
   },
+  "eslintIgnore": [
+    "knights-of.js",
+    "package.json",
+    "package-lock.json"
+  ],
   "dependencies": {
     "nearley": "^2.15.1",
     "searchjs": "^0.15.0"
@@ -22,7 +28,9 @@
     "chai": "^4.1.2",
     "chai-interface": "^2.0.3",
     "chai-things": "^0.2.0",
-    "tap-nyan": "^1.1.0"
+    "tap-nyan": "^1.1.0",
+    "eslint": "^6.4.0",
+    "eslint-config-limeandcoconut": "^1.0.4"
   },
   "author": "Jacob A Smith",
   "license": "ISC",

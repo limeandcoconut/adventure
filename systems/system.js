@@ -13,66 +13,66 @@
 // * @class System
 module.exports = class System {
 
-    /**
+  /**
      * @constructor
      * @throws {AbstractConstructError}      Throws (Error in es2015) if System class is the target of the new operator as
      *                                       this class is abstract.
      * @throws {AbstractConstructError}      Throws (Error in es2015) if update is not overridden by the user.
      */
-    constructor() {
-        if (new.target === System) {
-            throw new Error('Cannot construct class System instances directly')
-        }
+  constructor() {
+    if (new.target === System) {
+      throw new Error('Cannot construct class System instances directly')
+    }
 
-        if (this.update === System.prototype.update) {
-            throw new Error('Method "update" must be overridden in class "System"')
-        }
+    if (this.update === System.prototype.update) {
+      throw new Error('Method "update" must be overridden in class "System"')
+    }
 
-        this.events = []
+    this.events = []
 
-        // let userUpdate = this.update
+    // let userUpdate = this.update
 
-        /**
+    /**
          * Wrapper for user set update method. This ensures that events will be cleared before running user logic.
          * @override
          * @method update
          * @return {*}                                          Return is controlled by the user but currently has no
          *                                                      use for systems.
          */
-        // this.update = (function() {
-        //     // this.clearEvents()
-        //     return userUpdate.apply(this, arguments)
-        // }).bind(this)
+    // this.update = (function() {
+    //     // this.clearEvents()
+    //     return userUpdate.apply(this, arguments)
+    // }).bind(this)
 
-    }
+  }
 
-    /**
+  /**
      * Perform logic each tick.
      * @method update
      * @abstract
      */
-    update() {}
+  update() {}
 
-    // /**
-    //  * Prepare any necessary logic for the system.
-    //  * @method init
-    //  */
-    // init() {}
+  // /**
+  //  * Prepare any necessary logic for the system.
+  //  * @method init
+  //  */
+  // init() {}
 
-    // /**
-    //  * Push event to internal list for subscribers to observe.
-    //  * @method publish
-    //  * @param   {*} event   Typeically an object with event data.
-    //  */
-    // publish(event) {
-    //     this.events.push(event)
-    // }
+  // /**
+  //  * Push event to internal list for subscribers to observe.
+  //  * @method publish
+  //  * @param   {*} event   Typeically an object with event data.
+  //  */
+  // publish(event) {
+  //     this.events.push(event)
+  // }
 
-    // /**
-    //  * Clear internal list of events for this publisher.
-    //  * @method clearEvents
-    //  */
-    // clearEvents() {
-    //     this.events = []
-    // }
+  // /**
+  //  * Clear internal list of events for this publisher.
+  //  * @method clearEvents
+  //  */
+  // clearEvents() {
+  //     this.events = []
+  // }
 }
