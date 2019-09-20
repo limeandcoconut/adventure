@@ -28,6 +28,7 @@ class Find extends Action {
 }
 Find.prototype.context = new Map(Action.prototype.context)
 Find.prototype.context.set('object', {
+  // From contexts always have appropriate(deepConstituentsOf(from)) applied.
   from: parentOf(entity()),
   all: appropriate(siblingsOf(entity())),
 })

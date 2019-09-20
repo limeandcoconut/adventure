@@ -27,112 +27,112 @@ const multipleNoun = /^all|everything$/i
 const generalNoun = /^anything|something|somethign$/i
 const generalDeterminer = /^a|an$/i
 const multipleDeterminer = /^some$/i
+// TODO: [>=0.1.0] Consider moving passthrough tests to actions
 const passthrough = /^n|s|e|w|ne|se|sw|nw|u|d|north|south|east|west|northeast|southeast|southwest|northwest|up|down$/i
 
-module.exports = function(actions) {
-  for (const action of actions) {
-    const contexts = action.context
-    // Evidently the fastest map loop: https://jsperf.com/array-object-set-map-iterate
-    for (let type of contexts.keys()) {
-      const context = contexts.get(type)
-      let object = action[type]
-      // If there isn't an object.
-      if (!object) {
-        // If one isn't required, return.
-        // TODO: [>=0.1.0] .optional flag is never used. Consider removing it.
-        if (!context || context.optional) {
-          continue
-        }
-        // If one is, and there's no way to resolve, throw.
-        if (!context.resolve) {
-          throw new ResolveError(`Action can't auto resolve: ${type}`, 'aor3')
-        }
-        // This will resolve properly or throw.
-        const target = context.resolve(action)
-        action[type] = target
+module.exports = function(action) {
+  const contexts = action.context
+  // Evidently the fastest map loop: https://jsperf.com/array-object-set-map-iterate
+  for (let contextType of contexts.keys()) {
+    const context = contexts.get(contextType)
+    // This will not skip any objects because all context types types must defined on the action or handled explicitly.
+    let object = action[contextType]
+    // If there isn't an object.
+    if (!object) {
+      // If one isn't required, return.
+      // TODO: [>=0.1.0] .optional flag is never used. Consider removing it.
+      if (!context || context.optional) {
         continue
       }
-      // There's an object:
-      // If there is an unaccepted object, throw.
-      if (!context) {
-        throw new ResolveError(`Action can't accept object type: ${type}`, 'aor1', {
-          verb: action.word,
-          type,
-        })
+      // If one is, and there's no way to autoresovle, throw.
+      if (!context.resolve) {
+        throw new ResolveError(`Action can't auto resolve: ${contextType}`, 'aor3')
       }
-      // If there are multiple objects used in an indirect way, throw.
-      if (type !== 'object' && object.objects) {
-        throw new ResolveError('Cannot use more than one object as an indirect object', 'aor4', {verb: action.word})
-      }
+      // This will resolve properly or throw.
+      const target = context.resolve(action)
+      action[contextType] = target
+      continue
+    }
+    // There's an object:
+    // If there is an unaccepted object, throw.
+    if (!context) {
+      throw new ResolveError(`Action can't accept object type: ${contextType}`, 'aor1', {
+        verb: action.word,
+        contextType,
+      })
+    }
+    // If there are multiple objects used in an indirect way, throw.
+    if (contextType !== 'object' && object.objects) {
+      throw new ResolveError('Cannot use more than one object as an indirect object', 'aor4', {verb: action.word})
+    }
 
-      // If the object should not be resolved return early.
-      if (context.acceptsPassthrough && passthrough.test(object.value)) {
-        action[type] = object
-        continue
-      }
-      if (context.acceptsWordLiteral && object.type === 'string') {
-        action[type] = object
-        continue
-      }
-      // Get the search context for manual object resolution.
-      let from
-      // If there is a specified search context resolve it.
-      if (object.from) {
-        // Search for specified context within the default context.
-        object.from = findObjects({
-          object: object.from,
-          type: `from ${type}`,
-          from: context.from,
-          // The context must be visible and accessible.
-          // context: {},
-          action,
-        })
-        // Create function to return the set of possible candidates.
-        from = () => object.from
-      } else {
-        from = context.from
-      }
-      // Get exceptions for manual object resolution.
-      // If there is a specified set of exceptions resolve them.
-      let except
-      if (object.except) {
-        // Search for exceptions within the default context.
-        object.except = findObjects({
-          object: object.except,
-          type: `except ${type}`,
-          from: context.from,
-          // The context must be visible and accessible.
-          // context: {},
-          action,
-        })
-        // Create function to return the set of resolved exceptions.
-        except = () => object.except
-      } else {
-        except = context.except
-      }
-
-      // Resolve the object using search context, exceptions, etc.
-      let result = findObjects({
-        object,
-        type,
-        from,
-        except,
-        context,
+    // If the object should not be resolved return early.
+    if (context.acceptsPassthrough && passthrough.test(object.value)) {
+      action[contextType] = object
+      continue
+    }
+    if (context.acceptsWordLiteral && object.type === 'string') {
+      action[contextType] = object
+      continue
+    }
+    // Get the search context for manual object resolution.
+    let from
+    // If there is a specified search context resolve it.
+    if (object.from) {
+      // Search for specified context within the default context.
+      object.from = findObjects({
+        object: object.from,
+        type: `from ${contextType}`,
+        from: context.from,
+        // The context must be visible and accessible.
+        // context: {},
         action,
       })
-
-      if (result.objects) {
-        let i = 0
-        do {
-          result.objects[i] = checkAccessibility(result.objects[i], action, type)
-          i++
-        } while (i < result.objects.length)
-      } else {
-        result = checkAccessibility(result, action, type)
-      }
-
-      action[type] = result
+      // Create function to return the set of possible candidates.
+      from = () => object.from
+    } else {
+      from = context.from
     }
+    // Get exceptions for manual object resolution.
+    // If there is a specified set of exceptions resolve them.
+    let except
+    if (object.except) {
+      // Search for exceptions within the default context.
+      object.except = findObjects({
+        object: object.except,
+        type: `except ${contextType}`,
+        from: context.from,
+        // The context must be visible and accessible.
+        // context: {},
+        action,
+      })
+      // Create function to return the set of resolved exceptions.
+      except = () => object.except
+    } else {
+      except = context.except
+    }
+
+    // Resolve the object using search context, exceptions, etc.
+    let result = findObjects({
+      object,
+      contextType,
+      from,
+      except,
+      context,
+      action,
+    })
+
+    if (result.objects) {
+      let i = 0
+      do {
+        result.objects[i] = checkAccessibility(result.objects[i], action, contextType)
+        i++
+      } while (i < result.objects.length)
+    } else {
+      result = checkAccessibility(result, action, contextType)
+    }
+
+    action[contextType] = result
   }
 }
 
@@ -208,6 +208,7 @@ function findObject(args) {
       action: args.action,
       type,
     })
+    //  TODO: Why throw here?
     if (type !== 'object') {
       throw error
     }
@@ -222,7 +223,6 @@ function findObject(args) {
   // Multiple entites found:
   const determiner = object.determiner
   // If the noun was multiple return all.
-  // TODO: [>=0.1.0] Should this be an && ?
   if (object.multiple || (determiner && multipleDeterminer.test(determiner.value))) {
     return candidates
   }
@@ -253,6 +253,7 @@ function resolveCandidates({object, from, except, context = {}, action}, describ
   }
 
   if (except) {
+    // TODO: Name this function like a set getter
     candidates = exclude(except, candidates)
   }
   return candidates(action)

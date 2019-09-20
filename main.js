@@ -61,7 +61,9 @@ function adventure(line) {
 
   // Resolve objects on actions
   try {
-    resolve(actions)
+    for (const action of actions) {
+      resolve(action)
+    }
   } catch (error) {
     return respond(error)
   }
