@@ -270,7 +270,7 @@ if (newId.lowestFreeId === 10) {
   // Great! This is where you create an entity 🤖
   let testingChamber00178 = createRoom({
     title: 'Testing Chamber 00178',
-    appearance: 'A bare and forgettable office space.',
+    appearance: 'A bare and [hopefully] forgettable office space.',
     volume: Number.POSITIVE_INFINITY,
     maxLoad: Number.POSITIVE_INFINITY,
     size: Number.POSITIVE_INFINITY,
