@@ -39,7 +39,12 @@ function adventure(line) {
     // If first line is empty skip it
     // When opening contianer for the first time treat as entering new room
     // an/any word "y"
-    return beginGame() + '\n' + adventure(line)
+    let output = beginGame()
+    if (!/^\s*$/.test(line)) {
+      // Add test for this
+      output += '\n' + adventure(line)
+    }
+    return output
   }
 
   // Create a Parser object from our grammar
