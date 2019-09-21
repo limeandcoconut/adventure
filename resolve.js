@@ -34,7 +34,9 @@ module.exports = function(action) {
   const contexts = action.context
   // Evidently the fastest map loop: https://jsperf.com/array-object-set-map-iterate
   for (let contextType of contexts.keys()) {
+    // This is the contextual information necessary to resolve object of this type for actions of this type.
     const context = contexts.get(contextType)
+    // This is the object specific to the current action.
     // This will not skip any objects because all context types types must defined on the action or handled explicitly.
     let object = action[contextType]
     // If there isn't an object.
@@ -274,21 +276,31 @@ function scoreCandidates(candidates, descriptors, object, {accessible, accessibl
     }
     // console.log(object.value)
     // console.log(entity.descriptors.labels)
+    // TODO: Consider splitting processes
     // If there are no descriptors this entity is a label match.
     if (!descriptors.length) {
-      if (accessibleRequired) {
-        if (accessibleFound && !accessible[entity.id]) {
-          continue
-        }
-        if (accessibleFound === false && accessible[entity.id]) {
-          accessibleFound = accessible[entity.id]
-          entities = []
-        } else if (typeof accessibleFound === 'undefined') {
-          accessibleFound = accessible[entity.id]
-        }
+      // If it doesn't have to be accessible, then don't check.
+      if (!accessibleRequired) {
         entities.push(entity)
         continue
-        // }
+      }
+      // If it does need to be accessible:
+      // If it isn't and something else is, skip.
+      if (accessibleFound && !accessible[entity.id]) {
+        continue
+      }
+      // *Could perhaps* be simplified if accessible[entity.id] === undefined is impossible
+      // if (!accessibleFound) {
+      //   accessibleFound = accessible[entity.id]
+      //   if (accessibleFound) {
+      //     entities = []
+      //   }
+      // }
+      if (accessibleFound === false && accessible[entity.id]) {
+        accessibleFound = accessible[entity.id]
+        entities = []
+      } else if (typeof accessibleFound === 'undefined') {
+        accessibleFound = accessible[entity.id]
       }
       entities.push(entity)
       continue

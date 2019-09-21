@@ -35,6 +35,10 @@ function adventure(line) {
   log('########### NEW INPUT ##########')
 
   if (!gameStarted && !adventure.debugMode.begun) {
+    // TODO:
+    // If first line is empty skip it
+    // When opening contianer for the first time treat as entering new room
+    // an/any word "y"
     return beginGame() + '\n' + adventure(line)
   }
 

@@ -68,7 +68,7 @@ function parentOf(getSet) {
   return (action) => {
     const entity = getSet(action)
     if (!entity) {
-      return undefined
+      return
     }
     const parent = entity.location.parent
     action.accessible[parent.id] = true
@@ -118,28 +118,29 @@ function childrenOf(getEntity) {
     }
 
     let result = []
-    const childrenInaccessible = {}
+    const childrenAreAccessible = {}
 
-    let {apparentRequired} = action
+    const {apparentRequired} = action
     for (const entity of set) {
-
-      if (entity.container) {
-
-        childrenInaccessible[entity.id] = !action.accessible[entity.id] || !entity.container.open
-
-        const isVisible = entity.properties && entity.properties.visible
-        const isTransparent = entity.properties && entity.properties.transparent
-        const childApparent = isVisible && (entity.container.open || isTransparent)
-
-        // Order matters on the ORs.
-        if (!apparentRequired || childApparent) {
-          result = [...result, ...entity.container.contents, ...entity.container.fixtures]
-        }
+      if (!entity.container) {
+        continue
       }
+      // If this entity is accessible and open then its children are too.
+      childrenAreAccessible[entity.id] = action.accessible[entity.id] && entity.container.open
+
+      const isVisible = entity.properties && entity.properties.visible
+      const isTransparent = entity.properties && entity.properties.transparent
+      const childApparent = isVisible && (entity.container.open || isTransparent)
+      // If they must be visible and are not, skip.
+      if (apparentRequired && !childApparent) {
+        continue
+      }
+      // Add contents and fixtures.
+      result = [...result, ...entity.container.contents, ...entity.container.fixtures]
     }
 
     for (const entity of result) {
-      action.accessible[entity.id] = !childrenInaccessible[entity.location.parent.id]
+      action.accessible[entity.id] = childrenAreAccessible[entity.location.parent.id]
     }
 
     return result
@@ -148,7 +149,7 @@ function childrenOf(getEntity) {
 
 function deepChildrenOf(getEntity) {
   return (action) => {
-    let {apparentRequired} = action
+    const {apparentRequired} = action
     let set = getEntity(action)
     if (!Array.isArray(set)) {
       set = set ? [set] : []
@@ -157,9 +158,10 @@ function deepChildrenOf(getEntity) {
     let result = []
     let subset = set
     let subResult
-    const childrenInaccessible = {}
-
+    const childrenAreAccessible = {}
+    // Traverse down layers of apparent children.
     do {
+      // If there's a subResult record it.
       if (subResult) {
         result = [...result, ...subResult]
       }
@@ -168,21 +170,23 @@ function deepChildrenOf(getEntity) {
       for (const entity of subset) {
 
         if (result.length) {
-          action.accessible[entity.id] = !childrenInaccessible[entity.location.parent.id]
+          action.accessible[entity.id] = childrenAreAccessible[entity.location.parent.id]
         }
-
-        if (entity.container) {
-          childrenInaccessible[entity.id] = !action.accessible[entity.id] || !entity.container.open
-
-          const isVisible = entity.properties && entity.properties.visible
-          const isTransparent = entity.properties && entity.properties.transparent
-          const childApparent = isVisible && (entity.container.open || isTransparent)
-
-          // Order matters on the ORs.
-          if (!apparentRequired || childApparent) {
-            subResult = [...subResult, ...entity.container.contents, ...entity.container.fixtures]
-          }
+        // If the entity doesn't have children skip.
+        if (!entity.container) {
+          continue
         }
+        // If this entity is accessible and open then its children are too.
+        childrenAreAccessible[entity.id] = action.accessible[entity.id] && entity.container.open
+
+        const isVisible = entity.properties && entity.properties.visible
+        const isTransparent = entity.properties && entity.properties.transparent
+        const childApparent = isVisible && (entity.container.open || isTransparent)
+        // If they must be visible and are not, skip.
+        if (apparentRequired && !childApparent) {
+          continue
+        }
+        subResult = [...subResult, ...entity.container.contents, ...entity.container.fixtures]
       }
 
       subset = subResult
@@ -201,7 +205,7 @@ function constituentsOf(getEntity) {
 
     let result = []
 
-    let {apparentRequired} = action
+    const {apparentRequired} = action
     for (const entity of set) {
       const isVisible = entity.properties && entity.properties.visible
       if (entity.container) {
@@ -221,6 +225,7 @@ function constituentsOf(getEntity) {
 
     for (const entity of result) {
       const parent = entity.location.parent
+      // This is accessible if the parent was and either, this is a part of it, or the parent container is open.
       action.accessible[entity.id] = action.accessible[parent.id] &&
       (
         (entity.properties && entity.properties.part) ||
@@ -292,25 +297,28 @@ function contentsOf(getEntity) {
     }
 
     let result = []
-    const childrenInaccessible = {}
+    const childrenAreAccessible = {}
 
-    let {apparentRequired} = action
+    const {apparentRequired} = action
     for (const entity of set) {
-      if (entity.container) {
-        childrenInaccessible[entity.id] = !action.accessible[entity.id] || !entity.container.open
-
-        const isVisible = entity.properties && entity.properties.visible
-        const isTransparent = entity.properties && entity.properties.transparent
-        const childApparent = isVisible && (entity.container.open || isTransparent)
-        // Order matters on the ORs.
-        if ((!apparentRequired || childApparent)) {
-          result = [...result, ...entity.container.contents]
-        }
+      if (!entity.container) {
+        continue
       }
+      childrenAreAccessible[entity.id] = action.accessible[entity.id] && entity.container.open
+
+      const isVisible = entity.properties && entity.properties.visible
+      const isTransparent = entity.properties && entity.properties.transparent
+      const childApparent = isVisible && (entity.container.open || isTransparent)
+      // If they must be visible and are not, skip.
+      if (apparentRequired && !childApparent) {
+        continue
+      }
+      // Add contents.
+      result = [...result, ...entity.container.contents]
     }
 
     for (const entity of result) {
-      action.accessible[entity.id] = !childrenInaccessible[entity.location.parent.id]
+      action.accessible[entity.id] = childrenAreAccessible[entity.location.parent.id]
     }
 
     return result
@@ -328,7 +336,7 @@ function deepContentsOf(getEntity) {
     let result = []
     let subset = set
     let subResult
-    const childrenInaccessible = {}
+    const childrenAreInaccessible = {}
 
     do {
       if (subResult) {
@@ -339,11 +347,11 @@ function deepContentsOf(getEntity) {
       for (const entity of subset) {
 
         if (result.length) {
-          action.accessible[entity.id] = !childrenInaccessible[entity.location.parent.id]
+          action.accessible[entity.id] = !childrenAreInaccessible[entity.location.parent.id]
         }
 
         if (entity.container) {
-          childrenInaccessible[entity.id] = !action.accessible[entity.id] || !entity.container.open
+          childrenAreInaccessible[entity.id] = !action.accessible[entity.id] || !entity.container.open
 
           const isVisible = entity.properties && entity.properties.visible
           const isTransparent = entity.properties && entity.properties.transparent
