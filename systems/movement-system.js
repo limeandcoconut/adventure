@@ -62,7 +62,6 @@ class MovementSystem extends System {
     const visited = destination.area.visited
     if (!visited.includes(entity)) {
       visited.push(entity)
-      // action.procedure.push('locate')
       action.procedure.push('look')
     }
 

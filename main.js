@@ -36,12 +36,11 @@ function adventure(line) {
 
   if (!gameStarted && !adventure.debugMode.begun) {
     // TODO:
-    // If first line is empty skip it
-    // When opening contianer for the first time treat as entering new room
+    // Add test for inital viewing of container
     // an/any word "y"
     let output = beginGame()
     if (!/^\s*$/.test(line)) {
-      // Add test for this
+      // TODO: Add test for skipping the first line
       output += '\n' + adventure(line)
     }
     return output

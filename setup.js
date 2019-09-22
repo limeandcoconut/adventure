@@ -124,6 +124,7 @@ function createContainer(props = {}) {
     fixtures,
     open,
     surface,
+    viewed,
     labels,
     descriptors,
     appearance,
@@ -142,7 +143,7 @@ function createContainer(props = {}) {
   container.appearance = new Appearance(appearance)
   container.location = new Location(parent)
   container.descriptors = new Descriptors(labels, descriptors)
-  container.container = new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface})
+  container.container = new Container({volume, maxLoad, freeVolume, contents, fixtures, open, surface, viewed})
   container.properties = new ObjectProperties({size, baseWeight, weight, fixture, part, visible, transparent})
 
   if (text) {
@@ -265,7 +266,7 @@ function createPlayer(props = {}) {
 }
 
 let player
-
+// TODO: [>=1.1.0] Create a (visual?) mapping tool to UML these items
 if (newId.lowestFreeId === 10) {
   // Great! This is where you create an entity 🤖
   let testingChamber00178 = createRoom({
@@ -356,6 +357,7 @@ if (newId.lowestFreeId === 10) {
     size: 3,
     baseWeight: 3,
     weight: 5,
+    viewed: [player],
   })
 
   let rock = createThing({
@@ -473,6 +475,7 @@ if (newId.lowestFreeId === 10) {
     labels: ['pencil'],
     descriptors: ['yellow', 'ticonderoga'],
     appearance: 'A standard No. 2 HB Pencil. What did you expect?',
+    // TODO: [>=0.1.0] Change to different name?
     text: 'HB 2 TICONDEROGA',
     size: 0,
     baseWeight: 0,
@@ -508,6 +511,7 @@ if (newId.lowestFreeId === 10) {
     // weight: 1,
     open: true,
     transparent: true,
+    viewed: [player],
   })
 
   // let testingArea = entityManager.getComponent('Area', testingChamber00178)

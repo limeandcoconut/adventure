@@ -256,8 +256,12 @@ const responses = {
       output += describeContents({contents: inventory})
       return output
     },
-    open({steps: {open: {code}}, object, desired}) {
+    open(action) {
+      const {steps: {open: {code}, look}, object, desired} = action
       if (code === 'so-ss') {
+        if (look) {
+          return responses.steps.look(action)
+        }
         return desired ? 'Opened.' : 'Closed.'
       }
       if (code === 'so-ax') {

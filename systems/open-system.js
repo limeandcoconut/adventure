@@ -37,6 +37,11 @@ class OpenSystem extends System {
 
     container.open = action.desired
 
+    if (action.desired && !container.surface && !container.viewed.includes(action.entity)) {
+      container.viewed.push(action.entity)
+      action.procedure.push('look')
+    }
+
     action.steps.open = {
       success: true,
       code: 'so-ss',

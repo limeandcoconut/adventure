@@ -97,13 +97,15 @@ class ObjectProperties {
 }
 
 class Container {
-  constructor({volume,
+  constructor({
+    volume,
     maxLoad,
     freeVolume = volume,
     contents = [],
     fixtures = [],
     open = true,
     surface = false,
+    viewed = [],
   }) {
 
     if (typeof volume !== 'number') {
@@ -140,6 +142,11 @@ class Container {
       throw new TypeError('Argument \'surface\' must be a boolean')
     }
     this.surface = surface
+    // To handle for containers that are initially open pass in a viewed list at creation.
+    if (!Array.isArray(viewed)) {
+      throw new TypeError('Argument "viewed" must be an Array')
+    }
+    this.viewed = viewed
   }
 }
 
